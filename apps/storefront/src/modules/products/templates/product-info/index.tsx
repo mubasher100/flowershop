@@ -1,5 +1,4 @@
 import { HttpTypes } from "@medusajs/types"
-import { Heading, Text } from "@modules/common/components/ui"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 type ProductInfoProps = {
@@ -8,31 +7,31 @@ type ProductInfoProps = {
 
 const ProductInfo = ({ product }: ProductInfoProps) => {
   return (
-    <div id="product-info">
-      <div className="flex flex-col gap-y-4 lg:max-w-[500px] mx-auto">
-        {product.collection && (
-          <LocalizedClientLink
-            href={`/collections/${product.collection.handle}`}
-            className="text-medium text-ui-fg-muted hover:text-ui-fg-subtle"
-          >
-            {product.collection.title}
-          </LocalizedClientLink>
-        )}
-        <Heading
-          level="h2"
-          className="text-3xl leading-10 text-ui-fg-base"
-          data-testid="product-title"
+    <div id="product-info" className="flex flex-col gap-3">
+      {product.collection && (
+        <LocalizedClientLink
+          href={`/collections/${product.collection.handle}`}
+          className="inline-flex w-fit text-xs font-semibold uppercase tracking-[0.14em] text-blush-700 hover:underline"
         >
-          {product.title}
-        </Heading>
+          {product.collection.title}
+        </LocalizedClientLink>
+      )}
 
-        <Text
-          className="text-medium text-ui-fg-subtle whitespace-pre-line"
-          data-testid="product-description"
-        >
-          {product.description}
-        </Text>
-      </div>
+      {/* h1, not h2: this is the page's subject. The starter used h2 and left
+          the page without a top-level heading. */}
+      <h1
+        className="font-display text-4xl leading-tight text-ink-900 small:text-5xl"
+        data-testid="product-title"
+      >
+        {product.title}
+      </h1>
+
+      <p
+        className="max-w-[52ch] whitespace-pre-line text-base leading-relaxed text-ink-600"
+        data-testid="product-description"
+      >
+        {product.description}
+      </p>
     </div>
   )
 }

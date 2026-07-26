@@ -176,11 +176,16 @@ export default function ProductActions({
           isLoading={isAdding}
           data-testid="add-product-button"
         >
-          {!selectedVariant && !options
-            ? "Select variant"
+          {/* Order matters. The original checked `!selectedVariant && !options`
+              first — but `options` is a truthy object whenever the product has
+              any, so nothing-selected fell through to "Out of stock". Every
+              product here has a size ladder, so every product read as sold out
+              until a size was picked, with 100 in stock. */}
+          {!selectedVariant
+            ? "Select a size"
             : !inStock || !isValidVariant
             ? "Out of stock"
-            : "Add to cart"}
+            : "Add to bag"}
         </Button>
         <MobileActions
           product={product}
