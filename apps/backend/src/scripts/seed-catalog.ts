@@ -180,13 +180,19 @@ const PRODUCTS: Seed[] = [
 ]
 /* eslint-enable @medusajs/prices-in-major-units */
 
-/** Deterministic on-brand placeholder art. Real photography replaces these. */
-const PLACEHOLDERS = [
-  "/placeholders/bloom-01.svg",
-  "/placeholders/bloom-02.svg",
-  "/placeholders/bloom-03.svg",
-  "/placeholders/bloom-04.svg",
-]
+/**
+ * Product photography.
+ *
+ * CC0 (public domain) stock, pre-sized and compressed — see
+ * apps/storefront/public/IMAGE-CREDITS.json for the source of each file.
+ * Assigned round-robin within a category so neighbouring cards in a rail
+ * don't repeat. Replace with studio shots of our own arrangements when they
+ * exist; only this list changes.
+ */
+const PHOTOS = Array.from(
+  { length: 12 },
+  (_, i) => `/products/bloom-${String(i + 1).padStart(2, "0")}.jpg`
+)
 
 const handleize = (s: string) =>
   s
@@ -295,10 +301,52 @@ export default async function seedCatalog({
   }
 
   await removeStarterDemoProducts(container, logger)
+  await refreshProductImages(container, logger)
   await rebalanceCollections(container, logger)
   await assignOccasions(container, logger, catByHandle)
 
   logger.info("Catalogue seed complete.")
+}
+
+/**
+ * Points existing products at the current PHOTOS list.
+ *
+ * Product creation is skipped once the catalogue exists, so changing PHOTOS
+ * alone would never reach a seeded database — which is exactly what happened
+ * when the gradient placeholders were replaced with photography.
+ */
+async function refreshProductImages(
+  container: MedusaContainer,
+  logger: { info: (m: string) => void }
+) {
+  const query = container.resolve(ContainerRegistrationKeys.QUERY)
+
+  const { data: products } = await query.graph({
+    entity: "product",
+    fields: ["id", "handle", "thumbnail"],
+  })
+
+  const ordered = [...products].sort((a, b) =>
+    (a.handle ?? "").localeCompare(b.handle ?? "")
+  )
+
+  let updated = 0
+  for (const [i, product] of ordered.entries()) {
+    const image = PHOTOS[i % PHOTOS.length]
+    if (product.thumbnail === image) continue
+
+    await updateProductsWorkflow(container).run({
+      input: {
+        selector: { id: product.id },
+        update: { thumbnail: image, images: [{ url: image }] },
+      },
+    })
+    updated++
+  }
+
+  if (updated) {
+    logger.info(`Repointed ${updated} products at product photography.`)
+  }
 }
 
 /**
@@ -386,7 +434,7 @@ async function createProducts(
 
   const productsInput = toCreate.map((seed, i) => {
     const sizes = SIZES.slice(0, seed.sizes ?? 3)
-    const image = PLACEHOLDERS[i % PLACEHOLDERS.length]
+    const image = PHOTOS[i % PHOTOS.length]
 
     return {
       title: seed.name,
