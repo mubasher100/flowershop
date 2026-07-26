@@ -29,9 +29,11 @@ const Thumbnail: React.FC<ThumbnailProps> = ({
         "relative w-full overflow-hidden p-4 bg-ui-bg-subtle shadow-elevation-card-rest rounded-large group-hover:shadow-elevation-card-hover transition-shadow ease-in-out duration-150",
         className,
         {
-          "aspect-[11/14]": isFeatured,
+          // Square on the homepage rails. At 11/14 a card ran ~330px tall on a
+          // 390px phone — roughly 40% of the viewport for one product — so a
+          // rail showed barely one item and the page felt endless.
+          "aspect-[1/1]": isFeatured || size === "square",
           "aspect-[9/16]": !isFeatured && size !== "square",
-          "aspect-[1/1]": size === "square",
           "w-[180px]": size === "small",
           "w-[290px]": size === "medium",
           "w-[440px]": size === "large",

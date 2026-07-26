@@ -10,6 +10,7 @@ import {
   createProductsWorkflow,
   deleteProductCategoriesWorkflow,
   deleteProductsWorkflow,
+  updateProductsWorkflow,
 } from "@medusajs/medusa/core-flows"
 
 /**
@@ -229,12 +230,44 @@ export default async function seedCatalog({
     (p) => !existingHandles.has(handleize(p.name))
   )
 
-  if (!toCreate.length) {
+  // Note: creation is skipped when everything already exists, but the cleanup
+  // and rebalance passes at the end always run — they are what fix a database
+  // seeded by an earlier version of this script.
+  if (toCreate.length) {
+    await createProducts(container, logger, toCreate, {
+      catByHandle,
+      colByHandle,
+      salesChannelId,
+      stockLocationId,
+      shippingProfileId,
+    })
+  } else {
     logger.info("Catalogue already seeded, skipping product creation.")
-    // Still run the cleanup — it is what removes the starter's apparel.
-    await removeStarterDemoProducts(container, logger)
-    return
   }
+
+  await removeStarterDemoProducts(container, logger)
+  await rebalanceCollections(container, logger)
+
+  logger.info("Catalogue seed complete.")
+}
+
+type CreateDeps = {
+  catByHandle: Map<string | undefined, string>
+  colByHandle: Map<string | undefined, string>
+  salesChannelId: string
+  stockLocationId: string
+  shippingProfileId?: string
+}
+
+async function createProducts(
+  container: MedusaContainer,
+  logger: { info: (m: string) => void },
+  toCreate: Seed[],
+  deps: CreateDeps
+) {
+  const query = container.resolve(ContainerRegistrationKeys.QUERY)
+  const { catByHandle, colByHandle, salesChannelId, stockLocationId, shippingProfileId } =
+    deps
 
   const productsInput = toCreate.map((seed, i) => {
     const sizes = SIZES.slice(0, seed.sizes ?? 3)
@@ -300,10 +333,105 @@ export default async function seedCatalog({
     })
     logger.info(`Stocked ${needLevels.length} inventory items at Doha.`)
   }
+}
 
-  await removeStarterDemoProducts(container, logger)
+/**
+ * Spreads products across the homepage collections.
+ *
+ * A Medusa product belongs to at most ONE collection, so taking the first
+ * entry from each seed's `collections` list piled everything into Best
+ * Sellers and left New This Week with a single product — a rail with one
+ * card reads as broken.
+ *
+ * Assignment runs in priority order with a cap per collection, so each rail
+ * gets a usable number of cards and no product is claimed twice.
+ */
+async function rebalanceCollections(
+  container: MedusaContainer,
+  logger: { info: (m: string) => void }
+) {
+  const query = container.resolve(ContainerRegistrationKeys.QUERY)
 
-  logger.info("Catalogue seed complete.")
+  const { data: collections } = await query.graph({
+    entity: "product_collection",
+    fields: ["id", "handle"],
+  })
+  const colId = new Map(collections.map((c) => [c.handle, c.id]))
+
+  const { data: products } = await query.graph({
+    entity: "product",
+    fields: ["id", "title", "handle", "collection_id", "variants.id"],
+  })
+
+  const seedByHandle = new Map(PRODUCTS.map((p) => [handleize(p.name), p]))
+
+  // Rules are evaluated top to bottom; first match wins, up to the cap.
+  // Order matters: the hand-picked collections must claim their products
+  // before the broad rules (price bands, name matches) absorb them. Running
+  // luxury-edit first left best-sellers with a single card.
+  const RULES: { handle: string; cap: number; match: (s: Seed) => boolean }[] = [
+    {
+      handle: "best-sellers",
+      cap: 8,
+      match: (s) => s.collections.includes("best-sellers"),
+    },
+    {
+      handle: "roses-always",
+      cap: 8,
+      match: (s) => /rose/i.test(s.name),
+    },
+    {
+      handle: "luxury-edit",
+      cap: 10,
+      match: (s) => s.price >= 700,
+    },
+    {
+      handle: "new-this-week",
+      cap: 8,
+      match: (s) => s.category === "bouquets" || s.category === "everyday",
+    },
+    {
+      handle: "under-400",
+      cap: 10,
+      match: (s) => s.price <= 400,
+    },
+  ]
+
+  const counts = new Map(RULES.map((r) => [r.handle, 0]))
+  const assignment = new Map<string, string | null>()
+
+  for (const product of products) {
+    const seed = seedByHandle.get(product.handle ?? "")
+    if (!seed) continue
+
+    let target: string | null = null
+    for (const rule of RULES) {
+      if (counts.get(rule.handle)! >= rule.cap) continue
+      if (!rule.match(seed)) continue
+      target = colId.get(rule.handle) ?? null
+      counts.set(rule.handle, counts.get(rule.handle)! + 1)
+      break
+    }
+
+    if (product.collection_id !== target) {
+      assignment.set(product.id, target)
+    }
+  }
+
+  if (!assignment.size) {
+    return
+  }
+
+  for (const [productId, collection_id] of assignment) {
+    await updateProductsWorkflow(container).run({
+      input: { selector: { id: productId }, update: { collection_id } },
+    })
+  }
+
+  const summary = [...counts.entries()]
+    .map(([h, n]) => `${h}=${n}`)
+    .join(", ")
+  logger.info(`Rebalanced collections (${summary}).`)
 }
 
 /**

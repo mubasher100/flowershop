@@ -52,9 +52,11 @@ export default async function ProductRail({
           clipped — that peek is what tells a thumb there is more to see. */}
       <ul className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 small:mx-0 small:grid small:grid-cols-4 small:gap-6 small:overflow-visible small:px-0">
         {pricedProducts.map((product) => (
+          {/* ~2.2 cards per phone viewport, matching the reference's density.
+              At 63vw only one card fit and every rail read as a dead end. */}
           <li
             key={product.id}
-            className="w-[63vw] max-w-[16rem] flex-none snap-start xsmall:w-[42vw] small:w-auto small:max-w-none"
+            className="w-[43vw] max-w-[15rem] flex-none snap-start xsmall:w-[31vw] small:w-auto small:max-w-none"
           >
             <ProductPreview product={product} region={region} isFeatured />
           </li>
