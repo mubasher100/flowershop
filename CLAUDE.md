@@ -163,7 +163,7 @@ Re-run the Qatar configuration at any time — it is idempotent:
 cd apps/backend && npx medusa exec ./src/scripts/seed-qatar.ts
 ```
 
-> `npx medusa db:migrate` auto-runs the starter's `initial-data-seed` migration script, which recreates the **Europe/EUR** setup. Against a fresh database, always run `seed-qatar.ts` afterwards.
+> **Never reintroduce a `src/migration-scripts/` seed.** The starter shipped `initial-data-seed.ts`, which built a European store. It has been deleted. Medusa records executed migration scripts **by filename**, and local dev runs the `.ts` while a production build runs the compiled `.js` — different names, so it re-ran on every single deploy and kept resurrecting the Europe region. `seed-qatar.ts` is the one canonical setup script; it bootstraps a fresh database and cleans up a stale one.
 
 ---
 
@@ -195,8 +195,19 @@ CI never touches Supabase.
 > **Branch protection is not active.** GitHub gates both branch protection and rulesets behind Pro for private repos, and this repo is private on the Free plan. `main` is therefore only protected by convention — nothing mechanically blocks a direct push or a merge over red CI. To fix: upgrade to GitHub Pro (~$4/mo), or make the repo public.
 
 **Deploys:**
-- Backend → Railway's native GitHub integration, watching `apps/backend/**` on `main`. Migrations run as a pre-deploy step, not at boot.
-- Storefront → `.github/workflows/deploy-storefront.yml`, watching `apps/storefront/**` on `main`.
+- Backend → Railway, watching `apps/backend/**` on `main`. Config lives in [`railway.json`](railway.json) at the **repo root** (not `apps/backend/`) — the build must run from the root so npm workspaces resolve. Migrations run as a pre-deploy step, not at boot.
+- Storefront → `.github/workflows/deploy-storefront.yml`, watching `apps/storefront/**` on `main`. Gated behind the `CLOUDFLARE_ENABLED` repo variable until Cloudflare is set up.
+
+### Live environment
+
+| | |
+|---|---|
+| Backend API | https://dtcbackend-production-a265.up.railway.app |
+| Admin | https://dtcbackend-production-a265.up.railway.app/app |
+| Railway project | `calm-analysis` — services `@dtc/backend` and `redis` |
+| Database | Supabase `zlgqitlviqchhrkkguny`, **session pooler** `aws-0-ap-northeast-1` |
+
+Railway's `railwayConfigFile` setting is a stored per-service path. Moving `railway.json` in the repo does **not** update it — the deploy fails at *Snapshot code* with `service config at '<old path>' not found`. Update the service setting too.
 
 ---
 
@@ -209,6 +220,8 @@ CI never touches Supabase.
 - ❌ *Transaction pooler (6543)* — breaks MikroORM. Prepared statements don't survive connection swaps, and migrations fail
 
 A wrong port does not fail at boot. It surfaces later as intermittent `prepared statement "s1" does not exist` errors under load.
+
+**Railway does not shell-expand `$VAR` in a start command.** The Redis service's `redis-server --requirepass $REDIS_PASSWORD` set the password to that literal string, and the backend failed with `WRONGPASS invalid username-password pair`. The password is written out literally in the start command instead. `${{service.VAR}}` references *between* services do resolve — that syntax is Railway's own, evaluated before the container starts.
 
 **Redis must be wired into all four modules** — cache, event bus, workflow engine, and locking. Miss one and Medusa silently falls back to in-memory, which breaks scheduled jobs, subscribers, and long-running workflows across restarts.
 
@@ -245,7 +258,7 @@ A wrong port does not fail at boot. It surfaces later as intermittent `prepared 
 | 1 | Monorepo scaffold (backend + storefront) | ✅ Done |
 | 2 | CLAUDE.md, CI/CD, repo hygiene | ✅ Done (CI green; branch protection blocked by plan) |
 | 3 | Supabase Postgres + migrations + Qatar seed | ✅ Done |
-| 4 | Railway deploy (backend + Redis) | ⏳ Needs Railway project |
+| 4 | Railway deploy (backend + Redis) | ✅ Done — live |
 | 5 | Cloudflare storefront deploy | ⏳ After Railway |
 | 6 | Branding — name, logo, palette | 🔒 Pending decision |
 | 7 | Storefront design from sample sites | 🔒 Pending samples |

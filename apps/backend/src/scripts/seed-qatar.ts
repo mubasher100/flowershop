@@ -12,6 +12,7 @@ import {
   createStockLocationsWorkflow,
   createTaxRegionsWorkflow,
   deleteRegionsWorkflow,
+  deleteStockLocationsWorkflow,
   deleteTaxRegionsWorkflow,
   linkSalesChannelsToApiKeyWorkflow,
   linkSalesChannelsToStockLocationWorkflow,
@@ -441,6 +442,23 @@ export default async function seedQatar({
       input: { ids: staleTaxRegions.map((t) => t.id) },
     })
     logger.info(`Removed ${staleTaxRegions.length} non-Qatar tax region(s).`)
+  }
+
+  // The deleted starter seed created a "European Warehouse". If a database
+  // still carries one (or a re-run produced a duplicate), drop it — this shop
+  // ships from Doha only, and a second location makes stock ambiguous.
+  const { data: allStockLocations } = await query.graph({
+    entity: "stock_location",
+    fields: ["id", "name"],
+  })
+  const staleLocations = allStockLocations.filter(
+    (l) => l.name !== "Doha Warehouse"
+  )
+  if (staleLocations.length) {
+    await deleteStockLocationsWorkflow(container).run({
+      input: { ids: staleLocations.map((l) => l.id) },
+    })
+    logger.info(`Removed ${staleLocations.length} non-Doha stock location(s).`)
   }
 
   logger.info("Qatar store configuration complete.")
