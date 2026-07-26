@@ -8,6 +8,12 @@ A headless ecommerce platform for a flower shop serving Qatar. Built on Medusa v
 >
 > Everything runs on Railway, Supabase, and Cloudflare. If a Medusa doc page recommends Cloud, use the self-hosted path instead.
 
+> ## 📱 Hard constraint: mobile-first
+>
+> **Every page must be mobile friendly.** Qatar's flower-gifting traffic is overwhelmingly phone-based, and the reference sites are all built mobile-first. Design and build at the small breakpoint first, then scale up — never desktop-down.
+>
+> Non-negotiables: no horizontal body scroll at any width, touch targets ≥44px, thumb-reachable primary actions, images sized for mobile bandwidth, and sticky add-to-cart on product pages. Check every change at 375px before calling it done.
+
 > **Branding is not decided yet.** The store name, logo, and visual identity are pending. Do not invent a brand name — use "Flowershop" as a placeholder and keep branding in one place so it is cheap to swap later.
 
 ---
