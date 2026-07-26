@@ -1,14 +1,16 @@
 import { Metadata } from "next"
 
+import CategoryTiles from "@modules/home/components/category-tiles"
+import DeliveryStrip from "@modules/home/components/delivery-strip"
 import FeaturedProducts from "@modules/home/components/featured-products"
 import Hero from "@modules/home/components/hero"
 import { listCollections } from "@lib/data/collections"
 import { getRegion } from "@lib/data/regions"
 
 export const metadata: Metadata = {
-  title: "Medusa Next.js Starter Template",
+  title: "Flowershop — Same-day flower delivery in Doha",
   description:
-    "A performant frontend ecommerce starter template with Next.js 15 and Medusa.",
+    "Hand-tied bouquets, vase arrangements and signature roses, arranged in Doha and delivered the same day. Order by 6pm.",
 }
 
 export default async function Home(props: {
@@ -31,11 +33,17 @@ export default async function Home(props: {
   return (
     <>
       <Hero />
-      <div className="py-12">
-        <ul className="flex flex-col gap-x-6">
-          <FeaturedProducts collections={collections} region={region} />
-        </ul>
-      </div>
+
+      {/* Delivery reassurance sits directly under the hero: in flower gifting,
+          "will it arrive in time" blocks the purchase more often than
+          "is it pretty". */}
+      <DeliveryStrip />
+
+      <CategoryTiles />
+
+      <ul className="flex flex-col">
+        <FeaturedProducts collections={collections} region={region} />
+      </ul>
     </>
   )
 }
