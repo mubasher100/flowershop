@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore"
+      include: scope
+    groups:
+      # Medusa packages are version-locked to each other — bump them together
+      # or the backend fails at runtime with mismatched module versions.
+      medusa:
+        patterns: ["@medusajs/*"]
+      dev-dependencies:
+        dependency-type: development
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore"

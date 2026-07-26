@@ -1,0 +1,45 @@
+name: Deploy storefront (Cloudflare)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/storefront/**"
+      - ".github/workflows/deploy-storefront.yml"
+  workflow_dispatch:
+
+# Never let two deploys race to the same Worker.
+concurrency:
+  group: deploy-storefront
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build & deploy to Cloudflare Workers
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build with OpenNext
+        working-directory: apps/storefront
+        run: npx opennextjs-cloudflare build
+        env:
+          NEXT_PUBLIC_MEDUSA_BACKEND_URL: ${{ vars.MEDUSA_BACKEND_URL }}
+          NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${{ secrets.MEDUSA_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_BASE_URL: ${{ vars.STOREFRONT_BASE_URL }}
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/storefront
+          command: deploy
