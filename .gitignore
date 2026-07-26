@@ -20,6 +20,9 @@ coverage
 **/.next/
 **/out/
 
+# TypeScript incremental build cache
+*.tsbuildinfo
+
 # Medusa build output
 **/.medusa/
 

@@ -1,25 +1,50 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalPassThroughEnv": [
+    "NODE_ENV",
+    "CI",
+    "SKIP_ENV_VALIDATION"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "outputs": ["dist/**", ".next/**", ".medusa/**"],
+      // Declared so a change to any of these busts the build cache — a stale
+      // build baked with the wrong backend URL is very hard to spot later.
+      "env": [
+        "DATABASE_URL",
+        "JWT_SECRET",
+        "COOKIE_SECRET",
+        "STORE_CORS",
+        "ADMIN_CORS",
+        "AUTH_CORS",
+        "MEDUSA_BACKEND_URL",
+        "MEDUSA_WORKER_MODE",
+        "DISABLE_MEDUSA_ADMIN",
+        "REDIS_URL",
+        "NEXT_PUBLIC_*"
+      ]
     },
     "dev": {
       "cache": false,
       "persistent": true
     },
     "start": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
     },
     "lint": {
       "outputs": []
     },
     "test": {
-      "outputs": []
+      "outputs": [],
+      "env": ["DATABASE_URL", "REDIS_URL", "TEST_TYPE"]
     },
     "seed": {
-      "outputs": []
+      "cache": false,
+      "outputs": [],
+      "env": ["DATABASE_URL"]
     }
   }
 }

@@ -194,6 +194,17 @@ A wrong port does not fail at boot. It surfaces later as intermittent `prepared 
 
 **Backend test scripts use POSIX env-prefix syntax** (`TEST_TYPE=… jest`). They work in Git Bash and CI, but not in PowerShell or cmd.
 
+**The storefront cannot build without a running backend.** `next build` statically generates product and collection pages, so it fetches the Store API at build time and dies with `ECONNREFUSED` otherwise. Consequences:
+
+- `npm run build` at the repo root fails unless the backend is up. Use `npm run build --workspace=@dtc/backend` when you only need the backend.
+- CI deliberately does **not** build the storefront — it lints and typechecks it instead. The storefront is built in the deploy workflow, where `NEXT_PUBLIC_MEDUSA_BACKEND_URL` points at the live Railway backend.
+
+**`SKIP_ENV_VALIDATION=true` bypasses the storefront's env check.** `next.config.js` demands a publishable key, and it is loaded by `next lint` too — not just `dev`/`build`. Lint sets this flag; nothing else should.
+
+**Turbo runs in strict env mode.** Environment variables are not passed through to tasks unless declared in `turbo.json` (`globalPassThroughEnv`, or a task's `env` array). A var that works in your shell but is empty inside a turbo task is almost always a missing declaration — not a shell problem.
+
+**`next build` skips type and lint checks** (`ignoreBuildErrors` / `ignoreDuringBuilds` are set in `next.config.js`). A green build proves nothing about types. `npx tsc --noEmit` is what actually gates storefront type safety, and CI runs it separately.
+
 ---
 
 ## Roadmap

@@ -53,13 +53,17 @@ apps/storefront/   Next.js storefront       → Cloudflare Workers
 
 ```bash
 npm run dev              # both apps
-npm run build            # both apps
 npm run lint
 npm run test
 npm run backend:dev      # backend only
 npm run storefront:dev   # storefront only
 npm run backend:seed     # seed demo data
+
+npm run build --workspace=@dtc/backend    # backend build
+npm run build                             # both — needs the backend running
 ```
+
+> `next build` statically generates product pages, so it fetches the Store API at build time. Building the storefront without a running backend fails with `ECONNREFUSED`.
 
 ## Contributing
 

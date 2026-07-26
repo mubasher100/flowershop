@@ -1,6 +1,11 @@
 const checkEnvVariables = require("./check-env-variables")
 
-checkEnvVariables()
+// next.config.js is loaded by `next lint` and `next typegen` too, not just
+// `dev`/`build`. Those don't talk to the backend, so requiring a real
+// publishable key there would break CI on every PR.
+if (!process.env.SKIP_ENV_VALIDATION) {
+  checkEnvVariables()
+}
 
 /**
  * Remote image host for product media.

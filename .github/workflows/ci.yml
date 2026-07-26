@@ -15,8 +15,8 @@ env:
   NODE_VERSION: "22"
 
 jobs:
-  lint-and-build:
-    name: Lint, typecheck & build
+  quality:
+    name: Lint & typecheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,11 +26,17 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
 
+      # SKIP_ENV_VALIDATION: next.config.js otherwise demands a real
+      # publishable key, which lint has no use for.
       - name: Lint
         run: npm run lint
+        env:
+          SKIP_ENV_VALIDATION: "true"
 
+      # `next build` has ignoreBuildErrors/ignoreDuringBuilds set, so these
+      # explicit typechecks are the only thing catching type errors.
       - name: Typecheck backend
         working-directory: apps/backend
         run: npx tsc --noEmit
@@ -39,9 +45,22 @@ jobs:
         working-directory: apps/storefront
         run: npx tsc --noEmit
 
-      # Builds need the env vars present, but not real ones — these are
-      # placeholders so the build doesn't fail on missing-var assertions.
+  build-backend:
+    name: Build backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci --legacy-peer-deps
+
+      # Placeholders — `medusa build` reads these but doesn't connect.
       - name: Build
+        working-directory: apps/backend
         run: npm run build
         env:
           DATABASE_URL: postgres://ci:ci@localhost:5432/ci
@@ -50,9 +69,6 @@ jobs:
           STORE_CORS: http://localhost:8000
           ADMIN_CORS: http://localhost:9000
           AUTH_CORS: http://localhost:8000,http://localhost:9000
-          NEXT_PUBLIC_MEDUSA_BACKEND_URL: http://localhost:9000
-          NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: pk_ci_placeholder
-          NEXT_PUBLIC_BASE_URL: http://localhost:8000
 
   test-backend:
     name: Backend tests
@@ -97,7 +113,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
 
       - name: Unit tests
         working-directory: apps/backend
@@ -106,3 +122,10 @@ jobs:
       - name: HTTP integration tests
         working-directory: apps/backend
         run: npm run test:integration:http
+
+# NOTE: the storefront is deliberately NOT built here.
+# `next build` statically generates product and collection pages, which means
+# it fetches from a live Medusa backend at build time. Without one it fails
+# with ECONNREFUSED. The storefront is built in deploy-storefront.yml, where
+# NEXT_PUBLIC_MEDUSA_BACKEND_URL points at the real Railway backend.
+# Lint and typecheck above are what gate storefront changes on PRs.

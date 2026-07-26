@@ -5,6 +5,9 @@ loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 const REDIS_URL = process.env.REDIS_URL
 
 if (process.env.NODE_ENV === 'production' && !REDIS_URL) {
+  // A generic Error is correct here: this is a boot-time misconfiguration that
+  // must stop the process, not a request failure that maps to an HTTP status.
+  // eslint-disable-next-line @medusajs/use-medusa-error-not-generic-error
   throw new Error(
     'REDIS_URL is required in production. Without it Medusa falls back to ' +
       'in-memory modules, which lose scheduled jobs and workflow state on restart.'
