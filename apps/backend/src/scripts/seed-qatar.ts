@@ -5,24 +5,33 @@ import {
   Modules,
 } from "@medusajs/framework/utils"
 import {
+  createApiKeysWorkflow,
   createRegionsWorkflow,
+  createSalesChannelsWorkflow,
   createShippingOptionsWorkflow,
+  createStockLocationsWorkflow,
   createTaxRegionsWorkflow,
   deleteRegionsWorkflow,
   deleteTaxRegionsWorkflow,
+  linkSalesChannelsToApiKeyWorkflow,
+  linkSalesChannelsToStockLocationWorkflow,
   updateProductVariantsWorkflow,
   updateStockLocationsWorkflow,
   updateStoresWorkflow,
 } from "@medusajs/medusa/core-flows"
 
 /**
- * Converts the starter's Europe/EUR seed into the Qatar/QAR store this project
- * actually needs.
+ * The canonical store configuration for this project: Qatar, QAR, Doha.
  *
- * The starter's `initial-data-seed` migration script runs automatically on
- * `db:migrate` and hardcodes a European store: EUR default currency, 7 EU
- * countries, a Copenhagen warehouse. Rather than fork that 839-line file, this
- * script runs after it and reshapes the result.
+ * The starter shipped an `initial-data-seed` migration script that hardcoded a
+ * European store (EUR default, 7 EU countries, a Copenhagen warehouse). It has
+ * been DELETED — do not reintroduce it. Medusa records executed scripts by
+ * filename, and dev runs `initial-data-seed.ts` while a production build runs
+ * the compiled `initial-data-seed.js`. Those are different names, so the seed
+ * re-ran on every deploy and kept resurrecting the Europe region.
+ *
+ * This script therefore both bootstraps a fresh database and reshapes one that
+ * still carries the old European data.
  *
  * Idempotent — safe to re-run.
  *
@@ -58,6 +67,46 @@ export default async function seedQatar({
   }
   type PriceRow = { currency_code: string; amount: number }
   type VariantRow = { id: string; prices?: (PriceRow | null)[] | null }
+
+  // ---------------------------------------------------------------------
+  // Bootstrap: sales channel + publishable key
+  //
+  // The deleted starter seed used to create these. On a fresh database
+  // nothing else does, and the storefront cannot call the Store API without
+  // a publishable key linked to a sales channel.
+  // ---------------------------------------------------------------------
+  const { data: salesChannels } = await query.graph({
+    entity: "sales_channel",
+    fields: ["id", "name"],
+  })
+
+  let salesChannelId = salesChannels[0]?.id
+  if (!salesChannelId) {
+    const { result } = await createSalesChannelsWorkflow(container).run({
+      input: { salesChannelsData: [{ name: "Default Sales Channel" }] },
+    })
+    salesChannelId = result[0].id
+    logger.info("Created default sales channel.")
+  }
+
+  const { data: apiKeys } = await query.graph({
+    entity: "api_key",
+    fields: ["id", "title", "type"],
+  })
+
+  if (!apiKeys.some((k) => k.type === "publishable")) {
+    const { result } = await createApiKeysWorkflow(container).run({
+      input: {
+        api_keys: [
+          { title: "Storefront", type: "publishable", created_by: "seed" },
+        ],
+      },
+    })
+    await linkSalesChannelsToApiKeyWorkflow(container).run({
+      input: { id: result[0].id, add: [salesChannelId] },
+    })
+    logger.info(`Created publishable API key: ${result[0].token}`)
+  }
 
   // ---------------------------------------------------------------------
   // Store: make QAR the default currency
@@ -152,9 +201,34 @@ export default async function seedQatar({
     entity: "stock_location",
     fields: ["id", "name"],
   })
-  const stockLocation = stockLocations[0]
+  // Narrowed for the same reason as RegionRow above: the workflow returns a
+  // DTO, query.graph returns an entity, and they differ in relation fields.
+  let stockLocation: { id: string; name: string } | undefined =
+    stockLocations[0]
 
-  if (stockLocation && stockLocation.name !== "Doha Warehouse") {
+  if (!stockLocation) {
+    // Fresh database — nothing to repoint, so create Doha outright.
+    const { result } = await createStockLocationsWorkflow(container).run({
+      input: {
+        locations: [
+          {
+            name: "Doha Warehouse",
+            address: { city: "Doha", country_code: "QA", address_1: "" },
+          },
+        ],
+      },
+    })
+    stockLocation = result[0]
+
+    await link.create({
+      [Modules.STOCK_LOCATION]: { stock_location_id: stockLocation.id },
+      [Modules.FULFILLMENT]: { fulfillment_provider_id: "manual_manual" },
+    })
+    await linkSalesChannelsToStockLocationWorkflow(container).run({
+      input: { id: stockLocation.id, add: [salesChannelId] },
+    })
+    logger.info("Created Doha Warehouse.")
+  } else if (stockLocation.name !== "Doha Warehouse") {
     await updateStockLocationsWorkflow(container).run({
       input: {
         selector: { id: stockLocation.id },
