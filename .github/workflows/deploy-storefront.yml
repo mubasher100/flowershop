@@ -18,6 +18,11 @@ jobs:
     name: Build & deploy to Cloudflare Workers
     runs-on: ubuntu-latest
     environment: production
+    # Off until Cloudflare and the Railway backend exist. The storefront build
+    # fetches the Store API for static generation, so without a live backend
+    # this job burns ~25 minutes and fails on every push.
+    # Enable with: gh variable set CLOUDFLARE_ENABLED --body true
+    if: vars.CLOUDFLARE_ENABLED == 'true'
     steps:
       - uses: actions/checkout@v4
 
