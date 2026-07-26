@@ -9,7 +9,12 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    // "bundler", not "node": the legacy resolver ignores package "exports"
+    // maps, so subpath imports like
+    // @opennextjs/cloudflare/overrides/incremental-cache/r2-incremental-cache
+    // fail typecheck even though the build resolves them fine. This is the
+    // resolver Next.js 15 expects.
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",

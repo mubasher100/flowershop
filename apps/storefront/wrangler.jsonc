@@ -10,6 +10,15 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  // Incremental cache. Without a persistent store, every isolate re-renders
+  // pages from scratch and re-fetches the Store API — the bucket lives in
+  // APAC, alongside the backend and database.
+  "r2_buckets": [
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "flowershop-cache"
+    }
+  ],
   "observability": {
     "enabled": true
   }
