@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Flower placeholder">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fbd7e2"/>
+      <stop offset="55%" stop-color="#e3c98d"/>
+      <stop offset="100%" stop-color="#a3bf9c"/>
+    </linearGradient>
+    <radialGradient id="r" cx="50%" cy="42%" r="38%">
+      <stop offset="0%" stop-color="#fff" stop-opacity=".55"/>
+      <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="1000" fill="url(#g)"/>
+  <g fill="#fff" fill-opacity=".28">
+    <ellipse cx="520" cy="420" rx="86" ry="112" transform="rotate(0 520 420)"/>
+    <ellipse cx="475" cy="514" rx="86" ry="112" transform="rotate(51 475 514)"/>
+    <ellipse cx="373" cy="537" rx="86" ry="112" transform="rotate(102 373 537)"/>
+    <ellipse cx="292" cy="472" rx="86" ry="112" transform="rotate(153 292 472)"/>
+    <ellipse cx="292" cy="368" rx="86" ry="112" transform="rotate(204 292 368)"/>
+    <ellipse cx="373" cy="303" rx="86" ry="112" transform="rotate(255 373 303)"/>
+    <ellipse cx="475" cy="326" rx="86" ry="112" transform="rotate(306 475 326)"/>
+  </g>
+  <circle cx="400" cy="420" r="58" fill="#fff" fill-opacity=".5"/>
+  <rect width="800" height="1000" fill="url(#r)"/>
+</svg>
