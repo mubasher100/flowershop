@@ -8,6 +8,8 @@
   },
   "deploy": {
     "//": "`medusa build` emits a STANDALONE app into apps/backend/.medusa/server with its own package.json — that directory is what runs in production. Starting from apps/backend fails with 'Could not find index.html in the admin build directory'. It needs no separate npm install here: Node resolves up to the hoisted root node_modules.",
+    "//region": "Singapore is Railway's only Asia-Pacific region and the closest to Supabase in ap-northeast-1 (Tokyo). This MUST live in the config file: railway.json is authoritative once railwayConfigFile is set, so a region set through the dashboard or API is reset to the default on the next deploy.",
+    "region": "asia-southeast1-eqsg3a",
     "startCommand": "cd apps/backend/.medusa/server && npm run start",
     "//preDeploy": "Migrations run before the new container takes traffic, so a failed migration cannot half-start the app.",
     "preDeployCommand": "cd apps/backend/.medusa/server && npx medusa db:migrate",
