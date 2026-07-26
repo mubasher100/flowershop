@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "flowershop-storefront",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-07-01",
+  // nodejs_compat is required by OpenNext — the Next.js server bundle uses
+  // Node built-ins that Workers doesn't provide by default.
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

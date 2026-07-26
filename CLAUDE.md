@@ -2,6 +2,12 @@
 
 A headless ecommerce platform for a flower shop serving Qatar. Built on Medusa v2, deployed across Railway (backend), Supabase (database), and Cloudflare Workers (storefront), with SkipCash as the payment gateway.
 
+> ## ⛔ Hard constraint: no Medusa Cloud
+>
+> This project is **fully self-hosted**. Do not use, suggest, install, or configure **Medusa Cloud** in any form — no `cloud.medusajs.com`, no `mcloud-*` tooling, no Cloud-only modules or env vars. The Medusa Cloud agent skills have been deliberately removed from this repo; do not reinstall them.
+>
+> Everything runs on Railway, Supabase, and Cloudflare. If a Medusa doc page recommends Cloud, use the self-hosted path instead.
+
 > **Branding is not decided yet.** The store name, logo, and visual identity are pending. Do not invent a brand name — use "Flowershop" as a placeholder and keep branding in one place so it is cheap to swap later.
 
 ---
@@ -38,7 +44,7 @@ flowershop/
 │   │   │   └── admin/        Admin dashboard widgets & UI routes
 │   │   └── medusa-config.ts
 │   └── storefront/       @dtc/storefront — Next.js starter  → Cloudflare
-├── .agents/skills/       Medusa official agent skills (source of truth)
+├── .agents/skills/       Medusa official agent skills (Cloud skills removed)
 ├── .claude/skills/       Symlinks into .agents/skills
 ├── .github/workflows/    CI + storefront deploy
 ├── .mcp.json             Medusa docs MCP server

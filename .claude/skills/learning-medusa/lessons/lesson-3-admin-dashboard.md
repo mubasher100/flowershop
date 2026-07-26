@@ -503,7 +503,7 @@ git commit -m "Complete Lesson 3: Admin Dashboard customization"
 **Deploy your feature**:
 1. Run tests (if you have them)
 2. Build for production: `npm run build`
-3. Deploy to [Medusa Cloud](https://cloud.medusajs.com)
+3. Deploy to Railway (this project is self-hosted — do NOT use Medusa Cloud)
 
 **Build more features**:
 - Categories Module

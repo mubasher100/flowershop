@@ -3,10 +3,13 @@ const checkEnvVariables = require("./check-env-variables")
 checkEnvVariables()
 
 /**
- * Medusa Cloud-related environment variables
+ * Remote image host for product media.
+ *
+ * This project is self-hosted — set these to whichever bucket the Medusa file
+ * provider writes to (Cloudflare R2 or Supabase Storage). Not Medusa Cloud.
  */
-const S3_HOSTNAME = process.env.MEDUSA_CLOUD_S3_HOSTNAME
-const S3_PATHNAME = process.env.MEDUSA_CLOUD_S3_PATHNAME
+const MEDIA_HOSTNAME = process.env.NEXT_PUBLIC_MEDIA_HOSTNAME
+const MEDIA_PATHNAME = process.env.NEXT_PUBLIC_MEDIA_PATHNAME
 
 /**
  * @type {import('next').NextConfig}
@@ -39,12 +42,12 @@ const nextConfig = {
         protocol: "https",
         hostname: "*.s3.amazonaws.com",
       },
-      ...(S3_HOSTNAME && S3_PATHNAME
+      ...(MEDIA_HOSTNAME && MEDIA_PATHNAME
         ? [
             {
               protocol: "https",
-              hostname: S3_HOSTNAME,
-              pathname: S3_PATHNAME,
+              hostname: MEDIA_HOSTNAME,
+              pathname: MEDIA_PATHNAME,
             },
           ]
         : []),

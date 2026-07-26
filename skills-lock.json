@@ -43,48 +43,6 @@
       "skillPath": "plugins/learn-medusa/skills/learning-medusa/SKILL.md",
       "computedHash": "a410dc519887289918c92acff981d3fc2711ea13d6964b0f40811cda14d4c554"
     },
-    "mcloud-deployments": {
-      "source": "medusajs/medusa-agent-skills",
-      "sourceType": "github",
-      "skillPath": "plugins/medusa-cloud/skills/mcloud-deployments/SKILL.md",
-      "computedHash": "4cb563e467361f265bf3e5e13887a234d9a774efc5937b3ca177bf0506360b35"
-    },
-    "mcloud-environments": {
-      "source": "medusajs/medusa-agent-skills",
-      "sourceType": "github",
-      "skillPath": "plugins/medusa-cloud/skills/mcloud-environments/SKILL.md",
-      "computedHash": "b7dea655d90358ed26738d7c32d72e6e834d8b11006004d3cf5f3971d77587ca"
-    },
-    "mcloud-local": {
-      "source": "medusajs/medusa-agent-skills",
-      "sourceType": "github",
-      "skillPath": "plugins/medusa-cloud/skills/mcloud-local/SKILL.md",
-      "computedHash": "c2619fd7f38aac4514e6d8106697f74a3f9510ab57b2ecc3f309426deb2963a4"
-    },
-    "mcloud-logs": {
-      "source": "medusajs/medusa-agent-skills",
-      "sourceType": "github",
-      "skillPath": "plugins/medusa-cloud/skills/mcloud-logs/SKILL.md",
-      "computedHash": "d8c19652c50177999de9a63dc2595149f1c852a0bcae82cf2d706387bc4527d7"
-    },
-    "mcloud-organizations": {
-      "source": "medusajs/medusa-agent-skills",
-      "sourceType": "github",
-      "skillPath": "plugins/medusa-cloud/skills/mcloud-organizations/SKILL.md",
-      "computedHash": "0047af074c1fd019b06c53a9f92269b2a1477f49cc31848cb9fe09e3421377eb"
-    },
-    "mcloud-projects": {
-      "source": "medusajs/medusa-agent-skills",
-      "sourceType": "github",
-      "skillPath": "plugins/medusa-cloud/skills/mcloud-projects/SKILL.md",
-      "computedHash": "8c935ea378b1103dc40a601f92685d4e4fcd988324212288e8fdd9ec0217edad"
-    },
-    "mcloud-variables": {
-      "source": "medusajs/medusa-agent-skills",
-      "sourceType": "github",
-      "skillPath": "plugins/medusa-cloud/skills/mcloud-variables/SKILL.md",
-      "computedHash": "bd3a54c5cb7cf1f6bafe94e42df487f452b468aab183a984da210aa577dcadc5"
-    },
     "new-user": {
       "source": "medusajs/medusa-agent-skills",
       "sourceType": "github",
@@ -96,12 +54,6 @@
       "sourceType": "github",
       "skillPath": "plugins/ecommerce-storefront/skills/storefront-best-practices/SKILL.md",
       "computedHash": "e0a9b5a1ca1d4e5eb488cf4366a28a8317000ddaa2eb62a06a35b0c6b0f06085"
-    },
-    "using-medusa-cloud": {
-      "source": "medusajs/medusa-agent-skills",
-      "sourceType": "github",
-      "skillPath": "plugins/medusa-cloud/skills/using-medusa-cloud/SKILL.md",
-      "computedHash": "9087216697a6312f31876f74c5aac8888abf4049d25d96ea89b48c7ff9c58f1c"
     }
   }
 }
