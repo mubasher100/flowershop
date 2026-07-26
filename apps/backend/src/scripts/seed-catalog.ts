@@ -585,7 +585,14 @@ async function removeStarterDemoProducts(
   // The starter's apparel categories outlive its products, and the footer
   // renders categories live — so "Shirts / Sweatshirts / Pants" kept showing
   // on a flower shop until these were removed too.
-  const keep = new Set(CATEGORIES.map((c) => c.handle))
+  // Must include OCCASIONS. Omitting them meant this pass deleted the six
+  // occasion categories immediately after they were created, and the tagging
+  // pass then wrote against dead IDs — the seed logged success while the
+  // Store API returned five categories.
+  const keep = new Set([
+    ...CATEGORIES.map((c) => c.handle),
+    ...OCCASIONS.map((o) => o.handle),
+  ])
   const { data: categories } = await query.graph({
     entity: "product_category",
     fields: ["id", "handle"],
