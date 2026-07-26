@@ -41,7 +41,8 @@ export default async function ProductRail({
         </h2>
         <LocalizedClientLink
           href={`/collections/${collection.handle}`}
-          className="flex-none whitespace-nowrap text-sm font-semibold text-blush-700 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700"
+          aria-label={`View all in ${collection.title}`}
+          className="inline-flex min-h-[2.75rem] flex-none items-center whitespace-nowrap text-sm font-semibold text-blush-700 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700"
         >
           View all
         </LocalizedClientLink>

@@ -81,8 +81,10 @@ const CartDropdown = ({
     >
       <Popover className="relative h-full">
         <PopoverButton className="h-full">
+          {/* min-h-11: this was a 16px tap target, the smallest on the site
+              and attached to the single most important action in the nav. */}
           <LocalizedClientLink
-            className="hover:text-ui-fg-base"
+            className="inline-flex min-h-[2.75rem] items-center text-ink-700 hover:text-blush-700"
             href="/cart"
             data-testid="nav-cart-link"
           >{`Cart (${totalItems})`}</LocalizedClientLink>
