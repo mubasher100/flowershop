@@ -1,3 +1,5 @@
+import Image from "next/image"
+
 import { listCategories } from "@lib/data/categories"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
@@ -20,15 +22,14 @@ const OCCASION_HANDLES = [
   "thank-you",
 ]
 
-/** Each occasion gets its own gradient so the row isn't six identical discs. */
-const TILE_ART: Record<string, string> = {
-  birthday: "linear-gradient(145deg, var(--blush-200), var(--champagne-300))",
-  anniversary: "linear-gradient(145deg, var(--blush-400), var(--blush-700))",
-  congratulations:
-    "linear-gradient(145deg, var(--champagne-200), var(--champagne-400))",
-  "get-well-soon": "linear-gradient(145deg, var(--sage-200), var(--sage-400))",
-  "new-baby": "linear-gradient(145deg, var(--blush-100), var(--sage-200))",
-  "thank-you": "linear-gradient(145deg, var(--sage-100), var(--blush-300))",
+/** CC0 photography, distinct per occasion so the row isn't six identical discs. */
+const TILE_IMAGE: Record<string, string> = {
+  birthday: "/products/bloom-03.jpg",
+  anniversary: "/products/bloom-09.jpg",
+  congratulations: "/products/bloom-11.jpg",
+  "get-well-soon": "/products/bloom-04.jpg",
+  "new-baby": "/products/bloom-07.jpg",
+  "thank-you": "/products/bloom-10.jpg",
 }
 
 export default async function OccasionTiles() {
@@ -58,10 +59,15 @@ export default async function OccasionTiles() {
               href={`/categories/${occasion.handle}`}
               className="group flex flex-col items-center gap-2.5 text-center focus-visible:outline-none"
             >
-              <div
-                className="aspect-square w-full rounded-full ring-1 ring-inset ring-ink-200/60 transition-transform duration-200 group-hover:-translate-y-1 group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-blush-700"
-                style={{ background: TILE_ART[occasion.handle ?? ""] }}
-              />
+              <div className="relative aspect-square w-full overflow-hidden rounded-full ring-1 ring-inset ring-ink-200/60 transition-transform duration-200 group-hover:-translate-y-1 group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-blush-700">
+                <Image
+                  src={TILE_IMAGE[occasion.handle ?? ""] ?? "/products/bloom-01.jpg"}
+                  alt=""
+                  fill
+                  sizes="(max-width: 1024px) 25vw, 12vw"
+                  className="object-cover object-center"
+                />
+              </div>
               <span className="text-sm font-medium leading-snug text-ink-800">
                 {occasion.name}
               </span>

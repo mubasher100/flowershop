@@ -1,3 +1,5 @@
+import Image from "next/image"
+
 import { listCategories } from "@lib/data/categories"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
@@ -9,15 +11,15 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
  * 375px viewport as a grid. Snap points keep it from feeling loose.
  */
 
-/** Per-category gradient, drawn from brand tokens. Falls back for new ones. */
-const TILE_ART: Record<string, string> = {
-  bouquets: "linear-gradient(150deg, var(--blush-200), var(--blush-100))",
-  vases: "linear-gradient(150deg, var(--sage-200), var(--sage-100))",
-  roses: "linear-gradient(150deg, var(--blush-300), var(--blush-100))",
-  luxury: "linear-gradient(150deg, var(--champagne-300), var(--champagne-100))",
-  everyday: "linear-gradient(150deg, var(--sage-100), var(--blush-100))",
+/** CC0 photography, same set as the product cards. See IMAGE-CREDITS.json. */
+const TILE_IMAGE: Record<string, string> = {
+  bouquets: "/products/bloom-02.jpg",
+  vases: "/products/bloom-06.jpg",
+  roses: "/products/bloom-05.jpg",
+  luxury: "/products/bloom-12.jpg",
+  everyday: "/products/bloom-08.jpg",
 }
-const FALLBACK_ART = "linear-gradient(150deg, var(--blush-100), var(--sage-100))"
+const FALLBACK_IMAGE = "/products/bloom-01.jpg"
 
 export default async function CategoryTiles() {
   const categories = await listCategories({ limit: 8 })
@@ -44,12 +46,15 @@ export default async function CategoryTiles() {
               href={`/categories/${category.handle}`}
               className="group flex flex-col gap-2.5 focus-visible:outline-none"
             >
-              <div
-                className="aspect-square w-full rounded-2xl ring-1 ring-inset ring-ink-200/70 transition-transform duration-200 group-hover:-translate-y-0.5 group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-blush-700"
-                style={{
-                  background: TILE_ART[category.handle ?? ""] ?? FALLBACK_ART,
-                }}
-              />
+              <div className="relative aspect-square w-full overflow-hidden rounded-2xl ring-1 ring-inset ring-ink-200/70 transition-transform duration-200 group-hover:-translate-y-0.5 group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-blush-700">
+                <Image
+                  src={TILE_IMAGE[category.handle ?? ""] ?? FALLBACK_IMAGE}
+                  alt=""
+                  fill
+                  sizes="(max-width: 1024px) 30vw, 18vw"
+                  className="object-cover object-center"
+                />
+              </div>
               <span className="text-sm font-medium leading-snug text-ink-800 small:text-base">
                 {category.name}
               </span>

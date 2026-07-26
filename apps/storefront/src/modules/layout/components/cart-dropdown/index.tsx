@@ -87,7 +87,7 @@ const CartDropdown = ({
             className="inline-flex min-h-[2.75rem] items-center text-ink-700 hover:text-blush-700"
             href="/cart"
             data-testid="nav-cart-link"
-          >{`Cart (${totalItems})`}</LocalizedClientLink>
+          >{`Bag (${totalItems})`}</LocalizedClientLink>
         </PopoverButton>
         <Transition
           show={cartDropdownOpen}
