@@ -151,6 +151,20 @@ Frontend (via Medusa JS SDK only)
 
 ---
 
+## Design
+
+**Palette** — extended from the two supplied colours (`#fbd7e2`, `#fff7f9`), both on a rose hue ~342–346°. Four families: **blush** (brand), **sage** (floristry-natural secondary), **champagne** (premium accent), **ink** (warm neutrals with a rose bias — pure grey next to blush reads as dirty). All tokens live in [`apps/storefront/src/styles/brand.css`](apps/storefront/src/styles/brand.css); Tailwind references them through CSS variables so a rebrand touches one file.
+
+Use `blush-600` or `blush-700` for anything carrying text — 5.05:1 and 7.03:1 on white. The mid-tones that look best fail AA.
+
+**Typeface** — Google Sans, self-hosted via `next/font/local` from `src/fonts/`. Google released it under the SIL OFL in 2025. Do **not** switch to `next/font/google`: Next 15's manifest predates the release and rejects it with "Unknown font".
+
+**References** — homepage follows [floward.com/en-qa](https://floward.com/en-qa); product page blends [calyaqa.com](https://calyaqa.com) (gallery, size ladder, accordions) with [mayfairqatar.com](https://mayfairqatar.com) (gift message, delivery date + time slots). Floward serves 403 to WebFetch — pull it with `curl` and a browser User-Agent.
+
+The defining homepage rhythm is **promotional banners alternating with product rails**. Stacking rails back to back reads as one undifferentiated scroll.
+
+**Product imagery** is on-brand placeholder SVG in `apps/storefront/public/placeholders/`. Real photography replaces it; the layouts already reserve the space.
+
 ## Store configuration
 
 Seeded and verified against the live Supabase database.
@@ -270,8 +284,8 @@ A wrong port does not fail at boot. It surfaces later as intermittent `prepared 
 | 3 | Supabase Postgres + migrations + Qatar seed | ✅ Done |
 | 4 | Railway deploy (backend + Redis) | ✅ Done — live |
 | 5 | Cloudflare storefront deploy | ✅ Done — live |
-| 6 | Branding — name, logo, palette | 🔒 Pending decision |
-| 7 | Storefront design from sample sites | 🔒 Pending samples |
+| 6 | Branding — palette + font done; name and logo pending | 🟡 Partial |
+| 7 | Storefront design — homepage done; product page next | 🟡 In progress |
 | 8 | SkipCash payment provider | 🔒 Pending merchant account |
 | 9 | Arabic / RTL localization | 🔒 Later |
 | 10 | Email notifications, file storage (R2), search, analytics | 🔒 Later |
