@@ -182,7 +182,17 @@ docs/…    documentation
 
 **Commit early and often.** Land a commit before starting any significant phase of work, so there is always a clean point to roll back to. Push to `origin` at those boundaries rather than batching a week of work into one commit.
 
-**CI** (`.github/workflows/ci.yml`) runs on every PR and push to `main`: lint → typecheck → build both apps → unit + HTTP integration tests against a throwaway Postgres service container. CI never touches Supabase.
+**CI** (`.github/workflows/ci.yml`) runs on every PR and push to `main`, as three parallel jobs:
+
+| Job | What it does |
+|---|---|
+| Lint & typecheck | `npm run lint`, then `tsc --noEmit` on both apps |
+| Build backend | `medusa build` with placeholder env vars |
+| Backend tests | unit + HTTP integration against throwaway Postgres and Redis containers |
+
+CI never touches Supabase.
+
+> **Branch protection is not active.** GitHub gates both branch protection and rulesets behind Pro for private repos, and this repo is private on the Free plan. `main` is therefore only protected by convention — nothing mechanically blocks a direct push or a merge over red CI. To fix: upgrade to GitHub Pro (~$4/mo), or make the repo public.
 
 **Deploys:**
 - Backend → Railway's native GitHub integration, watching `apps/backend/**` on `main`. Migrations run as a pre-deploy step, not at boot.
@@ -233,7 +243,7 @@ A wrong port does not fail at boot. It surfaces later as intermittent `prepared 
 |---|---|---|
 | 0 | Medusa agent skills + docs MCP | ✅ Done |
 | 1 | Monorepo scaffold (backend + storefront) | ✅ Done |
-| 2 | CLAUDE.md, CI/CD, repo hygiene | ✅ Done |
+| 2 | CLAUDE.md, CI/CD, repo hygiene | ✅ Done (CI green; branch protection blocked by plan) |
 | 3 | Supabase Postgres + migrations + Qatar seed | ✅ Done |
 | 4 | Railway deploy (backend + Redis) | ⏳ Needs Railway project |
 | 5 | Cloudflare storefront deploy | ⏳ After Railway |
