@@ -204,8 +204,12 @@ CI never touches Supabase.
 |---|---|
 | Backend API | https://dtcbackend-production-a265.up.railway.app |
 | Admin | https://dtcbackend-production-a265.up.railway.app/app |
+| Storefront | https://flowershop-storefront.mubashermohammad35.workers.dev |
 | Railway project | `calm-analysis` — services `@dtc/backend` and `redis` |
+| Cloudflare | account `fe381f34824a7e381581fba60f9a3176`, worker `flowershop-storefront` |
 | Database | Supabase `zlgqitlviqchhrkkguny`, **session pooler** `aws-0-ap-northeast-1` |
+
+Adding a new storefront origin means updating **`STORE_CORS` and `AUTH_CORS` on Railway**, not just Cloudflare.
 
 Railway's `railwayConfigFile` setting is a stored per-service path. Moving `railway.json` in the repo does **not** update it — the deploy fails at *Snapshot code* with `service config at '<old path>' not found`. Update the service setting too.
 
@@ -259,7 +263,7 @@ A wrong port does not fail at boot. It surfaces later as intermittent `prepared 
 | 2 | CLAUDE.md, CI/CD, repo hygiene | ✅ Done (CI green; branch protection blocked by plan) |
 | 3 | Supabase Postgres + migrations + Qatar seed | ✅ Done |
 | 4 | Railway deploy (backend + Redis) | ✅ Done — live |
-| 5 | Cloudflare storefront deploy | ⏳ After Railway |
+| 5 | Cloudflare storefront deploy | ✅ Done — live |
 | 6 | Branding — name, logo, palette | 🔒 Pending decision |
 | 7 | Storefront design from sample sites | 🔒 Pending samples |
 | 8 | SkipCash payment provider | 🔒 Pending merchant account |
