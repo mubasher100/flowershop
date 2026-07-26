@@ -1,5 +1,18 @@
 const path = require("path")
 
+/**
+ * Maps a brand family to Tailwind shades backed by the CSS variables in
+ * src/styles/brand.css. Going through variables rather than literal hexes
+ * means a rebrand touches exactly one file.
+ */
+const shades = (name) =>
+  Object.fromEntries(
+    [50, 100, 200, 300, 400, 500, 600, 700, 800, 900].map((step) => [
+      step,
+      `var(--${name}-${step})`,
+    ])
+  )
+
 module.exports = {
   darkMode: "class",
   presets: [require("@medusajs/ui-preset")],
@@ -33,6 +46,23 @@ module.exports = {
           80: "#1F2937",
           90: "#111827",
         },
+
+        // Brand palette. Values live in src/styles/brand.css so the identity
+        // can be swapped in one place — see roadmap phase 6.
+        blush: shades("blush"),
+        sage: shades("sage"),
+        champagne: shades("champagne"),
+        ink: { 0: "var(--ink-0)", ...shades("ink") },
+
+        // Semantic aliases — prefer these in components.
+        brand: {
+          DEFAULT: "var(--color-primary)",
+          hover: "var(--color-primary-hover)",
+          soft: "var(--color-primary-soft)",
+        },
+        accent: "var(--color-accent)",
+        surface: "var(--color-surface)",
+        hairline: "var(--color-border)",
       },
       borderRadius: {
         none: "0px",

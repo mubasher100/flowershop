@@ -1,3 +1,7 @@
+/* Brand tokens must load before Tailwind so the variables exist when
+   utilities referencing them are evaluated. */
+@import "./brand.css";
+
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";

@@ -1,0 +1,86 @@
+/**
+ * Brand tokens — the single source of truth for Flowershop's visual identity.
+ *
+ * Everything visual should reference these variables rather than hard-coding a
+ * hex value. When the real brand lands (roadmap phase 6), this file is the only
+ * thing that changes.
+ *
+ * Built from the two supplied colours:
+ *   #fbd7e2 → blush-100   (hsl 342 81% 91%)
+ *   #fff7f9 → blush-50    (hsl 346 100% 98%)
+ *
+ * Both sit on a rose hue around 342–346°, so the scale below extends that same
+ * hue down into usable mid and dark tones. Two supporting families complete it:
+ * sage, because eucalyptus green is the natural companion to pink in floristry;
+ * and champagne, for the restrained luxury accents the reference sites use.
+ */
+
+:root {
+  /* --- Blush: the brand hue. Buttons, links, active states. ------------- */
+  --blush-50: #fff7f9; /* supplied — page background */
+  --blush-100: #fbd7e2; /* supplied — cards, chips, hover fills */
+  --blush-200: #f8bcce;
+  --blush-300: #f39ab5;
+  --blush-400: #ec7297;
+  --blush-500: #e04d7c;
+  --blush-600: #c73764; /* primary CTA — 5.05:1 on white, passes AA */
+  --blush-700: #a32950; /* CTA hover — 7.03:1 on white, passes AAA */
+  --blush-800: #7d1f3e;
+  --blush-900: #55172c;
+
+  /* --- Sage: secondary. Foliage, success, quiet supporting surfaces. ---- */
+  --sage-50: #f4f7f3;
+  --sage-100: #e3ebe0;
+  --sage-200: #c7d8c2;
+  --sage-300: #a3bf9c;
+  --sage-400: #82a67a;
+  --sage-500: #648a5c;
+  --sage-600: #4e6e48;
+  --sage-700: #3d573a;
+  --sage-800: #2f432d;
+  --sage-900: #1f2d1e;
+
+  /* --- Champagne: accent. Price emphasis, badges, premium framing. ------ */
+  --champagne-50: #fdfaf3;
+  --champagne-100: #f8f0dc;
+  --champagne-200: #efdfb8;
+  --champagne-300: #e3c98d;
+  --champagne-400: #d4b06a;
+  --champagne-500: #c29751;
+  --champagne-600: #a37b3f;
+  --champagne-700: #815f33;
+  --champagne-800: #62492a;
+  --champagne-900: #443220;
+
+  /* --- Ink: text and structure. Warm greys carrying a rose undertone so
+         they sit against the blush background instead of fighting it. ---- */
+  --ink-0: #ffffff;
+  --ink-50: #faf7f8;
+  --ink-100: #f2eced;
+  --ink-200: #e3d9dc; /* hairline borders */
+  --ink-300: #c9babe;
+  --ink-400: #a28f95; /* placeholder text */
+  --ink-500: #7d6a70;
+  --ink-600: #5d4d52; /* secondary text */
+  --ink-700: #45383c;
+  --ink-800: #2e2528;
+  --ink-900: #1a1416; /* headings, body text */
+
+  /* --- Semantic aliases. Prefer these in components. ------------------- */
+  --color-bg: var(--blush-50);
+  --color-surface: var(--ink-0);
+  --color-border: var(--ink-200);
+  --color-text: var(--ink-900);
+  --color-text-muted: var(--ink-600);
+  --color-primary: var(--blush-600);
+  --color-primary-hover: var(--blush-700);
+  --color-primary-soft: var(--blush-100);
+  --color-accent: var(--champagne-400);
+  --color-success: var(--sage-600);
+
+  /* --- Elevation. Shadows are tinted rose, never neutral grey — a grey
+         shadow over a pink surface reads as dirty. ---------------------- */
+  --shadow-sm: 0 1px 2px 0 rgb(85 23 44 / 0.04);
+  --shadow-md: 0 4px 12px -2px rgb(85 23 44 / 0.08);
+  --shadow-lg: 0 12px 32px -8px rgb(85 23 44 / 0.12);
+}
