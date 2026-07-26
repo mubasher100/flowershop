@@ -26,7 +26,7 @@ const Hero = () => {
           Doha · Same-day delivery
         </p>
 
-        <h1 className="max-w-[16ch] text-balance text-4xl font-normal leading-[1.08] text-ink-900 small:text-6xl">
+        <h1 className="max-w-[16ch] text-balance font-display text-5xl font-normal leading-[1.08] text-ink-900 small:text-6xl">
           Flowers worth the journey
         </h1>
 

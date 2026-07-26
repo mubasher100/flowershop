@@ -78,7 +78,7 @@ export default function PromoBanner({
 
             <h2
               className={clx(
-                "text-balance text-2xl leading-tight small:text-4xl",
+                "text-balance font-display text-3xl leading-tight small:text-5xl",
                 onDark ? "text-white" : "text-ink-900"
               )}
             >

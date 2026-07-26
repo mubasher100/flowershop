@@ -1,7 +1,23 @@
 import { getBaseURL } from "@lib/util/env"
 import { Metadata } from "next"
+import { Cormorant_Garamond } from "next/font/google"
 import localFont from "next/font/local"
 import "styles/globals.css"
+
+/**
+ * Cormorant Garamond — the display face.
+ *
+ * Applied to headings, product names and prices. It is a high-contrast
+ * display serif: gorgeous at 24px and up, but its hairline strokes thin out
+ * badly at UI sizes on a phone, so body copy, buttons and form labels stay on
+ * Google Sans. That pairing is how the reference sites use their serifs too.
+ */
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-display",
+})
 
 /**
  * Google Sans.
@@ -37,7 +53,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout(props: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-mode="light" className={googleSans.variable}>
+    <html
+      lang="en"
+      data-mode="light"
+      className={`${googleSans.variable} ${cormorant.variable}`}
+    >
       <body className={googleSans.className}>
         <main className="relative">{props.children}</main>
       </body>

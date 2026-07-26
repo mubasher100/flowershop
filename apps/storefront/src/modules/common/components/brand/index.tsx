@@ -21,7 +21,7 @@ export default function Brand({
     <LocalizedClientLink
       href={href}
       className={clx(
-        "inline-flex min-h-[2.75rem] items-center text-xl tracking-tight text-ink-900 transition-colors hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700 small:text-2xl",
+        "inline-flex min-h-[2.75rem] items-center font-display text-2xl tracking-tight text-ink-900 transition-colors hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700 small:text-2xl",
         className
       )}
       data-testid="nav-store-link"

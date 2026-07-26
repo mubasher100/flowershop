@@ -56,6 +56,51 @@ const CATEGORIES = [
   { name: "Everyday Blooms", handle: "everyday" },
 ]
 
+/**
+ * Occasion categories.
+ *
+ * Kept separate from the type categories above because they answer a
+ * different question — "what is it for" rather than "what is it" — and a
+ * product belongs to both. Categories allow many per product, unlike
+ * collections, which is why occasions are modelled here and not as
+ * collections.
+ *
+ * Occasion-led browsing is how most flower gifting actually starts, and its
+ * absence was the biggest structural gap against the reference site.
+ */
+const OCCASIONS = [
+  {
+    name: "Birthday",
+    handle: "birthday",
+    match: (s: Seed) => s.category === "bouquets" || s.price <= 500,
+  },
+  {
+    name: "Anniversary",
+    handle: "anniversary",
+    match: (s: Seed) => /rose|love|cherish|coraline/i.test(s.name),
+  },
+  {
+    name: "Congratulations",
+    handle: "congratulations",
+    match: (s: Seed) => s.category === "vases" || s.category === "luxury",
+  },
+  {
+    name: "Get Well Soon",
+    handle: "get-well-soon",
+    match: (s: Seed) => s.category === "everyday" || s.price <= 400,
+  },
+  {
+    name: "New Baby",
+    handle: "new-baby",
+    match: (s: Seed) => /pink|white|baby|elara|muse/i.test(s.name),
+  },
+  {
+    name: "Thank You",
+    handle: "thank-you",
+    match: (s: Seed) => s.price <= 550,
+  },
+]
+
 const COLLECTIONS = [
   { title: "Best Sellers", handle: "best-sellers" },
   { title: "New This Week", handle: "new-this-week" },
@@ -188,7 +233,11 @@ export default async function seedCatalog({
   })
   const catByHandle = new Map(existingCats.map((c) => [c.handle, c.id]))
 
-  const missingCats = CATEGORIES.filter((c) => !catByHandle.has(c.handle))
+  const allCategories = [
+    ...CATEGORIES,
+    ...OCCASIONS.map((o) => ({ name: o.name, handle: o.handle })),
+  ]
+  const missingCats = allCategories.filter((c) => !catByHandle.has(c.handle))
   if (missingCats.length) {
     const { result } = await createProductCategoriesWorkflow(container).run({
       input: {
@@ -247,8 +296,74 @@ export default async function seedCatalog({
 
   await removeStarterDemoProducts(container, logger)
   await rebalanceCollections(container, logger)
+  await assignOccasions(container, logger, catByHandle)
 
   logger.info("Catalogue seed complete.")
+}
+
+/**
+ * Tags each product with the occasions it suits, on top of its type category.
+ *
+ * Every product keeps exactly one type category (Bouquets, Vases, …) and
+ * gains one or more occasion categories, so /categories/birthday and
+ * /categories/bouquets both return sensible results.
+ */
+async function assignOccasions(
+  container: MedusaContainer,
+  logger: { info: (m: string) => void },
+  catByHandle: Map<string | undefined, string>
+) {
+  const query = container.resolve(ContainerRegistrationKeys.QUERY)
+
+  const { data: products } = await query.graph({
+    entity: "product",
+    fields: ["id", "handle", "categories.id", "categories.handle"],
+  })
+
+  const seedByHandle = new Map(PRODUCTS.map((p) => [handleize(p.name), p]))
+  const occasionHandles = new Set(OCCASIONS.map((o) => o.handle))
+
+  let tagged = 0
+
+  for (const product of products) {
+    const seed = seedByHandle.get(product.handle ?? "")
+    if (!seed) continue
+
+    const current = ((product.categories ?? []) as { handle?: string }[])
+      .map((c) => c?.handle)
+      .filter(Boolean) as string[]
+
+    // Cap at three so a product does not show up under every occasion —
+    // "suits any occasion" is the same as suiting none.
+    const wanted = OCCASIONS.filter((o) => o.match(seed))
+      .slice(0, 3)
+      .map((o) => o.handle)
+
+    const alreadyTagged = current.filter((h) => occasionHandles.has(h))
+    if (wanted.every((w) => alreadyTagged.includes(w)) && alreadyTagged.length) {
+      continue
+    }
+
+    const typeCategories = current.filter((h) => !occasionHandles.has(h))
+    const finalHandles = [...new Set([...typeCategories, ...wanted])]
+    const ids = finalHandles
+      .map((h) => catByHandle.get(h))
+      .filter(Boolean) as string[]
+
+    if (!ids.length) continue
+
+    await updateProductsWorkflow(container).run({
+      input: {
+        selector: { id: product.id },
+        update: { category_ids: ids },
+      },
+    })
+    tagged++
+  }
+
+  if (tagged) {
+    logger.info(`Tagged ${tagged} products with occasion categories.`)
+  }
 }
 
 type CreateDeps = {

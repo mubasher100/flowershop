@@ -36,7 +36,7 @@ export default async function ProductRail({
   return (
     <section className="content-container py-8 small:py-12">
       <div className="mb-4 flex items-baseline justify-between gap-4 small:mb-6">
-        <h2 className="text-2xl text-ink-900 small:text-3xl">
+        <h2 className="font-display text-3xl text-ink-900 small:text-4xl">
           {collection.title}
         </h2>
         <LocalizedClientLink

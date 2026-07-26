@@ -88,7 +88,7 @@ module.exports = {
         "3xl": "2rem",
       },
       fontFamily: {
-        // Google Sans, self-hosted via next/font/local in src/app/layout.tsx.
+        // Google Sans, self-hosted via next/font/local. Body, UI, forms.
         sans: [
           "var(--font-google-sans)",
           "-apple-system",
@@ -97,6 +97,15 @@ module.exports = {
           "Roboto",
           "Helvetica Neue",
           "sans-serif",
+        ],
+        // Cormorant Garamond. Headings, product names, prices — anything
+        // 20px and up. Its hairlines disappear at UI sizes on a phone.
+        display: [
+          "var(--font-display)",
+          "Iowan Old Style",
+          "Palatino",
+          "Georgia",
+          "serif",
         ],
       },
       keyframes: {

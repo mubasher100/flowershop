@@ -28,7 +28,7 @@ export default async function CategoryTiles() {
 
   return (
     <section className="content-container py-10 small:py-14">
-      <h2 className="mb-5 text-2xl text-ink-900 small:mb-7 small:text-3xl">
+      <h2 className="mb-5 font-display text-3xl text-ink-900 small:mb-7 small:text-4xl">
         Shop by type
       </h2>
 
