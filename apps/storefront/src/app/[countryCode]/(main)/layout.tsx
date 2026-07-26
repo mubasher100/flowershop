@@ -1,43 +1,36 @@
 import { Metadata } from "next"
 
-import { listCartOptions, retrieveCart } from "@lib/data/cart"
-import { retrieveCustomer } from "@lib/data/customer"
 import { getBaseURL } from "@lib/util/env"
-import { StoreCartShippingOption } from "@medusajs/types"
-import CartMismatchBanner from "@modules/layout/components/cart-mismatch-banner"
 import Footer from "@modules/layout/templates/footer"
 import Nav from "@modules/layout/templates/nav"
-import FreeShippingPriceNudge from "@modules/shipping/components/free-shipping-price-nudge"
 
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseURL()),
 }
 
+/**
+ * The layout deliberately fetches nothing.
+ *
+ * It used to call retrieveCustomer(), retrieveCart() and listCartOptions() on
+ * every page to feed two components that could never render here:
+ *
+ *   - CartMismatchBanner needs a logged-in customer, and this shop has no
+ *     accounts, so `customer` was always null.
+ *   - FreeShippingPriceNudge needs a shipping option carrying an item_total
+ *     price rule; ours are flat 25/50 QAR with no free-shipping tier.
+ *
+ * That was three backend round trips per page for markup nobody ever saw —
+ * and because all three read cookies, it forced every route under (main) into
+ * dynamic rendering, which is why the R2 incremental cache could not help the
+ * homepage.
+ *
+ * Restore the nudge when a free-shipping promotion actually exists, but fetch
+ * the cart inside that component rather than here.
+ */
 export default async function PageLayout(props: { children: React.ReactNode }) {
-  const customer = await retrieveCustomer()
-  const cart = await retrieveCart()
-  let shippingOptions: StoreCartShippingOption[] = []
-
-  if (cart) {
-    const { shipping_options } = await listCartOptions()
-
-    shippingOptions = shipping_options
-  }
-
   return (
     <>
       <Nav />
-      {customer && cart && (
-        <CartMismatchBanner customer={customer} cart={cart} />
-      )}
-
-      {cart && (
-        <FreeShippingPriceNudge
-          variant="popup"
-          cart={cart}
-          shippingOptions={shippingOptions}
-        />
-      )}
       {props.children}
       <Footer />
     </>

@@ -33,6 +33,22 @@ export const getCacheTag = async (tag: string): Promise<string> => {
   }
 }
 
+/**
+ * Cache options for catalogue data — products, collections, categories,
+ * regions.
+ *
+ * Deliberately does NOT read cookies, for two reasons. Reading them during
+ * render forces the route into dynamic rendering, which stops the incremental
+ * cache from serving the page at all. And the cookie-based tag below is a
+ * per-visitor UUID, so tagging the catalogue with it gives every visitor
+ * their own cache entries — of shared data that is identical for everyone.
+ *
+ * Cart, customer and order data keep the per-visitor tag via getCacheOptions.
+ */
+export const getPublicCacheOptions = (tag: string): { tags: string[] } => ({
+  tags: [tag],
+})
+
 export const getCacheOptions = async (
   tag: string
 ): Promise<{ tags: string[] } | Record<string, never>> => {

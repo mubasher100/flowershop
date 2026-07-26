@@ -5,7 +5,7 @@ import { OptionValueIds } from "@lib/util/product-option-filters"
 import { sortProducts } from "@lib/util/sort-products"
 import { HttpTypes } from "@medusajs/types"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
-import { getAuthHeaders, getCacheOptions } from "./cookies"
+import { getPublicCacheOptions } from "./cookies"
 import { getRegion, retrieveRegion } from "./regions"
 
 type ProductListQueryParams = (HttpTypes.FindParams &
@@ -52,12 +52,14 @@ export const listProducts = async ({
     }
   }
 
-  const headers = {
-    ...(await getAuthHeaders()),
-  }
+  // No auth headers and no cookie-derived cache tag. Both read cookies, which
+  // forces the route into dynamic rendering and stops the incremental cache
+  // serving the page. Auth headers existed for customer-specific pricing;
+  // this shop has no accounts, so there is nothing for them to change.
+  const headers = {}
 
   const next = {
-    ...(await getCacheOptions("products")),
+    ...getPublicCacheOptions("products"),
   }
 
   return sdk.client

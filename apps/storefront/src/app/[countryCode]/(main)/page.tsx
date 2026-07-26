@@ -54,12 +54,36 @@ const HERO_SLIDES: HeroSlide[] = [
   },
 ]
 import { listCollections } from "@lib/data/collections"
-import { getRegion } from "@lib/data/regions"
+import { getRegion, listRegions } from "@lib/data/regions"
 
 export const metadata: Metadata = {
   title: "Flowershop — Same-day flower delivery in Doha",
   description:
     "Hand-tied bouquets, vase arrangements and signature roses, arranged in Doha and delivered the same day. Order by 6pm.",
+}
+
+/**
+ * Rebuild at most every 5 minutes, serving from the R2 incremental cache in
+ * between. The homepage shows the catalogue, which is identical for every
+ * visitor, yet it was re-rendering and re-fetching collections, categories
+ * and five product rails on every single request.
+ */
+export const revalidate = 300
+
+/**
+ * Without this, Next has no way to know which country codes exist, so it
+ * renders the homepage on demand — it showed as `ƒ` in the build output while
+ * category and product pages showed `●`. That is why the incremental cache
+ * had nothing to serve for the busiest page on the site.
+ */
+export async function generateStaticParams() {
+  const countryCodes = await listRegions().then((regions) =>
+    regions?.flatMap((r) => r.countries?.map((c) => c.iso_2) ?? [])
+  )
+
+  return (countryCodes ?? [])
+    .filter(Boolean)
+    .map((countryCode) => ({ countryCode }))
 }
 
 export default async function Home(props: {
