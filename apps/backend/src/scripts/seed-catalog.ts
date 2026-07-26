@@ -8,6 +8,7 @@ import {
   createInventoryLevelsWorkflow,
   createProductCategoriesWorkflow,
   createProductsWorkflow,
+  deleteProductCategoriesWorkflow,
   deleteProductsWorkflow,
 } from "@medusajs/medusa/core-flows"
 
@@ -336,5 +337,22 @@ async function removeStarterDemoProducts(
       input: { ids: demo.map((p) => p.id) },
     })
     logger.info(`Removed ${demo.length} starter demo product(s).`)
+  }
+
+  // The starter's apparel categories outlive its products, and the footer
+  // renders categories live — so "Shirts / Sweatshirts / Pants" kept showing
+  // on a flower shop until these were removed too.
+  const keep = new Set(CATEGORIES.map((c) => c.handle))
+  const { data: categories } = await query.graph({
+    entity: "product_category",
+    fields: ["id", "handle"],
+  })
+  const staleCategories = categories.filter((c) => !keep.has(c.handle ?? ""))
+
+  if (staleCategories.length) {
+    await deleteProductCategoriesWorkflow(container).run({
+      input: staleCategories.map((c) => c.id),
+    })
+    logger.info(`Removed ${staleCategories.length} non-flower category(ies).`)
   }
 }

@@ -4,6 +4,7 @@ import { listLocales } from "@lib/data/locales"
 import { getLocale } from "@lib/data/locale-actions"
 import { listRegions } from "@lib/data/regions"
 import { StoreRegion } from "@medusajs/types"
+import Brand from "@modules/common/components/brand"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CartButton from "@modules/layout/components/cart-button"
 import SideMenu from "@modules/layout/components/side-menu"
@@ -26,19 +27,15 @@ export default async function Nav() {
           </div>
 
           <div className="flex items-center h-full">
-            <LocalizedClientLink
-              href="/"
-              className="txt-compact-xlarge-plus hover:text-ui-fg-base uppercase"
-              data-testid="nav-store-link"
-            >
-              Medusa Store
-            </LocalizedClientLink>
+            <Brand />
           </div>
 
-          <div className="flex items-center gap-x-6 h-full flex-1 basis-0 justify-end">
+          {/* min-h-11 on every target: these were 16-20px tall, well under the
+              44px a thumb needs. */}
+          <div className="flex items-center gap-x-4 h-full flex-1 basis-0 justify-end small:gap-x-6">
             <div className="hidden small:flex items-center gap-x-6 h-full">
               <LocalizedClientLink
-                className="hover:text-ui-fg-base"
+                className="inline-flex min-h-[2.75rem] items-center text-ink-700 hover:text-blush-700"
                 href="/account"
                 data-testid="nav-account-link"
               >
@@ -48,7 +45,7 @@ export default async function Nav() {
             <Suspense
               fallback={
                 <LocalizedClientLink
-                  className="hover:text-ui-fg-base flex gap-2"
+                  className="inline-flex min-h-[2.75rem] items-center gap-2 text-ink-700 hover:text-blush-700"
                   href="/cart"
                   data-testid="nav-cart-link"
                 >
