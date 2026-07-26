@@ -52,22 +52,19 @@ const Item: React.FC<AccordionItemProps> = ({
         className
       )}
     >
+      {/* The whole row is the trigger. Previously only the small icon was,
+          giving a 32px tap target — and people reach for the label, not a
+          chevron they can barely hit. */}
       <AccordionPrimitive.Header className="px-1">
-        <div className="flex flex-col">
-          <div className="flex w-full items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Text className="text-ui-fg-subtle text-sm">{title}</Text>
-            </div>
-            <AccordionPrimitive.Trigger>
-              {customTrigger || <MorphingTrigger />}
-            </AccordionPrimitive.Trigger>
+        <AccordionPrimitive.Trigger className="flex min-h-[2.75rem] w-full flex-col text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700">
+          <div className="flex w-full items-center justify-between gap-4">
+            <span className="text-base font-medium text-ink-900">{title}</span>
+            {customTrigger || <MorphingTrigger />}
           </div>
           {subtitle && (
-            <Text as="span" className="mt-1 text-sm">
-              {subtitle}
-            </Text>
+            <span className="mt-1 text-sm text-ink-600">{subtitle}</span>
           )}
-        </div>
+        </AccordionPrimitive.Trigger>
       </AccordionPrimitive.Header>
       <AccordionPrimitive.Content
         forceMount={forceMountContent}
