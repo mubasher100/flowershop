@@ -97,6 +97,15 @@ jobs:
           --health-retries 5
 
     env:
+      # @medusajs/test-utils builds its connection from these DISCRETE vars and
+      # ignores DATABASE_URL — it creates a temporary database per run, so it
+      # needs the parts, not a URL. DATABASE_URL alone fails with
+      # "SASL: client password must be a string".
+      DB_HOST: localhost
+      DB_PORT: "5432"
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      # Still read by medusa-config.ts at load time.
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/medusa_test
       REDIS_URL: redis://localhost:6379
       JWT_SECRET: ci-test-jwt-secret
