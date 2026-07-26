@@ -147,9 +147,23 @@ Frontend (via Medusa JS SDK only)
 
 ## Store configuration
 
-- **Region:** Qatar · country code `qa` · currency **QAR**
+Seeded and verified against the live Supabase database.
+
+- **Region:** Qatar · country code `qa` · currency **QAR** (store default). The starter's Europe/EUR region has been removed, so `qa` is the only region.
+- **Warehouse:** Doha Warehouse · fulfillment set "Qatar delivery" · service zone covering `qa`
+- **Shipping:** Standard Delivery (25 QAR), Same-Day Delivery (50 QAR)
+- **Tax region:** `qa` at 0% — Qatar has no VAT on most goods, but the region must exist or checkout can't calculate totals
+- **Products:** 4 placeholder items from the starter, repriced in QAR. Real flower products land in phase 7.
 - **Languages:** English + Arabic, with RTL. Not implemented yet — but pick routing and layout structures that can accommodate a locale segment without a rewrite.
-- **Payment:** SkipCash (pending). Manual/offline payment is the stand-in until then.
+- **Payment:** SkipCash (pending). `pp_system_default` is the manual stand-in until then.
+
+Re-run the Qatar configuration at any time — it is idempotent:
+
+```bash
+cd apps/backend && npx medusa exec ./src/scripts/seed-qatar.ts
+```
+
+> `npx medusa db:migrate` auto-runs the starter's `initial-data-seed` migration script, which recreates the **Europe/EUR** setup. Against a fresh database, always run `seed-qatar.ts` afterwards.
 
 ---
 
@@ -203,6 +217,12 @@ A wrong port does not fail at boot. It surfaces later as intermittent `prepared 
 
 **Turbo runs in strict env mode.** Environment variables are not passed through to tasks unless declared in `turbo.json` (`globalPassThroughEnv`, or a task's `env` array). A var that works in your shell but is empty inside a turbo task is almost always a missing declaration — not a shell problem.
 
+**`medusa build` emits a standalone app into `.medusa/server`** — with its own `package.json`. That directory is what runs in production. Starting from `apps/backend` fails with `Could not find index.html in the admin build directory`. Railway's start command is therefore `cd .medusa/server && npm run start`, and that directory needs its own `npm install --omit=dev` during the build.
+
+**`medusa start` forces `NODE_ENV=production`,** even locally. Since the Redis guard in `medusa-config.ts` throws in production, running a production build on a dev machine needs `ALLOW_INMEMORY_INFRA=true`. Never set that on Railway — it disables the guard that stops a Redis-less deploy.
+
+**Don't put `?sslmode=require` in `DATABASE_URL`.** node-postgres treats it as `verify-full` and rejects Supabase's certificate chain with `SELF_SIGNED_CERT_IN_CHAIN`. TLS is already configured via `databaseDriverOptions` in `medusa-config.ts`.
+
 **`next build` skips type and lint checks** (`ignoreBuildErrors` / `ignoreDuringBuilds` are set in `next.config.js`). A green build proves nothing about types. `npx tsc --noEmit` is what actually gates storefront type safety, and CI runs it separately.
 
 ---
@@ -214,7 +234,7 @@ A wrong port does not fail at boot. It surfaces later as intermittent `prepared 
 | 0 | Medusa agent skills + docs MCP | ✅ Done |
 | 1 | Monorepo scaffold (backend + storefront) | ✅ Done |
 | 2 | CLAUDE.md, CI/CD, repo hygiene | ✅ Done |
-| 3 | Supabase Postgres + migrations + Qatar seed | ⏳ Needs Supabase project |
+| 3 | Supabase Postgres + migrations + Qatar seed | ✅ Done |
 | 4 | Railway deploy (backend + Redis) | ⏳ Needs Railway project |
 | 5 | Cloudflare storefront deploy | ⏳ After Railway |
 | 6 | Branding — name, logo, palette | 🔒 Pending decision |

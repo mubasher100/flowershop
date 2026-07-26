@@ -4,13 +4,27 @@ loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 
 const REDIS_URL = process.env.REDIS_URL
 
-if (process.env.NODE_ENV === 'production' && !REDIS_URL) {
+/**
+ * Guard against deploying without Redis.
+ *
+ * `medusa start` forces NODE_ENV=production even when run locally, so this
+ * would otherwise make it impossible to run a production build on a dev
+ * machine. ALLOW_INMEMORY_INFRA=true is the deliberate escape hatch for that —
+ * never set it on Railway.
+ */
+if (
+  process.env.NODE_ENV === 'production' &&
+  !REDIS_URL &&
+  process.env.ALLOW_INMEMORY_INFRA !== 'true'
+) {
   // A generic Error is correct here: this is a boot-time misconfiguration that
   // must stop the process, not a request failure that maps to an HTTP status.
   // eslint-disable-next-line @medusajs/use-medusa-error-not-generic-error
   throw new Error(
     'REDIS_URL is required in production. Without it Medusa falls back to ' +
-      'in-memory modules, which lose scheduled jobs and workflow state on restart.'
+      'in-memory modules, which lose scheduled jobs and workflow state on ' +
+      'restart. To run a production build locally without Redis, set ' +
+      'ALLOW_INMEMORY_INFRA=true.'
   )
 }
 
