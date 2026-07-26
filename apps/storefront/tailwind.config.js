@@ -88,14 +88,14 @@ module.exports = {
         "3xl": "2rem",
       },
       fontFamily: {
+        // Google Sans, self-hosted via next/font/local in src/app/layout.tsx.
         sans: [
-          "Inter",
+          "var(--font-google-sans)",
           "-apple-system",
           "BlinkMacSystemFont",
           "Segoe UI",
           "Roboto",
           "Helvetica Neue",
-          "Ubuntu",
           "sans-serif",
         ],
       },
