@@ -185,6 +185,26 @@ The defining homepage rhythm is **promotional banners alternating with product r
 
 > All Arabic copy here was written without a native reviewer. It uses standard terminology and should be checked before launch.
 
+---
+
+## Caching & performance
+
+The storefront renders almost nothing per-visitor, so nearly everything is cached. Three layers, all configured in [`apps/storefront/open-next.config.ts`](apps/storefront/open-next.config.ts):
+
+| Layer | What it does |
+|---|---|
+| R2 incremental cache | Persistent store for prerendered pages and fetch results. Without it every Worker isolate re-renders from scratch |
+| `withRegionalCache` | Cloudflare Cache API in front of R2, per datacentre. R2 is a network round trip, and the homepage makes six cached calls to build its rails |
+| `enableCacheInterception` | Serves a prerendered page without booting the full Next.js server. Safe only because the site does not use PPR |
+
+Adding the last two took the homepage from ~850ms to ~230ms, the catalogue from ~530ms to ~60ms, and product pages from ~590ms to ~70ms.
+
+> **`revalidateTag` does nothing right now.** OpenNext's `tagCache` defaults to `"dummy"`, which discards every tag. The backend subscriber has been posting to `/api/revalidate` on product, price and inventory changes all along and none of it has invalidated anything — pages refresh only when their own `revalidate` window expires, and `force-cache` fetches with no `revalidate` never expire at all. Fixing it needs a real tag store (sharded Durable Objects is the recommended option; D1 and KV also work, KV is experimental and eventually consistent). Until then, "admin edits appear immediately" is not actually true.
+
+**Don't read cookies in catalogue code paths.** Reading them during render forces the route out of static rendering, which stops the incremental cache serving the page at all — this is why `getPublicCacheOptions` exists alongside `getCacheOptions`. Cart, customer and order data keep the per-visitor tag; the catalogue must not.
+
+**Search does not touch the network.** `/api/search-index` serves a ~12KB index of the whole catalogue; the overlay fetches it once on idle and every query after that is a synchronous filter over an array (12–15ms end to end). Revisit at a few hundred products, where it wants a real search index rather than a bigger download.
+
 ## Store configuration
 
 Seeded and verified against the live Supabase database.
@@ -242,12 +262,14 @@ CI never touches Supabase.
 
 | | |
 |---|---|
-| Backend API | https://dtcbackend-production-a265.up.railway.app |
-| Admin | https://dtcbackend-production-a265.up.railway.app/app |
+| Backend API | https://medusa-backend-sg-production.up.railway.app |
+| Admin | https://medusa-backend-sg-production.up.railway.app/app |
 | Storefront | https://flowershop-storefront.mubashermohammad35.workers.dev |
-| Railway project | `calm-analysis` — services `@dtc/backend` and `redis` |
-| Cloudflare | account `fe381f34824a7e381581fba60f9a3176`, worker `flowershop-storefront` |
-| Database | Supabase `zlgqitlviqchhrkkguny`, **session pooler** `aws-0-ap-northeast-1` |
+| Railway project | Singapore region — services `@dtc/backend` and `redis` |
+| Cloudflare | account `fe381f34824a7e381581fba60f9a3176`, worker `flowershop-storefront`, R2 bucket `flowershop-cache` |
+| Database | Supabase, **session pooler** `aws-0-ap-southeast-1` |
+
+The backend and database both moved to Singapore during the latency work; the original `dtcbackend-production-a265` / `ap-northeast-1` pair is gone. The storefront's real backend URL is the `MEDUSA_BACKEND_URL` repo variable — check there rather than trusting this table if a request 404s with "Application not found".
 
 Adding a new storefront origin means updating **`STORE_CORS` and `AUTH_CORS` on Railway**, not just Cloudflare.
 
