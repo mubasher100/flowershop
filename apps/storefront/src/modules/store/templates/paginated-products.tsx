@@ -11,8 +11,18 @@ type PaginatedProductsParams = {
   limit: number
   collection_id?: string[]
   category_id?: string[]
+  tag_id?: string[]
   id?: string[]
+  q?: string
   order?: string
+}
+
+export type CatalogueFilters = {
+  q?: string
+  tagIds?: string[]
+  categoryIds?: string[]
+  minPrice?: number
+  maxPrice?: number
 }
 
 export default async function PaginatedProducts({
@@ -23,6 +33,7 @@ export default async function PaginatedProducts({
   productsIds,
   countryCode,
   optionValueIds,
+  filters,
 }: {
   sortBy?: SortOptions
   page: number
@@ -31,17 +42,39 @@ export default async function PaginatedProducts({
   productsIds?: string[]
   countryCode: string
   optionValueIds?: OptionValueIds
+  filters?: CatalogueFilters
 }) {
+  const hasPriceFilter =
+    filters?.minPrice !== undefined || filters?.maxPrice !== undefined
+
   const queryParams: PaginatedProductsParams = {
-    limit: 12,
+    // Price lives on variants and the Store API cannot filter by it, so a
+    // price range has to be applied after fetching. Pull the whole catalogue
+    // in that case and paginate below. Fine at this size; revisit past a few
+    // hundred products, where it should move to a search index.
+    limit: hasPriceFilter ? 100 : PRODUCT_LIMIT,
   }
 
   if (collectionId) {
     queryParams["collection_id"] = [collectionId]
   }
 
-  if (categoryId) {
-    queryParams["category_id"] = [categoryId]
+  // A category page scopes to its own category; the filter panel can narrow
+  // further within it.
+  const categoryIds = [
+    ...(categoryId ? [categoryId] : []),
+    ...(filters?.categoryIds ?? []),
+  ]
+  if (categoryIds.length) {
+    queryParams["category_id"] = categoryIds
+  }
+
+  if (filters?.tagIds?.length) {
+    queryParams["tag_id"] = filters.tagIds
+  }
+
+  if (filters?.q) {
+    queryParams["q"] = filters.q
   }
 
   if (productsIds) {
@@ -59,14 +92,49 @@ export default async function PaginatedProducts({
   }
 
   const {
-    response: { products, count },
+    response: { products: fetched, count: fetchedCount },
   } = await listProductsWithSort({
-    page,
+    page: hasPriceFilter ? 1 : page,
     queryParams,
     sortBy,
     countryCode,
     optionValueIds,
   })
+
+  let products = fetched
+  let count = fetchedCount
+
+  if (hasPriceFilter) {
+    const min = filters?.minPrice ?? 0
+    const max = filters?.maxPrice ?? Number.MAX_SAFE_INTEGER
+    // Compare against the cheapest variant, which is the price shown on the
+    // card — filtering on any other variant would contradict what is visible.
+    const inRange = products.filter((p) => {
+      const prices = (p.variants ?? [])
+        .map((v) => v.calculated_price?.calculated_amount)
+        .filter((n): n is number => typeof n === "number")
+      if (!prices.length) return false
+      const cheapest = Math.min(...prices)
+      return cheapest >= min && cheapest <= max
+    })
+
+    count = inRange.length
+    const start = (page - 1) * PRODUCT_LIMIT
+    products = inRange.slice(start, start + PRODUCT_LIMIT)
+  }
+
+  if (!products.length) {
+    return (
+      <div className="py-16 text-center">
+        <p className="font-display text-2xl text-ink-900">
+          Nothing matches those filters
+        </p>
+        <p className="mt-2 text-base text-ink-600">
+          Try widening the price range or clearing a colour.
+        </p>
+      </div>
+    )
+  }
 
   const totalPages = Math.ceil(count / PRODUCT_LIMIT)
 
