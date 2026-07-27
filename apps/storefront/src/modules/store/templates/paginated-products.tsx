@@ -1,5 +1,6 @@
 import { listProductsWithSort } from "@lib/data/products"
 import { getRegion } from "@lib/data/regions"
+import { getTranslations } from "@lib/i18n/dictionary"
 import { OptionValueIds } from "@lib/util/product-option-filters"
 import ProductPreview from "@modules/products/components/product-preview"
 import { Pagination } from "@modules/store/components/pagination"
@@ -44,6 +45,8 @@ export default async function PaginatedProducts({
   optionValueIds?: OptionValueIds
   filters?: CatalogueFilters
 }) {
+  const { t } = getTranslations(countryCode)
+
   const hasPriceFilter =
     filters?.minPrice !== undefined || filters?.maxPrice !== undefined
 
@@ -127,11 +130,9 @@ export default async function PaginatedProducts({
     return (
       <div className="py-16 text-center">
         <p className="font-display text-2xl text-ink-900">
-          Nothing matches those filters
+          {t("filter.emptyTitle")}
         </p>
-        <p className="mt-2 text-base text-ink-600">
-          Try widening the price range or clearing a colour.
-        </p>
+        <p className="mt-2 text-base text-ink-600">{t("filter.emptyBody")}</p>
       </div>
     )
   }
@@ -151,7 +152,7 @@ export default async function PaginatedProducts({
         {products.map((p) => {
           return (
             <li key={p.id} className="min-w-0">
-              <ProductPreview product={p} region={region} />
+              <ProductPreview product={p} region={region} segment={countryCode} />
             </li>
           )
         })}

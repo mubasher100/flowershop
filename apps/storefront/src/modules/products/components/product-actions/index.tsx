@@ -2,6 +2,7 @@
 
 import { addToCart } from "@lib/data/cart"
 import { useIntersection } from "@lib/hooks/use-in-view"
+import { useTranslations } from "@lib/i18n/use-translations"
 import { HttpTypes } from "@medusajs/types"
 import { Button } from "@modules/common/components/ui"
 import Divider from "@modules/common/components/divider"
@@ -39,6 +40,7 @@ export default function ProductActions({
   const [options, setOptions] = useState<Record<string, string | undefined>>({})
   const [isAdding, setIsAdding] = useState(false)
   const countryCode = useParams().countryCode as string
+  const { t } = useTranslations()
 
   // If there is only 1 variant, preselect the options
   useEffect(() => {
@@ -176,15 +178,19 @@ export default function ProductActions({
             >
               {(selectedVariant.inventory_quantity ?? 0) <= 0 ? (
                 <span className="font-medium text-ink-600">
-                  Sold out in this size
+                  {t("product.soldOutSize")}
                 </span>
               ) : (selectedVariant.inventory_quantity ?? 0) <= 5 ? (
                 <span className="font-medium text-blush-700">
-                  Only {selectedVariant.inventory_quantity} left
+                  {t("product.onlyLeft", {
+                    count: selectedVariant.inventory_quantity ?? 0,
+                  })}
                 </span>
               ) : (
                 <span className="text-sage-700">
-                  In stock — {selectedVariant.inventory_quantity} available
+                  {t("product.inStock", {
+                    count: selectedVariant.inventory_quantity ?? 0,
+                  })}
                 </span>
               )}
             </p>
@@ -210,10 +216,10 @@ export default function ProductActions({
               product here has a size ladder, so every product read as sold out
               until a size was picked, with 100 in stock. */}
           {!selectedVariant
-            ? "Select a size"
+            ? t("product.selectSize")
             : !inStock || !isValidVariant
-            ? "Out of stock"
-            : "Add to bag"}
+            ? t("product.outOfStock")
+            : t("product.addToBag")}
         </Button>
         <MobileActions
           product={product}

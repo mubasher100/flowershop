@@ -1,5 +1,7 @@
 "use client"
 
+import { TranslationKey } from "@lib/i18n/dictionary"
+import { useTranslations } from "@lib/i18n/use-translations"
 import Accordion from "./accordion"
 
 /**
@@ -12,22 +14,93 @@ import Accordion from "./accordion"
  * These three answer what people actually hesitate over before buying
  * flowers: will they last, when will they arrive, and how do I pay.
  */
+
+const listClass = "flex flex-col gap-2 text-sm leading-relaxed text-ink-600"
+
+const CARE_POINTS: TranslationKey[] = [
+  "care.trim",
+  "care.water",
+  "care.sun",
+  "care.fruit",
+  "care.leaves",
+]
+
+const DELIVERY_POINTS: TranslationKey[] = [
+  "delivery.window",
+  "delivery.fresh",
+  "delivery.confirm",
+]
+
+const PAYMENT_POINTS: TranslationKey[] = [
+  "payment.nothingCharged",
+  "payment.confirm",
+  "payment.cardSoon",
+]
+
 const ProductTabs = () => {
-  const tabs = [
-    { label: "Flower care", component: <FlowerCareTab /> },
-    { label: "Delivery", component: <DeliveryTab /> },
-    { label: "Payment", component: <PaymentTab /> },
+  const { t } = useTranslations()
+
+  const Points = ({ keys }: { keys: TranslationKey[] }) => (
+    <ul className={listClass}>
+      {keys.map((key) => (
+        <li key={key}>{t(key)}</li>
+      ))}
+    </ul>
+  )
+
+  const tabs: { key: string; label: string; component: React.ReactNode }[] = [
+    {
+      key: "care",
+      label: t("product.flowerCare"),
+      component: (
+        <div className="py-3">
+          <Points keys={CARE_POINTS} />
+        </div>
+      ),
+    },
+    {
+      key: "delivery",
+      label: t("product.delivery"),
+      component: (
+        <div className="py-3">
+          <ul className={listClass}>
+            {/* The same-day promise leads, with the headline half emphasised —
+                it is the one line most people open this accordion to find. */}
+            <li>
+              <span className="font-medium text-ink-800">
+                {t("delivery.sameDayLabel")}
+              </span>{" "}
+              — {t("delivery.sameDayBody")}
+            </li>
+            {DELIVERY_POINTS.map((key) => (
+              <li key={key}>{t(key)}</li>
+            ))}
+          </ul>
+        </div>
+      ),
+    },
+    {
+      key: "payment",
+      label: t("product.payment"),
+      component: (
+        <div className="py-3">
+          <Points keys={PAYMENT_POINTS} />
+        </div>
+      ),
+    },
   ]
 
   return (
     <div className="w-full">
       <Accordion type="multiple">
         {tabs.map((tab) => (
+          // Keyed on a stable identifier rather than the label, so switching
+          // language does not remount every panel and collapse what was open.
           <Accordion.Item
-            key={tab.label}
+            key={tab.key}
             title={tab.label}
             headingSize="medium"
-            value={tab.label}
+            value={tab.key}
           >
             {tab.component}
           </Accordion.Item>
@@ -36,54 +109,5 @@ const ProductTabs = () => {
     </div>
   )
 }
-
-const listClass = "flex flex-col gap-2 text-sm leading-relaxed text-ink-600"
-
-const FlowerCareTab = () => (
-  <div className="py-3">
-    <ul className={listClass}>
-      <li>Trim 2cm off each stem at an angle before putting them in water.</li>
-      <li>Change the water every two days, and re-trim while you do.</li>
-      <li>Keep them out of direct sun and away from air conditioning vents.</li>
-      <li>
-        Keep them away from ripening fruit — it gives off ethylene, which makes
-        petals drop early.
-      </li>
-      <li>Strip any leaves that would sit below the waterline.</li>
-    </ul>
-  </div>
-)
-
-const DeliveryTab = () => (
-  <div className="py-3">
-    <ul className={listClass}>
-      <li>
-        <span className="font-medium text-ink-800">Same-day across Doha</span> —
-        order before 6pm and it arrives today.
-      </li>
-      <li>Choose a two-hour window at checkout, any time from 10am to 9pm.</li>
-      <li>
-        Every arrangement is made the morning it goes out. Nothing sits in a
-        fridge waiting for an order.
-      </li>
-      <li>
-        We&apos;ll message you on WhatsApp to confirm before the courier leaves.
-      </li>
-    </ul>
-  </div>
-)
-
-const PaymentTab = () => (
-  <div className="py-3">
-    <ul className={listClass}>
-      <li>Nothing is charged when you place the order.</li>
-      <li>
-        We check the flowers are in stock, then confirm the order and payment
-        with you on WhatsApp.
-      </li>
-      <li>Card payment is coming soon.</li>
-    </ul>
-  </div>
-)
 
 export default ProductTabs

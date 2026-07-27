@@ -1,3 +1,5 @@
+import { getTranslations, TranslationKey } from "@lib/i18n/dictionary"
+
 /**
  * Delivery reassurance strip.
  *
@@ -7,26 +9,16 @@
  * fold.
  */
 
-const PROMISES = [
-  {
-    title: "Same-day across Doha",
-    detail: "Order by 6pm, delivered today.",
-  },
-  {
-    title: "Choose the hour",
-    detail: "Two-hour delivery windows, 10am to 9pm.",
-  },
-  {
-    title: "Arranged to order",
-    detail: "Nothing sits in a fridge waiting.",
-  },
-  {
-    title: "Free gift note",
-    detail: "Handwritten and sealed, at no charge.",
-  },
+const PROMISES: { title: TranslationKey; detail: TranslationKey }[] = [
+  { title: "strip.sameDay", detail: "strip.sameDayDetail" },
+  { title: "strip.hour", detail: "strip.hourDetail" },
+  { title: "strip.arranged", detail: "strip.arrangedDetail" },
+  { title: "strip.note", detail: "strip.noteDetail" },
 ]
 
-const DeliveryStrip = () => {
+const DeliveryStrip = ({ segment }: { segment?: string }) => {
+  const { t } = getTranslations(segment)
+
   return (
     <section className="border-y border-ink-200/70 bg-white">
       <div className="content-container py-6 small:py-8">
@@ -34,13 +26,15 @@ const DeliveryStrip = () => {
           {PROMISES.map((promise) => (
             <li
               key={promise.title}
+              // Key is the translation key, not the rendered text, so a
+              // language switch reuses the nodes instead of remounting them.
               className="w-[13rem] flex-none snap-start rounded-xl bg-blush-50 p-4 small:w-auto small:bg-transparent small:p-0"
             >
               <p className="text-sm font-semibold text-ink-900">
-                {promise.title}
+                {t(promise.title)}
               </p>
               <p className="mt-1 text-sm leading-snug text-ink-600">
-                {promise.detail}
+                {t(promise.detail)}
               </p>
             </li>
           ))}

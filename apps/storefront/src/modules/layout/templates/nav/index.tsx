@@ -1,7 +1,9 @@
 import { Suspense } from "react"
 
 import { listCategories } from "@lib/data/categories"
+import { getTranslations } from "@lib/i18n/dictionary"
 import Brand from "@modules/common/components/brand"
+import LanguageSwitcher from "@modules/layout/components/language-switcher"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CartButton from "@modules/layout/components/cart-button"
 import CategoryNav from "@modules/layout/components/category-nav"
@@ -26,8 +28,9 @@ const pick = (
     .filter(Boolean)
     .map((c) => ({ name: c!.name ?? "", handle: c!.handle ?? "" }))
 
-export default async function Nav() {
+export default async function Nav({ segment }: { segment?: string }) {
   const categories = await listCategories({ limit: 20 })
+  const { t } = getTranslations(segment)
 
   return (
     <div className="sticky top-0 inset-x-0 z-50 group">
@@ -36,7 +39,7 @@ export default async function Nav() {
           should never be more than a glance away. */}
       <div className="bg-blush-600 text-white">
         <div className="content-container flex h-8 items-center justify-center gap-2 text-center text-xs font-medium">
-          <span>Same-day delivery across Doha · Order before 6pm</span>
+          <span>{t("promise.sameDay")}</span>
         </div>
       </div>
 
@@ -59,7 +62,8 @@ export default async function Nav() {
           {/* No account link. Ordering is guest-only by design — the shop
               confirms stock and follows up on WhatsApp, so an account would
               be a barrier with nothing behind it. */}
-          <div className="flex h-full flex-1 basis-0 items-center justify-end">
+          <div className="flex h-full flex-1 basis-0 items-center justify-end gap-3 small:gap-4">
+            <LanguageSwitcher />
             <Suspense
               fallback={
                 <LocalizedClientLink
@@ -67,7 +71,7 @@ export default async function Nav() {
                   href="/cart"
                   data-testid="nav-cart-link"
                 >
-                  Bag (0)
+                  {t("nav.bag")} (0)
                 </LocalizedClientLink>
               }
             >

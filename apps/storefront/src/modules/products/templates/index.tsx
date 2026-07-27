@@ -1,5 +1,6 @@
 import React, { Suspense } from "react"
 
+import { getTranslations } from "@lib/i18n/dictionary"
 import ImageGallery from "@modules/products/components/image-gallery"
 import ProductActions from "@modules/products/components/product-actions"
 import ProductTabs from "@modules/products/components/product-tabs"
@@ -40,6 +41,8 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
     return notFound()
   }
 
+  const { t } = getTranslations(countryCode)
+
   return (
     <>
       <div
@@ -70,11 +73,10 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
               the purchase, so it should not need a tap to reveal. */}
           <div className="flex flex-col gap-1 rounded-2xl bg-blush-50 p-4">
             <p className="text-sm font-semibold text-ink-900">
-              Same-day delivery across Doha
+              {t("promise.title")}
             </p>
             <p className="text-sm leading-relaxed text-ink-600">
-              Order before 6pm and it arrives today. Pick a two-hour window at
-              checkout, and we&apos;ll confirm on WhatsApp before it leaves.
+              {t("product.promiseBody")}
             </p>
           </div>
 

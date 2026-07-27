@@ -1,3 +1,4 @@
+import { getTranslations } from "@lib/i18n/dictionary"
 import { getProductPrice } from "@lib/util/get-product-price"
 import { HttpTypes } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
@@ -19,12 +20,15 @@ export default async function ProductPreview({
   product,
   isFeatured,
   region: _region,
+  segment,
 }: {
   product: HttpTypes.StoreProduct
   isFeatured?: boolean
   region: HttpTypes.StoreRegion
+  segment?: string
 }) {
   const { cheapestPrice } = getProductPrice({ product })
+  const { t } = getTranslations(segment)
 
   const hasSizeLadder = (product.variants?.length ?? 0) > 1
 
@@ -77,7 +81,9 @@ export default async function ProductPreview({
               viewport. */}
           {cheapestPrice && (
             <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm small:text-base">
-              {hasSizeLadder && <span className="text-ink-500">From</span>}
+              {hasSizeLadder && (
+                <span className="text-ink-500">{t("product.from")}</span>
+              )}
               <PreviewPrice price={cheapestPrice} />
             </div>
           )}

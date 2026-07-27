@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "@lib/i18n/use-translations"
 import FilterRadioGroup from "@modules/common/components/filter-radio-group"
 
 export type SortOptions = "price_asc" | "price_desc" | "created_at"
@@ -10,33 +11,26 @@ type SortProductsProps = {
   "data-testid"?: string
 }
 
-const sortOptions = [
-  {
-    value: "created_at",
-    label: "Latest Arrivals",
-  },
-  {
-    value: "price_asc",
-    label: "Price: Low -> High",
-  },
-  {
-    value: "price_desc",
-    label: "Price: High -> Low",
-  },
-]
-
 const SortProducts = ({
   "data-testid": dataTestId,
   sortBy,
   setQueryParams,
 }: SortProductsProps) => {
+  const { t } = useTranslations()
+
   const handleChange = (value: string) => {
     setQueryParams("sortBy", value as SortOptions)
   }
 
+  const sortOptions = [
+    { value: "created_at", label: t("sort.latest") },
+    { value: "price_asc", label: t("sort.priceAsc") },
+    { value: "price_desc", label: t("sort.priceDesc") },
+  ]
+
   return (
     <FilterRadioGroup
-      title="Sort by"
+      title={t("sort.by")}
       items={sortOptions}
       value={sortBy}
       handleChange={handleChange}

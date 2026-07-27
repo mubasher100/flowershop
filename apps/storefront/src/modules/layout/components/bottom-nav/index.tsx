@@ -3,6 +3,8 @@
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 
+import { TranslationKey } from "@lib/i18n/dictionary"
+import { useTranslations } from "@lib/i18n/use-translations"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { clx } from "@modules/common/components/ui"
 
@@ -22,7 +24,9 @@ import { clx } from "@modules/common/components/ui"
 
 type Item = {
   href: string
-  label: string
+  /** Stable identity for keys and the bag-badge check, never rendered. */
+  id: string
+  label: TranslationKey
   icon: React.ReactNode
   /** Matches this item when the path starts with any of these. */
   match: string[]
@@ -39,7 +43,8 @@ const stroke = {
 const ITEMS: Item[] = [
   {
     href: "/",
-    label: "Home",
+    id: "home",
+    label: "nav.home",
     match: [""],
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6">
@@ -50,7 +55,8 @@ const ITEMS: Item[] = [
   },
   {
     href: "/store",
-    label: "Shop",
+    id: "shop",
+    label: "nav.shop",
     match: ["store", "categories", "collections"],
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6">
@@ -61,7 +67,8 @@ const ITEMS: Item[] = [
   },
   {
     href: "/store?focus=search",
-    label: "Search",
+    id: "search",
+    label: "nav.search",
     match: ["search"],
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6">
@@ -72,7 +79,8 @@ const ITEMS: Item[] = [
   },
   {
     href: "/categories/birthday",
-    label: "Occasions",
+    id: "occasions",
+    label: "nav.occasions",
     match: ["birthday", "anniversary", "congratulations"],
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6">
@@ -82,7 +90,8 @@ const ITEMS: Item[] = [
   },
   {
     href: "/cart",
-    label: "Bag",
+    id: "bag",
+    label: "nav.bag",
     match: ["cart", "checkout"],
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6">
@@ -96,6 +105,7 @@ const ITEMS: Item[] = [
 export default function BottomNav() {
   const pathname = usePathname()
   const [count, setCount] = useState<number | null>(null)
+  const { t } = useTranslations()
 
   useEffect(() => {
     let cancelled = false
@@ -113,7 +123,7 @@ export default function BottomNav() {
 
   return (
     <nav
-      aria-label="Primary"
+      aria-label={t("nav.menu")}
       className="fixed inset-x-0 bottom-0 z-50 border-t border-ink-200/70 bg-white small:hidden"
       // Keeps the bar clear of the iPhone home indicator.
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
@@ -122,7 +132,7 @@ export default function BottomNav() {
         {ITEMS.map((item) => {
           const active = item.match.includes(segment)
           return (
-            <li key={item.label}>
+            <li key={item.id}>
               <LocalizedClientLink
                 href={item.href}
                 aria-current={active ? "page" : undefined}
@@ -133,13 +143,13 @@ export default function BottomNav() {
               >
                 <span className="relative">
                   {item.icon}
-                  {item.label === "Bag" && count !== null && count > 0 && (
+                  {item.id === "bag" && count !== null && count > 0 && (
                     <span className="absolute -end-2 -top-1 min-w-[1.05rem] rounded-full bg-blush-600 px-1 text-center text-[0.6rem] font-bold leading-[1.05rem] text-white">
                       {count > 9 ? "9+" : count}
                     </span>
                   )}
                 </span>
-                {item.label}
+                {t(item.label)}
               </LocalizedClientLink>
             </li>
           )

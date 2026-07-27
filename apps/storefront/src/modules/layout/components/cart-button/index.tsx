@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 
+import { useTranslations } from "@lib/i18n/use-translations"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 /**
@@ -23,6 +24,7 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 export default function CartButton() {
   const [count, setCount] = useState<number | null>(null)
   const pathname = usePathname()
+  const { t } = useTranslations()
 
   useEffect(() => {
     let cancelled = false
@@ -48,7 +50,8 @@ export default function CartButton() {
       href="/cart"
       data-testid="nav-cart-link"
     >
-      Bag{count !== null ? ` (${count})` : ""}
+      {t("nav.bag")}
+      {count !== null ? ` (${count})` : ""}
     </LocalizedClientLink>
   )
 }

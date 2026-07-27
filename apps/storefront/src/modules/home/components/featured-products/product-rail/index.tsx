@@ -1,4 +1,5 @@
 import { listProducts } from "@lib/data/products"
+import { getTranslations } from "@lib/i18n/dictionary"
 import { HttpTypes } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import ProductPreview from "@modules/products/components/product-preview"
@@ -14,10 +15,14 @@ import ProductPreview from "@modules/products/components/product-preview"
 export default async function ProductRail({
   collection,
   region,
+  segment,
 }: {
   collection: HttpTypes.StoreCollection
   region: HttpTypes.StoreRegion
+  segment?: string
 }) {
+  const { t } = getTranslations(segment)
+
   const {
     response: { products: pricedProducts },
   } = await listProducts({
@@ -41,10 +46,10 @@ export default async function ProductRail({
         </h2>
         <LocalizedClientLink
           href={`/collections/${collection.handle}`}
-          aria-label={`View all in ${collection.title}`}
+          aria-label={`${t("section.viewAll")} — ${collection.title}`}
           className="inline-flex min-h-[2.75rem] flex-none items-center whitespace-nowrap text-sm font-semibold text-blush-700 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700"
         >
-          View all
+          {t("section.viewAll")}
         </LocalizedClientLink>
       </div>
 
@@ -59,7 +64,12 @@ export default async function ProductRail({
             key={product.id}
             className="w-[43vw] max-w-[15rem] flex-none snap-start xsmall:w-[31vw] small:w-auto small:max-w-none"
           >
-            <ProductPreview product={product} region={region} isFeatured />
+            <ProductPreview
+              product={product}
+              region={region}
+              segment={segment}
+              isFeatured
+            />
           </li>
         ))}
       </ul>

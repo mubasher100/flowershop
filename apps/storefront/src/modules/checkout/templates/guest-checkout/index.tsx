@@ -5,6 +5,7 @@ import { useActionState } from "react"
 
 import { convertToLocale } from "@lib/util/money"
 import { placeGuestOrder, GuestOrderState } from "@lib/data/guest-order"
+import { useTranslations } from "@lib/i18n/use-translations"
 
 /**
  * Guest checkout.
@@ -42,6 +43,8 @@ export default function GuestCheckout({
     FormData
   >(placeGuestOrder, {})
 
+  const { t } = useTranslations()
+
   // Today, in Qatar, as a yyyy-mm-dd bound for the date picker.
   const today = new Date().toLocaleDateString("en-CA", {
     timeZone: "Asia/Qatar",
@@ -51,75 +54,87 @@ export default function GuestCheckout({
     <form action={formAction} className="flex flex-col gap-8">
       <section className="flex flex-col gap-4">
         <div>
-          <h2 className="font-display text-2xl text-ink-900">Your details</h2>
+          <h2 className="font-display text-2xl text-ink-900">
+            {t("checkout.yourDetails")}
+          </h2>
           <p className="mt-1 text-sm text-ink-600">
-            We&apos;ll confirm your order on WhatsApp once we&apos;ve checked
-            the flowers are in stock.
+            {t("checkout.detailsHelp")}
           </p>
         </div>
 
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="name">
-            Your name
+            {t("checkout.name")}
           </label>
           <input id="name" name="name" required autoComplete="name"
-            className={fieldClass} placeholder="Full name" />
+            className={fieldClass} placeholder={t("checkout.namePlaceholder")} />
         </div>
 
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="phone">
-            WhatsApp number
+            {t("checkout.phone")}
           </label>
+          {/* dir="ltr" regardless of page direction: a phone number is a
+              left-to-right sequence even in Arabic, and letting it inherit RTL
+              puts the leading digits on the wrong end as you type. */}
           <input id="phone" name="phone" required type="tel"
-            inputMode="tel" autoComplete="tel"
-            className={fieldClass} placeholder="e.g. 3312 3456" />
-          <p className="text-xs text-ink-500">
-            This is how we reach you — please make sure it&apos;s on WhatsApp.
-          </p>
+            inputMode="tel" autoComplete="tel" dir="ltr"
+            className={`${fieldClass} text-start`}
+            placeholder={t("checkout.phonePlaceholder")} />
+          <p className="text-xs text-ink-500">{t("checkout.phoneHelp")}</p>
         </div>
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="font-display text-2xl text-ink-900">Delivery</h2>
+        <h2 className="font-display text-2xl text-ink-900">
+          {t("checkout.delivery")}
+        </h2>
 
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="recipient">
-            Who is it for? <span className="font-normal text-ink-500">(optional)</span>
+            {t("checkout.recipient")}{" "}
+            <span className="font-normal text-ink-500">
+              {t("checkout.optional")}
+            </span>
           </label>
           <input id="recipient" name="recipient" className={fieldClass}
-            placeholder="Leave blank if it's for you" />
+            placeholder={t("checkout.recipientPlaceholder")} />
         </div>
 
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="area">
-            Area
+            {t("checkout.area")}
           </label>
+          {/* Area and time-window values stay English in the submitted form.
+              They are read off the order by the shopkeeper, who works in
+              English — translating the value as well as the label would hand
+              them an address they have to translate back. */}
           <select id="area" name="area" required defaultValue="" className={fieldClass}>
-            <option value="" disabled>Choose an area</option>
+            <option value="" disabled>{t("checkout.chooseArea")}</option>
             {AREAS.map((a) => <option key={a} value={a}>{a}</option>)}
           </select>
         </div>
 
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="address">
-            Building, street and any landmark
+            {t("checkout.address")}
           </label>
           <textarea id="address" name="address" required rows={3}
             className={`${fieldClass} py-3`}
-            placeholder="Villa 12, Street 850, near Al Sadd Sports Club" />
+            placeholder={t("checkout.addressPlaceholder")} />
         </div>
 
         <div className="grid grid-cols-1 gap-4 xsmall:grid-cols-2">
           <div className="flex flex-col gap-1.5">
             <label className={labelClass} htmlFor="delivery_date">
-              Delivery date
+              {t("checkout.date")}
             </label>
             <input id="delivery_date" name="delivery_date" type="date"
               min={today} defaultValue={today} className={fieldClass} />
           </div>
           <div className="flex flex-col gap-1.5">
             <label className={labelClass} htmlFor="delivery_window">
-              Preferred time
+              {t("checkout.time")}
             </label>
             <select id="delivery_window" name="delivery_window"
               defaultValue={WINDOWS[0]} className={fieldClass}>
@@ -129,7 +144,9 @@ export default function GuestCheckout({
         </div>
 
         <fieldset className="flex flex-col gap-2">
-          <legend className={`${labelClass} mb-1.5`}>Delivery speed</legend>
+          <legend className={`${labelClass} mb-1.5`}>
+            {t("checkout.speed")}
+          </legend>
           {shippingOptions.map((option, i) => (
             <label
               key={option.id}
@@ -153,11 +170,14 @@ export default function GuestCheckout({
 
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="gift_note">
-            Gift note <span className="font-normal text-ink-500">(optional)</span>
+            {t("checkout.giftNote")}{" "}
+            <span className="font-normal text-ink-500">
+              {t("checkout.optional")}
+            </span>
           </label>
           <textarea id="gift_note" name="gift_note" rows={3} maxLength={300}
             className={`${fieldClass} py-3`}
-            placeholder="We'll write this by hand and seal it with the flowers." />
+            placeholder={t("checkout.giftNotePlaceholder")} />
         </div>
       </section>
 
@@ -171,11 +191,10 @@ export default function GuestCheckout({
       <div className="flex flex-col gap-3">
         <button type="submit" disabled={pending}
           className="inline-flex min-h-[3.25rem] items-center justify-center rounded-full bg-blush-600 px-8 text-base font-semibold text-white transition-colors hover:bg-blush-700 disabled:opacity-60">
-          {pending ? "Sending your order…" : "Place order"}
+          {pending ? t("checkout.placing") : t("checkout.place")}
         </button>
         <p className="text-center text-sm text-ink-600">
-          Nothing is charged now. We&apos;ll confirm availability and payment
-          with you on WhatsApp.
+          {t("checkout.noCharge")}
         </p>
       </div>
     </form>

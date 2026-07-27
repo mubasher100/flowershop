@@ -3,6 +3,8 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useState } from "react"
 
+import { DICTIONARY, TranslationKey } from "@lib/i18n/dictionary"
+import { useTranslations } from "@lib/i18n/use-translations"
 import { clx } from "@modules/common/components/ui"
 import SortProducts, { SortOptions } from "../refinement-list/sort-products"
 
@@ -59,6 +61,18 @@ export default function FilterPanel({
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [open, setOpen] = useState(false)
+  const { t } = useTranslations()
+
+  /**
+   * Colour names come from product tags, so they arrive as English words with
+   * no translation attached. The eight the catalogue actually uses are in the
+   * dictionary; anything a future tag adds falls back to the raw label rather
+   * than disappearing from the filter.
+   */
+  const colourLabel = ({ label, value }: FilterOption) => {
+    const key = `colour.${value}` as TranslationKey
+    return key in DICTIONARY.en ? t(key) : label
+  }
 
   const update = useCallback(
     (mutate: (p: URLSearchParams) => void) => {
@@ -110,9 +124,11 @@ export default function FilterPanel({
         aria-controls="filter-panel"
         className="mb-4 inline-flex min-h-[2.75rem] w-full items-center justify-between rounded-xl border border-ink-200 px-4 text-base font-medium text-ink-800 small:hidden"
       >
-        <span>Filters &amp; sort</span>
+        <span>{t("filter.title")}</span>
         <span className="text-sm text-ink-600">
-          {activeCount > 0 ? `${activeCount} active` : "None"}
+          {activeCount > 0
+            ? t("filter.active", { count: activeCount })
+            : t("filter.none")}
         </span>
       </button>
 
@@ -128,13 +144,13 @@ export default function FilterPanel({
             htmlFor="filter-q"
             className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-500"
           >
-            Search
+            {t("filter.search")}
           </label>
           <input
             id="filter-q"
             type="search"
             defaultValue={searchParams.get("q") ?? ""}
-            placeholder="Roses, peonies, vase…"
+            placeholder={t("filter.searchPlaceholder")}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 setSingle("q", (e.target as HTMLInputElement).value.trim())
@@ -153,7 +169,7 @@ export default function FilterPanel({
         {colours.length > 0 && (
           <fieldset className="flex flex-col gap-2.5">
             <legend className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-ink-500">
-              Colour
+              {t("filter.colour")}
             </legend>
             <div className="flex flex-wrap gap-2">
               {colours.map((c) => {
@@ -171,7 +187,7 @@ export default function FilterPanel({
                       className="h-3.5 w-3.5 flex-none rounded-full ring-1 ring-inset ring-ink-900/15"
                       style={{ background: SWATCH[c.value] ?? "var(--ink-200)" }}
                     />
-                    {c.label}
+                    {colourLabel(c)}
                   </button>
                 )
               })}
@@ -182,7 +198,7 @@ export default function FilterPanel({
         {categories.length > 0 && (
           <fieldset className="flex flex-col gap-2.5">
             <legend className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-ink-500">
-              Category
+              {t("filter.category")}
             </legend>
             <div className="flex flex-wrap gap-2">
               {categories.map((c) => {
@@ -205,7 +221,7 @@ export default function FilterPanel({
 
         <fieldset className="flex flex-col gap-2.5">
           <legend className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-ink-500">
-            Price (QAR)
+            {t("filter.price")}
           </legend>
           <div className="flex items-center gap-2">
             <input
@@ -213,8 +229,8 @@ export default function FilterPanel({
               min={0}
               max={maxPrice}
               inputMode="numeric"
-              aria-label="Minimum price"
-              placeholder="Min"
+              aria-label={t("filter.min")}
+              placeholder={t("filter.min")}
               defaultValue={searchParams.get("minPrice") ?? ""}
               onBlur={(e) => setSingle("minPrice", e.target.value)}
               className="min-h-[2.75rem] w-full rounded-xl border border-ink-200 px-3 text-base tabular-nums focus:border-blush-500 focus:outline-none focus:ring-2 focus:ring-blush-200"
@@ -227,7 +243,7 @@ export default function FilterPanel({
               min={0}
               max={maxPrice}
               inputMode="numeric"
-              aria-label="Maximum price"
+              aria-label={t("filter.price")}
               placeholder={String(maxPrice)}
               defaultValue={searchParams.get("maxPrice") ?? ""}
               onBlur={(e) => setSingle("maxPrice", e.target.value)}
@@ -242,7 +258,7 @@ export default function FilterPanel({
             onClick={clearAll}
             className="inline-flex min-h-[2.75rem] w-fit items-center text-sm font-semibold text-blush-700 underline-offset-4 hover:underline"
           >
-            Clear all filters
+            {t("filter.clearAll")}
           </button>
         )}
       </div>

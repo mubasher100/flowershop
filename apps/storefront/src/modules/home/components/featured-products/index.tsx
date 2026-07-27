@@ -21,9 +21,11 @@ const RAIL_ORDER = ["best-sellers", "new-this-week", "under-400"]
 export default async function FeaturedProducts({
   collections,
   region,
+  segment,
 }: {
   collections: HttpTypes.StoreCollection[]
   region: HttpTypes.StoreRegion
+  segment?: string
 }) {
   const visible = collections.filter(
     (c) => !HIDDEN_FROM_HOMEPAGE.has(c.handle ?? "")
@@ -39,7 +41,11 @@ export default async function FeaturedProducts({
 
   return ordered.map((collection) => (
     <li key={collection.id}>
-      <ProductRail collection={collection} region={region} />
+      <ProductRail
+        collection={collection}
+        region={region}
+        segment={segment}
+      />
     </li>
   ))
 }

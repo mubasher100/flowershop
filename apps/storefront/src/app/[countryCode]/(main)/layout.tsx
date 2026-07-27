@@ -28,14 +28,22 @@ export const metadata: Metadata = {
  * Restore the nudge when a free-shipping promotion actually exists, but fetch
  * the cart inside that component rather than here.
  */
-export default async function PageLayout(props: { children: React.ReactNode }) {
+export default async function PageLayout(props: {
+  children: React.ReactNode
+  params: Promise<{ countryCode: string }>
+}) {
+  // The layout is the only place that sees the locale segment for every page
+  // under it, so the chrome gets its translator from here rather than each
+  // component re-deriving it.
+  const { countryCode } = await props.params
+
   return (
     <>
-      <Nav />
+      <Nav segment={countryCode} />
       {/* pb-16 on mobile keeps the last of the page clear of the fixed bottom
           bar — without it the footer's final links sit underneath it. */}
       <div className="pb-16 small:pb-0">{props.children}</div>
-      <Footer />
+      <Footer segment={countryCode} />
       <BottomNav />
     </>
   )

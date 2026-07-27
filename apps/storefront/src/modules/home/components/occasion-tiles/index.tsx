@@ -1,6 +1,7 @@
 import Image from "next/image"
 
 import { listCategories } from "@lib/data/categories"
+import { getTranslations } from "@lib/i18n/dictionary"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 /**
@@ -32,8 +33,13 @@ const TILE_IMAGE: Record<string, string> = {
   "thank-you": "/products/bloom-10.jpg",
 }
 
-export default async function OccasionTiles() {
+export default async function OccasionTiles({
+  segment,
+}: {
+  segment?: string
+}) {
   const categories = await listCategories({ limit: 20 })
+  const { t } = getTranslations(segment)
 
   const occasions = OCCASION_HANDLES.map((handle) =>
     categories?.find((c) => c.handle === handle)
@@ -46,7 +52,7 @@ export default async function OccasionTiles() {
   return (
     <section className="content-container py-8 small:py-12">
       <h2 className="mb-5 font-display text-3xl text-ink-900 small:mb-7 small:text-4xl">
-        Shop by occasion
+        {t("section.shopByOccasion")}
       </h2>
 
       <ul className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-1 small:mx-0 small:grid small:grid-cols-6 small:gap-6 small:overflow-visible small:px-0">

@@ -9,6 +9,7 @@ import {
 import { XMark } from "@medusajs/icons"
 import { Fragment, useState } from "react"
 
+import { useTranslations } from "@lib/i18n/use-translations"
 import { BRAND_NAME } from "@modules/common/components/brand"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
@@ -59,6 +60,12 @@ const MenuItem = ({
 const SideMenu = ({ categories, occasions }: SideMenuProps) => {
   const [open, setOpen] = useState(false)
   const close = () => setOpen(false)
+  const { t, isRtl } = useTranslations()
+
+  // The panel is placed by flex direction, which `dir` already mirrors, but
+  // Tailwind's translate utilities are physical — so in Arabic the drawer
+  // would sit on the right and still fly in from the left. Flip the sign.
+  const offscreen = isRtl ? "translate-x-full" : "-translate-x-full"
 
   return (
     <>
@@ -66,7 +73,7 @@ const SideMenu = ({ categories, occasions }: SideMenuProps) => {
         type="button"
         onClick={() => setOpen(true)}
         data-testid="nav-menu-button"
-        aria-label="Open menu"
+        aria-label={t("nav.open")}
         className="inline-flex min-h-[2.75rem] items-center gap-2 text-ink-700 transition-colors hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700"
       >
         {/* Drawn rather than imported so its weight matches the type beside it. */}
@@ -75,7 +82,7 @@ const SideMenu = ({ categories, occasions }: SideMenuProps) => {
           <span className="block h-[2px] w-4 rounded-full bg-current" />
           <span className="block h-[2px] w-4 rounded-full bg-current" />
         </span>
-        Menu
+        {t("nav.menu")}
       </button>
 
       <Transition show={open} as={Fragment}>
@@ -96,11 +103,11 @@ const SideMenu = ({ categories, occasions }: SideMenuProps) => {
             <TransitionChild
               as={Fragment}
               enter="transition ease-out duration-200"
-              enterFrom="-translate-x-full"
+              enterFrom={offscreen}
               enterTo="translate-x-0"
               leave="transition ease-in duration-150"
               leaveFrom="translate-x-0"
-              leaveTo="-translate-x-full"
+              leaveTo={offscreen}
             >
               <DialogPanel
                 data-testid="nav-menu-popup"
@@ -114,7 +121,7 @@ const SideMenu = ({ categories, occasions }: SideMenuProps) => {
                     type="button"
                     onClick={close}
                     data-testid="close-menu-button"
-                    aria-label="Close menu"
+                    aria-label={t("nav.close")}
                     className="inline-flex h-11 w-11 items-center justify-center rounded-full text-ink-600 transition-colors hover:bg-blush-50 hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blush-700"
                   >
                     <XMark />
@@ -128,13 +135,13 @@ const SideMenu = ({ categories, occasions }: SideMenuProps) => {
                       onClick={close}
                       className="flex min-h-[3rem] items-center justify-center rounded-full bg-blush-600 px-6 font-semibold text-white transition-colors hover:bg-blush-700"
                     >
-                      Shop all flowers
+                      {t("nav.shopAll")}
                     </LocalizedClientLink>
                   </div>
 
                   {categories.length > 0 && (
                     <>
-                      <SectionHeading>Shop by type</SectionHeading>
+                      <SectionHeading>{t("section.shopByType")}</SectionHeading>
                       {categories.map((c) => (
                         <MenuItem
                           key={c.handle}
@@ -149,7 +156,9 @@ const SideMenu = ({ categories, occasions }: SideMenuProps) => {
 
                   {occasions.length > 0 && (
                     <>
-                      <SectionHeading>Shop by occasion</SectionHeading>
+                      <SectionHeading>
+                        {t("section.shopByOccasion")}
+                      </SectionHeading>
                       {occasions.map((o) => (
                         <MenuItem
                           key={o.handle}
@@ -162,24 +171,24 @@ const SideMenu = ({ categories, occasions }: SideMenuProps) => {
                     </>
                   )}
 
-                  <SectionHeading>Help</SectionHeading>
+                  <SectionHeading>{t("section.help")}</SectionHeading>
                   <MenuItem href="/cart" onClick={close}>
-                    Your bag
+                    {t("footer.yourBag")}
                   </MenuItem>
                   <MenuItem href="/delivery" onClick={close}>
-                    Delivery &amp; areas
+                    {t("footer.deliveryAreas")}
                   </MenuItem>
                   <MenuItem href="/contact" onClick={close}>
-                    Contact us
+                    {t("footer.contact")}
                   </MenuItem>
                 </nav>
 
                 <div className="border-t border-ink-200/70 bg-blush-50 px-5 py-4">
                   <p className="text-sm font-medium text-ink-800">
-                    Same-day delivery across Doha
+                    {t("promise.title")}
                   </p>
                   <p className="mt-0.5 text-sm text-ink-600">
-                    Order before 6pm and it arrives today.
+                    {t("promise.body")}
                   </p>
                 </div>
               </DialogPanel>
