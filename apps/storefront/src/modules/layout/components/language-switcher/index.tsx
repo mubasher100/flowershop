@@ -51,6 +51,14 @@ function SwitcherLink({ href, target }: { href: string; target: string }) {
     document.cookie = `_medusa_locale=${target}; path=/; max-age=${
       60 * 60 * 24 * 365
     }; samesite=lax`
+
+    // Flip the document now rather than waiting for DirectionSync's effect,
+    // which lands a frame after the route commits — long enough to paint the
+    // new language in the old direction. DirectionSync still owns the general
+    // case (back, forward, any other route change); this just makes the
+    // deliberate switch instant.
+    document.documentElement.lang = target
+    document.documentElement.dir = target === "ar" ? "rtl" : "ltr"
   }
 
   return (

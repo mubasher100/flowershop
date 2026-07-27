@@ -87,9 +87,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           variant === "secondary" &&
             "bg-white text-black border border-gray-200 hover:bg-gray-50",
           variant === "transparent" && "bg-transparent hover:bg-gray-100",
-          size === "small" && "h-8 px-3 text-sm",
-          size === "medium" && "h-10 px-4",
-          size === "large" && "h-12 px-6 text-lg",
+          // min-h, not h: the default was h-10 (40px), so every button on the
+          // site — including add-to-cart and go-to-checkout — sat under the
+          // 44px a thumb can reliably hit.
+          size === "small" && "min-h-[2.75rem] px-3 text-sm",
+          size === "medium" && "min-h-[2.75rem] px-4",
+          size === "large" && "min-h-[3rem] px-6 text-lg",
           className
         )}
         {...props}
