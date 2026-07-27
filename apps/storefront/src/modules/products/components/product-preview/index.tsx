@@ -71,8 +71,12 @@ export default async function ProductPreview({
             {product.title}
           </h3>
 
+          {/* Wraps, because a discounted item shows two prices side by side
+              ("From QAR 1,015.00  QAR 865.00"). Unwrapped, that set a ~165px
+              minimum per card and pushed a two-column grid past a 320px
+              viewport. */}
           {cheapestPrice && (
-            <div className="flex items-center gap-x-1.5 text-sm small:text-base">
+            <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm small:text-base">
               {hasSizeLadder && <span className="text-ink-500">From</span>}
               <PreviewPrice price={cheapestPrice} />
             </div>
