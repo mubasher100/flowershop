@@ -120,6 +120,26 @@ module.exports = defineConfig({
   modules: [
     ...redisModules,
 
+    /**
+     * Translation module.
+     *
+     * Registers the locales this store serves and exposes /store/locales,
+     * which the storefront's language switcher reads — that endpoint was
+     * 404ing because the module was never registered.
+     *
+     * Arabic is the second language for a Qatar shop, and `ar` is RTL, so the
+     * storefront has to flip direction as well as swap strings.
+     */
+    {
+      resolve: "@medusajs/medusa/translation",
+      options: {
+        locales: [
+          { code: "en-US", name: "English" },
+          { code: "ar-QA", name: "العربية" },
+        ],
+      },
+    },
+
     // Payment providers. SkipCash lands here in Phase 8:
     // {
     //   resolve: '@medusajs/medusa/payment',
