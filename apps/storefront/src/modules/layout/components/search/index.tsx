@@ -167,8 +167,15 @@ export default function Search() {
         <span className="hidden small:inline">{t("search.open")}</span>
       </button>
 
-      <Transition show={open} as={Fragment} afterEnter={() => inputRef.current?.focus()}>
-        <Dialog onClose={close} className="relative z-[70]">
+      <Transition show={open} as={Fragment}>
+        {/* initialFocus, not an afterEnter hook: the Dialog manages focus
+            itself and was taking it back, so the caret never landed in the
+            field and you had to tap it before typing. */}
+        <Dialog
+          onClose={close}
+          initialFocus={inputRef}
+          className="relative z-[70]"
+        >
           <TransitionChild
             as={Fragment}
             enter="transition-opacity ease-out duration-150"
