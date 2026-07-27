@@ -25,6 +25,29 @@ import doShardedTagCache from "@opennextjs/cloudflare/overrides/tag-cache/do-sha
 export default defineCloudflareConfig({
   incrementalCache: withRegionalCache(r2IncrementalCache, {
     mode: "long-lived",
+
+    /**
+     * Serve a regionally cached page without asking the tag cache whether it
+     * is still valid. That question is a round trip, and it was being asked on
+     * every single request — which is what took the catalogue from 60ms back
+     * to 315ms when the tag cache was introduced.
+     *
+     * Correctness now comes from the entry's own lifetime rather than from a
+     * check per request: after 60 seconds the regional copy expires, the next
+     * request goes to R2, and *that* path does consult the tag cache and picks
+     * up anything the admin changed.
+     *
+     * So the guarantee is "an edit is live within a minute" rather than "on
+     * the next request", bought for a 5x faster page. Cloudflare's tag-based
+     * purge would give us both, but it needs a zone on an Enterprise plan and
+     * this worker is on workers.dev.
+     *
+     * Safe on Next 15. The adapter defaults this to false on Next 16+, where
+     * revalidateTag is stale-while-revalidate by default and skipping the tag
+     * cache would break it.
+     */
+    bypassTagCacheOnCacheHit: true,
+    defaultLongLivedTtlSec: 60,
   }),
 
   /**
