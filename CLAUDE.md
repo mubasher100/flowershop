@@ -165,6 +165,26 @@ The defining homepage rhythm is **promotional banners alternating with product r
 
 **Product imagery** is on-brand placeholder SVG in `apps/storefront/public/placeholders/`. Real photography replaces it; the layouts already reserve the space.
 
+---
+
+## Localization (English + Arabic)
+
+**Locale lives in the URL,** as the first path segment carrying language *and* country: `/en-qa/...`, `/ar-qa/...`. It cannot be a cookie — catalogue pages are statically prerendered, and a cookie is unreadable during static generation, so every cached page would ship the default language. In the URL each locale gets its own prerendered variant and the R2 cache still works. A bare country (`/qa/store`) redirects to the default locale rather than 404ing, so old links survive.
+
+`src/lib/util/locale.ts` owns parsing. Anything talking to the Store API wants `countryOf(segment)`, never the raw segment.
+
+**Strings** live in `src/lib/i18n/dictionary.ts`, keyed by a flat dot-namespaced string. Server components call `getTranslations(segment)` with the segment passed down from the locale layout; client components call `useTranslations()`, which reads the segment from `useParams`. There is deliberately no provider and no context — the segment is already in the URL that rendered the page. Missing keys fall back to English rather than rendering a raw key.
+
+**Scope is interface copy only.** Product names, descriptions and category names come from Medusa and are still English on `/ar-qa`. Machine-translating florist copy reads as machine-translated; this needs a human. Medusa's translation module is registered and `/store/locales` serves the two locales, so the plumbing is there.
+
+**`lang` and `dir` are set twice, on purpose.** An inline script in the root layout sets them before first paint (the root layout gets no route params, and doing it in an effect would flash the wrong direction). `DirectionSync` in the locale layout then keeps them in step on client-side navigation — the script only runs once per document load, so without it a language switch re-rendered in Arabic while the page stayed `dir="ltr"`. Browser back and forward hit the same path, so a hard-navigating switcher would not have covered it.
+
+**Tailwind's logical properties (`ps/pe`, `ms/me`, `start/end`) mirror off `dir` automatically. Its transform utilities do not.** `-translate-x-full` is physical, so the side menu sat on the right in Arabic but still flew in from the left until the sign was flipped explicitly.
+
+**Arabic wording follows conventional Gulf e-commerce terms** — القائمة, السلة, عرض الكل — taken from [floward.com/ar-qa](https://floward.com/ar-qa), not literal translations of our English. Form *values* (delivery areas, time windows) stay English even in Arabic: the shopkeeper reads them off the order.
+
+> All Arabic copy here was written without a native reviewer. It uses standard terminology and should be checked before launch.
+
 ## Store configuration
 
 Seeded and verified against the live Supabase database.
@@ -174,7 +194,7 @@ Seeded and verified against the live Supabase database.
 - **Shipping:** Standard Delivery (25 QAR), Same-Day Delivery (50 QAR)
 - **Tax region:** `qa` at 0% — Qatar has no VAT on most goods, but the region must exist or checkout can't calculate totals
 - **Products:** 4 placeholder items from the starter, repriced in QAR. Real flower products land in phase 7.
-- **Languages:** English + Arabic, with RTL. Not implemented yet — but pick routing and layout structures that can accommodate a locale segment without a rewrite.
+- **Languages:** English + Arabic, with RTL. Live at `/en-qa` and `/ar-qa`. Interface copy is translated; the catalogue is not — see the localization section below.
 - **Payment:** SkipCash (pending). `pp_system_default` is the manual stand-in until then.
 
 Re-run the Qatar configuration at any time — it is idempotent:
@@ -287,7 +307,7 @@ A wrong port does not fail at boot. It surfaces later as intermittent `prepared 
 | 6 | Branding — palette + font done; name and logo pending | 🟡 Partial |
 | 7 | Storefront design — homepage done; product page next | 🟡 In progress |
 | 8 | SkipCash payment provider | 🔒 Pending merchant account |
-| 9 | Arabic / RTL localization | 🔒 Later |
+| 9 | Arabic / RTL localization | 🟡 UI done and live; catalogue copy pending a translator |
 | 10 | Email notifications, file storage (R2), search, analytics | 🔒 Later |
 
 ### Phase 8 notes — SkipCash
