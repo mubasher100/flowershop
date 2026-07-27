@@ -1,7 +1,7 @@
 "use client"
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useState } from "react"
+import { useCallback, useState, useTransition } from "react"
 
 import { DICTIONARY, TranslationKey } from "@lib/i18n/dictionary"
 import { useTranslations } from "@lib/i18n/use-translations"
@@ -61,6 +61,7 @@ export default function FilterPanel({
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [open, setOpen] = useState(false)
+  const [pending, startTransition] = useTransition()
   const { t } = useTranslations()
 
   /**
@@ -81,7 +82,16 @@ export default function FilterPanel({
       // Any filter change invalidates the current page number.
       params.delete("page")
       const qs = params.toString()
-      router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+
+      // startTransition gives us `pending`, so the grid can dim while the
+      // server re-renders. Without it a filter tap looked like nothing had
+      // happened until the new results replaced the old ones.
+      startTransition(() => {
+        // replace, not push: filter tweaks are refinements of one browsing
+        // session, and pushing meant Back walked through every colour the
+        // visitor had tried instead of leaving the catalogue.
+        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+      })
     },
     [pathname, router, searchParams]
   )
@@ -115,7 +125,47 @@ export default function FilterPanel({
     })
 
   return (
-    <div className="w-full small:w-[16rem] small:flex-none">
+    <div
+      className={clx(
+        "w-full small:w-[16rem] small:flex-none",
+        // Dim while the server re-renders, so a tap visibly does something.
+        pending && "opacity-60 transition-opacity"
+      )}
+    >
+      {/* The search field sits ABOVE the mobile toggle, outside the collapsed
+          panel. It used to live inside it, so on a phone the catalogue offered
+          no visible way to search — you had to know to open "Filters & sort"
+          first. It is the most-wanted control here, so it is never hidden. */}
+      <div className="mb-3 flex flex-col gap-2">
+        <label
+          htmlFor="filter-q"
+          className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-500"
+        >
+          {t("filter.search")}
+        </label>
+        <input
+          id="filter-q"
+          type="search"
+          defaultValue={searchParams.get("q") ?? ""}
+          placeholder={t("filter.searchPlaceholder")}
+          enterKeyHint="search"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              // Dismiss the on-screen keyboard so results are visible without
+              // a second tap.
+              ;(e.target as HTMLInputElement).blur()
+              setSingle("q", (e.target as HTMLInputElement).value.trim())
+            }
+          }}
+          onBlur={(e) => {
+            if (e.target.value.trim() !== (searchParams.get("q") ?? "")) {
+              setSingle("q", e.target.value.trim())
+            }
+          }}
+          className="min-h-[2.75rem] w-full rounded-xl border border-ink-200 px-3.5 text-base text-ink-900 placeholder:text-ink-400 focus:border-blush-500 focus:outline-none focus:ring-2 focus:ring-blush-200"
+        />
+      </div>
+
       {/* Mobile toggle. Hidden from desktop, where the panel is always open. */}
       <button
         type="button"
@@ -139,27 +189,6 @@ export default function FilterPanel({
           open ? "flex" : "hidden"
         )}
       >
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor="filter-q"
-            className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-500"
-          >
-            {t("filter.search")}
-          </label>
-          <input
-            id="filter-q"
-            type="search"
-            defaultValue={searchParams.get("q") ?? ""}
-            placeholder={t("filter.searchPlaceholder")}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                setSingle("q", (e.target as HTMLInputElement).value.trim())
-              }
-            }}
-            onBlur={(e) => setSingle("q", e.target.value.trim())}
-            className="min-h-[2.75rem] w-full rounded-xl border border-ink-200 px-3.5 text-base text-ink-900 placeholder:text-ink-400 focus:border-blush-500 focus:outline-none focus:ring-2 focus:ring-blush-200"
-          />
-        </div>
 
         <SortProducts
           sortBy={sortBy}

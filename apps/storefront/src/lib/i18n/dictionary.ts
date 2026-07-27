@@ -120,6 +120,19 @@ export const DICTIONARY = {
     "meta.homeDescription":
       "Hand-tied bouquets, vase arrangements and signature roses, arranged in Doha and delivered the same day. Order by 6pm.",
 
+    // Search
+    "search.open": "Search",
+    "search.placeholder": "Search flowers, roses, vases…",
+    "search.close": "Close search",
+    "search.clear": "Clear search",
+    "search.empty": "No flowers match “{q}”",
+    "search.emptyHint": "Try a colour, an occasion, or a flower name.",
+    "search.results": "{count} results",
+    "search.oneResult": "1 result",
+    "search.viewAll": "See all results",
+    "search.hint": "Start typing to search the catalogue.",
+    "search.loading": "Loading the catalogue…",
+
     // Cart
     "cart.title": "Your bag",
     "cart.metaDescription": "Review the flowers in your bag before ordering.",
@@ -301,6 +314,18 @@ export const DICTIONARY = {
     "meta.homeTitle": "فلاورشوب — توصيل ورود في نفس اليوم بالدوحة",
     "meta.homeDescription":
       "باقات مربوطة يدوياً وتنسيقات مزهريات وورود مميزة، تُنسّق في الدوحة وتُوصّل في نفس اليوم. اطلب قبل ٦ مساءً.",
+
+    "search.open": "البحث",
+    "search.placeholder": "ابحث عن ورود، مزهريات…",
+    "search.close": "إغلاق البحث",
+    "search.clear": "مسح البحث",
+    "search.empty": "لا توجد ورود تطابق «{q}»",
+    "search.emptyHint": "جرّب لوناً أو مناسبة أو اسم زهرة.",
+    "search.results": "{count} نتيجة",
+    "search.oneResult": "نتيجة واحدة",
+    "search.viewAll": "عرض كل النتائج",
+    "search.hint": "ابدأ الكتابة للبحث في المتجر.",
+    "search.loading": "جارٍ تحميل المتجر…",
 
     "cart.title": "سلتك",
     "cart.metaDescription": "راجع الورود في سلتك قبل إتمام الطلب.",

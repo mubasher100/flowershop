@@ -7,6 +7,7 @@ import { TranslationKey } from "@lib/i18n/dictionary"
 import { useTranslations } from "@lib/i18n/use-translations"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { clx } from "@modules/common/components/ui"
+import { OPEN_SEARCH_EVENT } from "@modules/layout/components/search"
 
 /**
  * Mobile bottom navigation.
@@ -131,26 +132,51 @@ export default function BottomNav() {
       <ul className="grid grid-cols-5">
         {ITEMS.map((item) => {
           const active = item.match.includes(segment)
+          const itemClass = clx(
+            "flex w-full min-h-[3.5rem] flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[0.68rem] font-medium transition-colors",
+            active ? "text-blush-700" : "text-ink-600"
+          )
+
+          const body = (
+            <>
+              <span className="relative">
+                {item.icon}
+                {item.id === "bag" && count !== null && count > 0 && (
+                  <span className="absolute -end-2 -top-1 min-w-[1.05rem] rounded-full bg-blush-600 px-1 text-center text-[0.6rem] font-bold leading-[1.05rem] text-white">
+                    {count > 9 ? "9+" : count}
+                  </span>
+                )}
+              </span>
+              {t(item.label)}
+            </>
+          )
+
           return (
             <li key={item.id}>
-              <LocalizedClientLink
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={clx(
-                  "flex min-h-[3.5rem] flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[0.68rem] font-medium transition-colors",
-                  active ? "text-blush-700" : "text-ink-600"
-                )}
-              >
-                <span className="relative">
-                  {item.icon}
-                  {item.id === "bag" && count !== null && count > 0 && (
-                    <span className="absolute -end-2 -top-1 min-w-[1.05rem] rounded-full bg-blush-600 px-1 text-center text-[0.6rem] font-bold leading-[1.05rem] text-white">
-                      {count > 9 ? "9+" : count}
-                    </span>
-                  )}
-                </span>
-                {t(item.label)}
-              </LocalizedClientLink>
+              {/* Search opens the overlay rather than navigating. It used to
+                  link to /store?focus=search, which nothing handled — it just
+                  landed on the catalogue with the search field collapsed
+                  behind the filters button, so tapping Search showed no
+                  search box at all. */}
+              {item.id === "search" ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    window.dispatchEvent(new Event(OPEN_SEARCH_EVENT))
+                  }
+                  className={itemClass}
+                >
+                  {body}
+                </button>
+              ) : (
+                <LocalizedClientLink
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={itemClass}
+                >
+                  {body}
+                </LocalizedClientLink>
+              )}
             </li>
           )
         })}
