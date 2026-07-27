@@ -196,10 +196,17 @@ The storefront renders almost nothing per-visitor, so nearly everything is cache
 | R2 incremental cache | Persistent store for prerendered pages and fetch results. Without it every Worker isolate re-renders from scratch |
 | `withRegionalCache` | Cloudflare Cache API in front of R2, per datacentre. R2 is a network round trip, and the homepage makes six cached calls to build its rails |
 | `enableCacheInterception` | Serves a prerendered page without booting the full Next.js server. Safe only because the site does not use PPR |
+| `doShardedTagCache` | Sharded Durable Objects, SQLite-backed. This is what makes `revalidateTag` do anything |
 
-Adding the last two took the homepage from ~850ms to ~230ms, the catalogue from ~530ms to ~60ms, and product pages from ~590ms to ~70ms.
+Measured, warm, repeat visitor: homepage ~850ms → **245ms**, catalogue ~530ms → **64ms**, product pages ~590ms → **66ms**.
 
-> **`revalidateTag` does nothing right now.** OpenNext's `tagCache` defaults to `"dummy"`, which discards every tag. The backend subscriber has been posting to `/api/revalidate` on product, price and inventory changes all along and none of it has invalidated anything — pages refresh only when their own `revalidate` window expires, and `force-cache` fetches with no `revalidate` never expire at all. Fixing it needs a real tag store (sharded Durable Objects is the recommended option; D1 and KV also work, KV is experimental and eventually consistent). Until then, "admin edits appear immediately" is not actually true.
+**The tag cache is not optional and it is not free.** OpenNext's `tagCache` defaults to `"dummy"`, which silently discards every tag — the backend had been posting to `/api/revalidate` on every product, price and inventory change since it was written, and none of it invalidated anything. But adding a real one put a round trip on every request and took the catalogue straight back to 315ms.
+
+The resolution is `bypassTagCacheOnCacheHit: true` with `defaultLongLivedTtlSec: 60`. A regionally cached page is served without asking whether it is still valid; after 60 seconds the copy expires and the next request goes to R2, and *that* path does consult the tag cache. So the guarantee is **"an admin edit is live within a minute"**, not "on the next request". Cloudflare's tag-based purge would give both, but it needs a zone on an Enterprise plan and this worker is on `workers.dev`.
+
+Two settings that look harmless and are not:
+- `regionalCacheTtlSec` on the tag cache defaults to 5s. At this shop's traffic most requests arrive further apart than that, so the lookup expires before it is ever reused and every request pays the round trip anyway.
+- `bypassTagCacheOnCacheHit` must stay `false` on Next 16+, where `revalidateTag` is stale-while-revalidate by default. It is only safe here because the storefront is on Next 15.
 
 **Don't read cookies in catalogue code paths.** Reading them during render forces the route out of static rendering, which stops the incremental cache serving the page at all — this is why `getPublicCacheOptions` exists alongside `getCacheOptions`. Cart, customer and order data keep the per-visitor tag; the catalogue must not.
 
