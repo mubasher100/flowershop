@@ -29,7 +29,12 @@ export default async function CategoryNav() {
       aria-label="Product categories"
       className="border-b border-ink-200/70 bg-white"
     >
-      <ul className="no-scrollbar content-container flex snap-x gap-1 overflow-x-auto small:justify-center">
+      {/* The scroll container must be a separate, width-constrained element.
+          Putting overflow-x-auto on the same node as `content-container` let
+          the element itself grow past the viewport instead of scrolling
+          inside it, so the whole page scrolled sideways on phones. */}
+      <div className="no-scrollbar w-full max-w-full overflow-x-auto">
+        <ul className="content-container flex w-max min-w-full snap-x gap-1 small:w-auto small:justify-center">
         {ordered.map((category) => (
           <li key={category.id} className="flex-none snap-start">
             <LocalizedClientLink
@@ -48,7 +53,8 @@ export default async function CategoryNav() {
             All flowers
           </LocalizedClientLink>
         </li>
-      </ul>
+        </ul>
+      </div>
     </nav>
   )
 }
