@@ -43,15 +43,21 @@ export default defineCloudflareConfig({
    * creates its own schema on first use, so there is no migration to run.
    *
    * `regionalCache` keeps tag lookups in the Cache API local to each
-   * datacentre. Without it every request would pay a round trip to the DO to
-   * ask whether the catalogue had changed — undoing the latency work. The
-   * five-second TTL is the delay between the shopkeeper saving an edit and it
-   * being visible, which is well inside what "immediately" means here.
+   * datacentre, because otherwise every request pays a round trip to the DO
+   * just to ask whether the catalogue changed. Measured: adding the tag cache
+   * with the default 5s TTL took the catalogue from 60ms back to 315ms. At
+   * this shop's traffic most requests arrive more than five seconds apart, so
+   * a short TTL expires before it is ever reused and nearly every request paid
+   * the round trip.
+   *
+   * 30s is the trade: a tag lookup is reused for half a minute, and an edit
+   * saved in the admin shows up within that. Compared with the previous
+   * behaviour — never — that is the part worth having.
    */
   tagCache: doShardedTagCache({
     baseShardSize: 4,
     regionalCache: true,
-    regionalCacheTtlSec: 5,
+    regionalCacheTtlSec: 30,
   }),
 
   /**
