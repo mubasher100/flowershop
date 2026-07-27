@@ -1,5 +1,6 @@
 "use server"
 
+import { countryOf } from "@lib/util/locale"
 import { sdk } from "@lib/config"
 import { HttpTypes } from "@medusajs/types"
 import { getPublicCacheOptions } from "./cookies"
@@ -34,7 +35,16 @@ export const retrieveRegion = async (id: string) => {
 
 const regionMap = new Map<string, HttpTypes.StoreRegion>()
 
-export const getRegion = async (countryCode: string) => {
+/**
+ * Accepts either a bare country code ("qa") or a locale segment ("ar-qa").
+ *
+ * Parsing here rather than at each call site means the eleven places that
+ * pass a URL segment through keep working unchanged now that the segment
+ * carries a language prefix.
+ */
+export const getRegion = async (segment: string) => {
+  const countryCode = countryOf(segment)
+
   if (regionMap.has(countryCode)) {
     return regionMap.get(countryCode)
   }
@@ -51,9 +61,5 @@ export const getRegion = async (countryCode: string) => {
     })
   })
 
-  const region = countryCode
-    ? regionMap.get(countryCode)
-    : regionMap.get("us")
-
-  return region
+  return countryCode ? regionMap.get(countryCode) : regionMap.get("us")
 }

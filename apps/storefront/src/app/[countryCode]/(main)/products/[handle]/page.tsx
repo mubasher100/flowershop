@@ -1,3 +1,4 @@
+import { segmentsFor } from "@lib/util/locale"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { listProducts } from "@lib/data/products"
@@ -34,12 +35,17 @@ export async function generateStaticParams() {
 
     const countryProducts = await Promise.all(promises)
 
+    // Products are fetched once per country, then fanned out across the
+    // languages — the catalogue is identical in both, so fetching per locale
+    // would double the build's API calls for no gain.
     return countryProducts
       .flatMap((countryData) =>
-        countryData.products.map((product) => ({
-          countryCode: countryData.country,
-          handle: product.handle,
-        }))
+        segmentsFor([countryData.country]).flatMap((countryCode) =>
+          countryData.products.map((product) => ({
+            countryCode,
+            handle: product.handle,
+          }))
+        )
       )
       .filter((param) => param.handle)
   } catch (error) {

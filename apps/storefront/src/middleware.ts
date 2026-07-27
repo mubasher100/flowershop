@@ -1,3 +1,10 @@
+import {
+  buildSegment,
+  DEFAULT_LOCALE,
+  Locale,
+  LOCALES,
+  parseSegment,
+} from "@lib/util/locale"
 import { HttpTypes } from "@medusajs/types"
 import { NextRequest, NextResponse } from "next/server"
 
@@ -98,6 +105,27 @@ async function getCountryCode(
 }
 
 /**
+ * Picks a language for a visitor who has not chosen one.
+ *
+ * Honours a previous choice first, then Accept-Language, then English.
+ * Guessing Arabic purely from a Qatari IP would be wrong as often as right —
+ * Doha's population is largely non-Arabic-speaking.
+ */
+function localePreference(request: NextRequest): Locale {
+  const chosen = request.cookies.get("_medusa_locale")?.value
+  if (chosen && LOCALES.includes(chosen.split("-")[0] as Locale)) {
+    return chosen.split("-")[0] as Locale
+  }
+
+  const header = request.headers.get("accept-language") ?? ""
+  const preferred = header.split(",")[0]?.split("-")[0]?.toLowerCase()
+
+  return LOCALES.includes(preferred as Locale)
+    ? (preferred as Locale)
+    : DEFAULT_LOCALE
+}
+
+/**
  * Middleware to handle region selection and onboarding status.
  */
 export async function middleware(request: NextRequest) {
@@ -114,9 +142,22 @@ export async function middleware(request: NextRequest) {
   // if the country code is available, use it, otherwise use the default region
   const country = countryCode || DEFAULT_REGION
   const firstPathSegment = request.nextUrl.pathname.split("/")[1]?.toLowerCase()
-  const urlHasCountry = firstPathSegment === country.toLowerCase()
 
-  if (urlHasCountry) {
+  /**
+   * The first segment carries language and country together — "en-qa",
+   * "ar-qa" — so each locale gets its own statically prerendered page. A
+   * cookie could not do this: it is unreadable during static generation, so
+   * every cached page would ship the default language.
+   *
+   * A bare country ("/qa/...") is redirected to the default locale rather
+   * than 404'd, so older links and bookmarks keep working.
+   */
+  const { locale, countryCode: segmentCountry } = parseSegment(firstPathSegment)
+  const urlHasLocaleAndCountry =
+    firstPathSegment === buildSegment(locale, segmentCountry) &&
+    regionMap.has(segmentCountry)
+
+  if (urlHasLocaleAndCountry) {
     if (!cacheIdCookie) {
       const response = NextResponse.next()
       response.cookies.set("_medusa_cache_id", cacheId, {
@@ -127,13 +168,27 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // if the url doesn't have the country, redirect to it
-  const redirectPath =
-    request.nextUrl.pathname === "/" ? "" : request.nextUrl.pathname
-  const queryString = request.nextUrl.search || ""
-  const redirectUrl = `${request.nextUrl.origin}/${country}${redirectPath}${queryString}`
+  // Otherwise send the visitor to a proper locale-and-country URL.
+  //
+  // If the first segment was a bare country we already consumed it, so it must
+  // be dropped from the remainder — "/qa/store" becomes "/en-qa/store", not
+  // "/en-qa/qa/store".
+  const segments = request.nextUrl.pathname.split("/").filter(Boolean)
+  const consumedBareCountry = regionMap.has(firstPathSegment ?? "")
+  const rest = consumedBareCountry ? segments.slice(1) : segments
 
-  return NextResponse.redirect(redirectUrl, 307)
+  const target = buildSegment(
+    localePreference(request),
+    regionMap.has(segmentCountry) ? segmentCountry : country
+  )
+
+  const redirectPath = rest.length ? `/${rest.join("/")}` : ""
+  const queryString = request.nextUrl.search || ""
+
+  return NextResponse.redirect(
+    `${request.nextUrl.origin}/${target}${redirectPath}${queryString}`,
+    307
+  )
 }
 
 export const config = {

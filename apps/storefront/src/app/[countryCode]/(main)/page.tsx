@@ -1,3 +1,4 @@
+import { segmentsFor } from "@lib/util/locale"
 import { Metadata } from "next"
 
 import DeliveryStrip from "@modules/home/components/delivery-strip"
@@ -80,9 +81,7 @@ export async function generateStaticParams() {
     regions?.flatMap((r) => r.countries?.map((c) => c.iso_2) ?? [])
   )
 
-  return (countryCodes ?? [])
-    .filter(Boolean)
-    .map((countryCode) => ({ countryCode }))
+  return segmentsFor(countryCodes ?? []).map((countryCode) => ({ countryCode }))
 }
 
 export default async function Home(props: {

@@ -1,3 +1,4 @@
+import { segmentsFor } from "@lib/util/locale"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 
@@ -42,8 +43,8 @@ export async function generateStaticParams() {
     (collection: StoreCollection) => collection.handle
   )
 
-  const staticParams = countryCodes
-    ?.map((countryCode: string) =>
+  const staticParams = segmentsFor(countryCodes ?? [])
+    .map((countryCode: string) =>
       collectionHandles.map((handle: string | undefined) => ({
         countryCode,
         handle,

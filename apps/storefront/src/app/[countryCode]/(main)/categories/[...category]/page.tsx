@@ -1,3 +1,4 @@
+import { segmentsFor } from "@lib/util/locale"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 
@@ -34,8 +35,8 @@ export async function generateStaticParams() {
     (category: HttpTypes.StoreProductCategory) => category.handle
   )
 
-  const staticParams = countryCodes
-    ?.map((countryCode: string | undefined) =>
+  const staticParams = segmentsFor(countryCodes ?? [])
+    .map((countryCode: string | undefined) =>
       categoryHandles.map((handle: string) => ({
         countryCode,
         category: [handle],

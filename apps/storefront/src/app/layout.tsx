@@ -1,4 +1,3 @@
-import { getLocale } from "@lib/data/locale-actions"
 import { getBaseURL } from "@lib/util/env"
 import { Metadata } from "next"
 import { Cormorant_Garamond } from "next/font/google"
@@ -52,25 +51,39 @@ export const metadata: Metadata = {
   metadataBase: new URL(getBaseURL()),
 }
 
-export default async function RootLayout(props: {
-  children: React.ReactNode
-}) {
-  /**
-   * `dir` drives the whole right-to-left layout. Every spacing and
-   * positioning utility in the storefront was converted to Tailwind's logical
-   * variants (ps/pe, ms/me, start/end), which mirror off this attribute — so
-   * flipping it flips the layout without a second stylesheet.
-   */
-  const locale = (await getLocale()) ?? "en-US"
-  const isArabic = locale.startsWith("ar")
+/**
+ * Sets `lang` and `dir` from the first URL segment before the page paints.
+ *
+ * `dir` drives the entire right-to-left layout — every spacing and
+ * positioning utility was converted to Tailwind's logical variants (ps/pe,
+ * ms/me, start/end), which mirror off this one attribute.
+ *
+ * It has to be set here, synchronously, for two reasons. The root layout
+ * receives no route params, so it cannot read the locale segment directly.
+ * And doing it in an effect after hydration would show a flash of
+ * left-to-right layout before flipping — jarring in Arabic.
+ */
+const DIR_SCRIPT = `(function(){try{
+var s=(location.pathname.split('/')[1]||'').toLowerCase().split('-')[0];
+var rtl=s==='ar';
+var e=document.documentElement;
+e.lang=rtl?'ar':'en';
+e.dir=rtl?'rtl':'ltr';
+}catch(e){}})()`
 
+export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html
-      lang={isArabic ? "ar" : "en"}
-      dir={isArabic ? "rtl" : "ltr"}
+      // Static markup ships the default; the script above corrects it from the
+      // URL before first paint.
+      lang="en"
+      dir="ltr"
       data-mode="light"
       className={`${googleSans.variable} ${cormorant.variable}`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: DIR_SCRIPT }} />
+      </head>
       <body className={googleSans.className}>
         <main className="relative">{props.children}</main>
       </body>
