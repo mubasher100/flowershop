@@ -29,7 +29,7 @@ const OrderCard = ({ order }: OrderCardProps) => {
         #<span data-testid="order-display-id">{order.display_id}</span>
       </div>
       <div className="flex items-center divide-x divide-gray-200 text-small-regular text-ui-fg-base">
-        <span className="pr-2" data-testid="order-created-at">
+        <span className="pe-2" data-testid="order-created-at">
           {new Date(order.created_at).toDateString()}
         </span>
         <span className="px-2" data-testid="order-amount">
@@ -38,7 +38,7 @@ const OrderCard = ({ order }: OrderCardProps) => {
             currency_code: order.currency_code,
           })}
         </span>
-        <span className="pl-2">{`${numberOfLines} ${
+        <span className="ps-2">{`${numberOfLines} ${
           numberOfLines > 1 ? "items" : "item"
         }`}</span>
       </div>
@@ -58,7 +58,7 @@ const OrderCard = ({ order }: OrderCardProps) => {
                 >
                   {i.title}
                 </span>
-                <span className="ml-2">x</span>
+                <span className="ms-2">x</span>
                 <span data-testid="item-quantity">{i.quantity}</span>
               </div>
             </div>

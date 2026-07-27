@@ -56,7 +56,7 @@ const Item: React.FC<AccordionItemProps> = ({
           giving a 32px tap target — and people reach for the label, not a
           chevron they can barely hit. */}
       <AccordionPrimitive.Header className="px-1">
-        <AccordionPrimitive.Trigger className="flex min-h-[2.75rem] w-full flex-col text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700">
+        <AccordionPrimitive.Trigger className="flex min-h-[2.75rem] w-full flex-col text-start focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700">
           <div className="flex w-full items-center justify-between gap-4">
             <span className="text-base font-medium text-ink-900">{title}</span>
             {customTrigger || <MorphingTrigger />}
@@ -87,8 +87,8 @@ const MorphingTrigger = () => {
   return (
     <div className="text-grey-90 hover:bg-grey-5 active:bg-grey-5 active:text-violet-60 focus:border-violet-60 disabled:text-grey-30 bg-transparent disabled:bg-transparent rounded-rounded group relative p-[6px]">
       <div className="h-5 w-5">
-        <span className="bg-grey-50 rounded-circle group-radix-state-open:rotate-90 absolute inset-y-[31.75%] left-[48%] right-1/2 w-[1.5px] duration-300" />
-        <span className="bg-grey-50 rounded-circle group-radix-state-open:rotate-90 group-radix-state-open:left-1/2 group-radix-state-open:right-1/2 absolute inset-x-[31.75%] top-[48%] bottom-1/2 h-[1.5px] duration-300" />
+        <span className="bg-grey-50 rounded-circle group-radix-state-open:rotate-90 absolute inset-y-[31.75%] start-[48%] end-1/2 w-[1.5px] duration-300" />
+        <span className="bg-grey-50 rounded-circle group-radix-state-open:rotate-90 group-radix-state-open:start-1/2 group-radix-state-open:end-1/2 absolute inset-x-[31.75%] top-[48%] bottom-1/2 h-[1.5px] duration-300" />
       </div>
     </div>
   )

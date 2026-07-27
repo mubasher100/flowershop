@@ -65,7 +65,7 @@ const OptionsPicker = ({
         type="multiple"
         value={openItems}
         onValueChange={(values) => setOpenItems(values as string[])}
-        className="flex flex-col gap-y-3 pr-6"
+        className="flex flex-col gap-y-3 pe-6"
       >
         {options.map((option) => {
           const values =
@@ -104,7 +104,7 @@ const OptionsPicker = ({
               className="overflow-hidden"
             >
               <Accordion.Header>
-                <Accordion.Trigger className="flex w-full items-center justify-between py-3 text-left">
+                <Accordion.Trigger className="flex w-full items-center justify-between py-3 text-start">
                   <div className="flex items-center gap-2">
                     <span className="txt-compact-small-plus text-ui-fg-base">
                       {option.title || "Option"}

@@ -1,3 +1,4 @@
+import { getLocale } from "@lib/data/locale-actions"
 import { getBaseURL } from "@lib/util/env"
 import { Metadata } from "next"
 import { Cormorant_Garamond } from "next/font/google"
@@ -51,10 +52,22 @@ export const metadata: Metadata = {
   metadataBase: new URL(getBaseURL()),
 }
 
-export default function RootLayout(props: { children: React.ReactNode }) {
+export default async function RootLayout(props: {
+  children: React.ReactNode
+}) {
+  /**
+   * `dir` drives the whole right-to-left layout. Every spacing and
+   * positioning utility in the storefront was converted to Tailwind's logical
+   * variants (ps/pe, ms/me, start/end), which mirror off this attribute — so
+   * flipping it flips the layout without a second stylesheet.
+   */
+  const locale = (await getLocale()) ?? "en-US"
+  const isArabic = locale.startsWith("ar")
+
   return (
     <html
-      lang="en"
+      lang={isArabic ? "ar" : "en"}
+      dir={isArabic ? "rtl" : "ltr"}
       data-mode="light"
       className={`${googleSans.variable} ${cormorant.variable}`}
     >

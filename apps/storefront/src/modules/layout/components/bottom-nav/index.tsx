@@ -134,7 +134,7 @@ export default function BottomNav() {
                 <span className="relative">
                   {item.icon}
                   {item.label === "Bag" && count !== null && count > 0 && (
-                    <span className="absolute -right-2 -top-1 min-w-[1.05rem] rounded-full bg-blush-600 px-1 text-center text-[0.6rem] font-bold leading-[1.05rem] text-white">
+                    <span className="absolute -end-2 -top-1 min-w-[1.05rem] rounded-full bg-blush-600 px-1 text-center text-[0.6rem] font-bold leading-[1.05rem] text-white">
                       {count > 9 ? "9+" : count}
                     </span>
                   )}

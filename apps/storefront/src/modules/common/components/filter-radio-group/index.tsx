@@ -26,7 +26,7 @@ const FilterRadioGroup = ({
           <div
             key={i.value}
             className={clx("flex gap-x-2 items-center", {
-              "ml-[-23px]": i.value === value,
+              "ms-[-23px]": i.value === value,
             })}
           >
             {i.value === value && <EllipseMiniSolid />}

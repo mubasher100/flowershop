@@ -57,7 +57,7 @@ export default async function ProductPreview({
           {/* Only shown when a sale price list actually applies, so the badge
               always reflects a real reduction against a real former price. */}
           {isOnSale && discountPercent > 0 && (
-            <span className="absolute left-2 top-2 rounded-full bg-blush-600 px-2.5 py-1 text-xs font-bold text-white">
+            <span className="absolute start-2 top-2 rounded-full bg-blush-600 px-2.5 py-1 text-xs font-bold text-white">
               −{discountPercent}%
             </span>
           )}
