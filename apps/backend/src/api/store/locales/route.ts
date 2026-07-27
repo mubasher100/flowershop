@@ -19,5 +19,11 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     fields: ["code", "name"],
   })
 
-  res.json({ locales })
+  // Sorted so the switcher's order is stable rather than whatever the
+  // database returns.
+  res.json({
+    locales: [...locales].sort((a, b) =>
+      String(a.code).localeCompare(String(b.code))
+    ),
+  })
 }
