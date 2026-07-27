@@ -162,6 +162,34 @@ export default function ProductActions({
 
         <ProductPrice product={product} variant={selectedVariant} />
 
+        {/* Live stock, straight from the variant's inventory_quantity — so a
+            stock change in the admin shows here as soon as the cache is
+            revalidated. Scarcity is only stated when it is true; inventing
+            urgency on a well-stocked item is a dark pattern. */}
+        {selectedVariant &&
+          selectedVariant.manage_inventory &&
+          !selectedVariant.allow_backorder && (
+            <p
+              className="text-sm"
+              aria-live="polite"
+              data-testid="stock-counter"
+            >
+              {(selectedVariant.inventory_quantity ?? 0) <= 0 ? (
+                <span className="font-medium text-ink-600">
+                  Sold out in this size
+                </span>
+              ) : (selectedVariant.inventory_quantity ?? 0) <= 5 ? (
+                <span className="font-medium text-blush-700">
+                  Only {selectedVariant.inventory_quantity} left
+                </span>
+              ) : (
+                <span className="text-sage-700">
+                  In stock — {selectedVariant.inventory_quantity} available
+                </span>
+              )}
+            </p>
+          )}
+
         <Button
           onClick={handleAddToCart}
           disabled={

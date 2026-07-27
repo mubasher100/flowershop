@@ -1,52 +1,22 @@
 import { HttpTypes } from "@medusajs/types"
 import ProductRail from "@modules/home/components/featured-products/product-rail"
-import PromoBanner, {
-  PromoBannerProps,
-} from "@modules/home/components/promo-banner"
 
 /**
- * The homepage body: product rails with promotional banners cut between them.
+ * The homepage product rails.
  *
- * This alternation is the defining rhythm of the reference homepage — banner,
- * rail, banner, rail. Stacking every collection back to back instead reads as
- * one undifferentiated scroll, which is what the starter did.
+ * Rail order and membership are driven entirely by collections in the Medusa
+ * admin — reorder or rename a collection there and the homepage follows. The
+ * only thing hardcoded here is which collections are hidden.
  *
- * Banners are keyed by position so they stay put as collections are added or
- * reordered in the admin.
+ * Promotional banners between rails were removed on request, along with the
+ * Roses and Luxury rails.
  */
-const BANNERS: Record<number, PromoBannerProps> = {
-  1: {
-    eyebrow: "In season",
-    title: "Peonies are back, briefly",
-    body: "Six weeks a year, and then they're gone until next spring.",
-    ctaLabel: "Shop the season",
-    href: "/collections/new-this-week",
-    from: "var(--blush-300)",
-    to: "var(--blush-600)",
-    tone: "light",
-    size: "tall",
-  },
-  2: {
-    eyebrow: "Doha, today",
-    title: "Ordered by 6pm, delivered by 9",
-    body: "Choose a two-hour window at checkout and we'll hit it.",
-    ctaLabel: "Send flowers today",
-    href: "/store",
-    from: "var(--sage-200)",
-    to: "var(--sage-500)",
-    tone: "light",
-  },
-  4: {
-    eyebrow: "Gifting",
-    title: "Every note handwritten",
-    body: "Tell us what to say and we'll write it by hand, sealed in the box.",
-    ctaLabel: "Browse gifting",
-    href: "/collections/luxury-edit",
-    from: "var(--champagne-200)",
-    to: "var(--champagne-400)",
-    tone: "dark",
-  },
-}
+
+/** Collections that exist for browsing but should not get a homepage rail. */
+const HIDDEN_FROM_HOMEPAGE = new Set(["roses-always", "luxury-edit"])
+
+/** Best Sellers leads, directly under the carousel. */
+const RAIL_ORDER = ["best-sellers", "new-this-week", "under-400"]
 
 export default async function FeaturedProducts({
   collections,
@@ -55,14 +25,21 @@ export default async function FeaturedProducts({
   collections: HttpTypes.StoreCollection[]
   region: HttpTypes.StoreRegion
 }) {
-  return collections.map((collection, index) => {
-    const banner = BANNERS[index]
+  const visible = collections.filter(
+    (c) => !HIDDEN_FROM_HOMEPAGE.has(c.handle ?? "")
+  )
 
-    return (
-      <li key={collection.id}>
-        {banner && <PromoBanner {...banner} />}
-        <ProductRail collection={collection} region={region} />
-      </li>
-    )
-  })
+  // Known handles first in a fixed order, then anything new from the admin.
+  const ordered = [
+    ...RAIL_ORDER.map((h) => visible.find((c) => c.handle === h)).filter(
+      Boolean
+    ),
+    ...visible.filter((c) => !RAIL_ORDER.includes(c.handle ?? "")),
+  ] as HttpTypes.StoreCollection[]
+
+  return ordered.map((collection) => (
+    <li key={collection.id}>
+      <ProductRail collection={collection} region={region} />
+    </li>
+  ))
 }

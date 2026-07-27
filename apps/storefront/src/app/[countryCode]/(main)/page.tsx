@@ -1,6 +1,5 @@
 import { Metadata } from "next"
 
-import CategoryTiles from "@modules/home/components/category-tiles"
 import DeliveryStrip from "@modules/home/components/delivery-strip"
 import OccasionTiles from "@modules/home/components/occasion-tiles"
 import FeaturedProducts from "@modules/home/components/featured-products"
@@ -107,20 +106,19 @@ export default async function Home(props: {
     <>
       <HeroCarousel slides={HERO_SLIDES} />
 
-      {/* Delivery reassurance sits directly under the hero: in flower gifting,
-          "will it arrive in time" blocks the purchase more often than
-          "is it pretty". */}
-      <DeliveryStrip />
+      {/* Best Sellers leads, directly under the carousel — the "Shop by type"
+          tiles that used to sit here were removed on request. */}
+      <ul className="flex flex-col">
+        <FeaturedProducts collections={collections} region={region} />
+      </ul>
 
-      <CategoryTiles />
+      {/* Delivery reassurance: in flower gifting, "will it arrive in time"
+          blocks the purchase more often than "is it pretty". */}
+      <DeliveryStrip />
 
       {/* Occasion-led browsing is how flower gifting usually starts —
           someone has a birthday, not a craving for hydrangea. */}
       <OccasionTiles />
-
-      <ul className="flex flex-col">
-        <FeaturedProducts collections={collections} region={region} />
-      </ul>
     </>
   )
 }
