@@ -57,9 +57,11 @@ export default async function RelatedProducts({
         </p>
       </div>
 
-      <ul className="grid grid-cols-2 small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8">
+      {/* Same min-w-0 guard as the store grid: without it a long product name
+          widens its track past its share and scrolls the page sideways. */}
+      <ul className="grid w-full grid-cols-2 gap-x-3 gap-y-8 small:grid-cols-3 small:gap-x-6 medium:grid-cols-4">
         {products.map((product) => (
-          <li key={product.id}>
+          <li key={product.id} className="min-w-0">
             <Product region={region} product={product} />
           </li>
         ))}
