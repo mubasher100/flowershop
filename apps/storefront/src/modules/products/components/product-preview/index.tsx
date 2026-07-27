@@ -28,19 +28,40 @@ export default async function ProductPreview({
 
   const hasSizeLadder = (product.variants?.length ?? 0) > 1
 
+  const isOnSale = cheapestPrice?.price_type === "sale"
+  const discountPercent =
+    isOnSale && cheapestPrice
+      ? Math.round(
+          ((cheapestPrice.original_price_number -
+            cheapestPrice.calculated_price_number) /
+            cheapestPrice.original_price_number) *
+            100
+        )
+      : 0
+
   return (
     <LocalizedClientLink
       href={`/products/${product.handle}`}
       className="group block focus-visible:outline-none"
     >
       <div data-testid="product-wrapper" className="flex flex-col gap-3">
-        <Thumbnail
-          thumbnail={product.thumbnail}
-          images={product.images}
-          size="full"
-          isFeatured={isFeatured}
-          className="group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-blush-700"
-        />
+        <div className="relative">
+          <Thumbnail
+            thumbnail={product.thumbnail}
+            images={product.images}
+            size="full"
+            isFeatured={isFeatured}
+            className="group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-blush-700"
+          />
+
+          {/* Only shown when a sale price list actually applies, so the badge
+              always reflects a real reduction against a real former price. */}
+          {isOnSale && discountPercent > 0 && (
+            <span className="absolute left-2 top-2 rounded-full bg-blush-600 px-2.5 py-1 text-xs font-bold text-white">
+              −{discountPercent}%
+            </span>
+          )}
+        </div>
 
         <div className="flex flex-col gap-1">
           <h3
