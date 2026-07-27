@@ -3,6 +3,7 @@ import { Metadata } from "next"
 import { getBaseURL } from "@lib/util/env"
 import Footer from "@modules/layout/templates/footer"
 import BottomNav from "@modules/layout/components/bottom-nav"
+import DirectionSync from "@modules/layout/components/direction-sync"
 import Nav from "@modules/layout/templates/nav"
 
 export const metadata: Metadata = {
@@ -39,6 +40,7 @@ export default async function PageLayout(props: {
 
   return (
     <>
+      <DirectionSync />
       <Nav segment={countryCode} />
       {/* pb-16 on mobile keeps the last of the page clear of the fixed bottom
           bar — without it the footer's final links sit underneath it. */}

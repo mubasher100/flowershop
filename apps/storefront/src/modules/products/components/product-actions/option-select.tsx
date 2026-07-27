@@ -1,3 +1,4 @@
+import { useTranslations } from "@lib/i18n/use-translations"
 import { HttpTypes } from "@medusajs/types"
 import { clx } from "@modules/common/components/ui"
 import React from "react"
@@ -20,10 +21,14 @@ const OptionSelect: React.FC<OptionSelectProps> = ({
   disabled,
 }) => {
   const filteredOptions = (option.values ?? []).map((v) => v.value)
+  const { t } = useTranslations()
 
   return (
     <div className="flex flex-col gap-y-3">
-      <span className="text-sm">Select {title}</span>
+      {/* Size is the only option in this catalogue, so the label is a fixed
+          translated string. Interpolating the option title would read as
+          "اختر Size" in Arabic, since the title comes from Medusa in English. */}
+      <span className="text-sm">{t("product.selectSize")}</span>
       <div
         className="flex flex-wrap justify-between gap-2"
         data-testid={dataTestId}
@@ -34,7 +39,10 @@ const OptionSelect: React.FC<OptionSelectProps> = ({
               onClick={() => updateOption(option.id, v)}
               key={v}
               className={clx(
-                "border-ui-border-base bg-ui-bg-subtle border text-small-regular h-10 rounded-rounded p-2 flex-1 ",
+                // min-h rather than h-10: 40px is under the 44px a thumb can
+                // reliably hit, and this is the control every purchase goes
+                // through.
+                "border-ui-border-base bg-ui-bg-subtle flex min-h-[2.75rem] flex-1 items-center justify-center rounded-rounded border p-2 text-small-regular",
                 {
                   "border-ui-border-interactive": v === current,
                   "hover:shadow-elevation-card-rest transition-shadow ease-in-out duration-150":

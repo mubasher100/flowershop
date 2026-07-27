@@ -11,7 +11,9 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
       {product.collection && (
         <LocalizedClientLink
           href={`/collections/${product.collection.handle}`}
-          className="inline-flex w-fit text-xs font-semibold uppercase tracking-[0.14em] text-blush-700 hover:underline"
+          // -my-2 absorbs the extra height back out of the layout, so the
+          // link is a 44px target without opening a gap above the title.
+          className="-my-2 inline-flex min-h-[2.75rem] w-fit items-center text-xs font-semibold uppercase tracking-[0.14em] text-blush-700 hover:underline"
         >
           {product.collection.title}
         </LocalizedClientLink>

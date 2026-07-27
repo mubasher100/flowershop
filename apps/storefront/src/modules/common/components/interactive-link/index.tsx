@@ -15,7 +15,9 @@ const InteractiveLink = ({
 }: InteractiveLinkProps) => {
   return (
     <LocalizedClientLink
-      className="flex gap-x-1 items-center group"
+      // min-h keeps it a reachable target on a phone. As a bare flex row it
+      // was only as tall as its text, well under 44px.
+      className="group inline-flex min-h-[2.75rem] items-center gap-x-1"
       href={href}
       onClick={onClick}
       {...props}
