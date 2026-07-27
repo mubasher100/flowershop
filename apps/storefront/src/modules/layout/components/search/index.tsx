@@ -110,10 +110,37 @@ export default function Search() {
     return () => window.removeEventListener(OPEN_SEARCH_EVENT, openFromElsewhere)
   }, [])
 
-  // Warm the index as soon as the overlay opens, not on page load — most
-  // visitors never search, and this keeps it off the critical path.
+  /**
+   * Warm the index once the browser is idle.
+   *
+   * Loading it only on open meant the very first query waited on the download
+   * — around two seconds — which is exactly the moment search needs to feel
+   * fast. It is 12KB, so fetching it after the page has settled costs nothing
+   * visible and every query is instant from then on.
+   */
   useEffect(() => {
-    if (!open) return
+    const idle =
+      typeof window.requestIdleCallback === "function"
+        ? window.requestIdleCallback
+        : (cb: () => void) => window.setTimeout(cb, 1500)
+
+    const handle = idle(() => {
+      loadIndex(country).then(setIndex)
+    })
+
+    return () => {
+      if (typeof window.cancelIdleCallback === "function") {
+        window.cancelIdleCallback(handle as number)
+      } else {
+        clearTimeout(handle as number)
+      }
+    }
+  }, [country])
+
+  // Belt and braces: if someone opens search before the idle callback has
+  // run, load it then rather than showing an empty overlay.
+  useEffect(() => {
+    if (!open || index) return
     let cancelled = false
     loadIndex(country).then((products) => {
       if (!cancelled) setIndex(products)
@@ -121,7 +148,7 @@ export default function Search() {
     return () => {
       cancelled = true
     }
-  }, [open, country])
+  }, [open, index, country])
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -216,6 +243,11 @@ export default function Search() {
                     aria-label={t("search.open")}
                     data-testid="search-input"
                     autoComplete="off"
+                    // Alongside the Dialog's initialFocus: mobile browsers
+                    // block programmatic focus once the transition has broken
+                    // the gesture chain, and autoFocus is honoured in more of
+                    // them than .focus() is.
+                    autoFocus
                     className="min-h-[2.75rem] w-full border-0 bg-transparent text-base text-ink-900 placeholder:text-ink-400 focus:outline-none"
                   />
                   <button
