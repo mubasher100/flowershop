@@ -19,6 +19,26 @@
       "bucket_name": "flowershop-cache"
     }
   ],
+  // Tag cache. Without it revalidateTag is a no-op, so a product edited in
+  // the admin never reaches the storefront until the page's own revalidate
+  // window expires. The binding name is fixed by the adapter, and the worker
+  // OpenNext generates already exports the class.
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "NEXT_TAG_CACHE_DO_SHARDED",
+        "class_name": "DOShardedTagCache"
+      }
+    ]
+  },
+  // new_sqlite_classes, not new_classes: the tag cache uses SQLite-backed
+  // storage, which is also what makes it available without a paid plan.
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["DOShardedTagCache"]
+    }
+  ],
   "observability": {
     "enabled": true
   }
