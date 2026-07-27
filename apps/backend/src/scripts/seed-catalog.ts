@@ -183,16 +183,15 @@ const PRODUCTS: Seed[] = [
 /**
  * Product photography.
  *
- * CC0 (public domain) stock, pre-sized and compressed — see
+ * One image per product, named after its handle, chosen to match what the
+ * product actually is — red roses for the red rose vase, hydrangeas for the
+ * hydrangea pieces. All CC0 (public domain); see
  * apps/storefront/public/IMAGE-CREDITS.json for the source of each file.
- * Assigned round-robin within a category so neighbouring cards in a rail
- * don't repeat. Replace with studio shots of our own arrangements when they
- * exist; only this list changes.
+ *
+ * Replace with studio shots of our own arrangements when they exist: drop a
+ * file at public/products/<handle>.jpg and nothing here needs to change.
  */
-const PHOTOS = Array.from(
-  { length: 12 },
-  (_, i) => `/products/bloom-${String(i + 1).padStart(2, "0")}.jpg`
-)
+const photoFor = (handle: string) => `/products/${handle}.jpg`
 
 const handleize = (s: string) =>
   s
@@ -332,7 +331,7 @@ async function refreshProductImages(
 
   let updated = 0
   for (const [i, product] of ordered.entries()) {
-    const image = PHOTOS[i % PHOTOS.length]
+    const image = photoFor(product.handle ?? "")
     if (product.thumbnail === image) continue
 
     await updateProductsWorkflow(container).run({
@@ -434,7 +433,7 @@ async function createProducts(
 
   const productsInput = toCreate.map((seed, i) => {
     const sizes = SIZES.slice(0, seed.sizes ?? 3)
-    const image = PHOTOS[i % PHOTOS.length]
+    const image = photoFor(handleize(seed.name))
 
     return {
       title: seed.name,
