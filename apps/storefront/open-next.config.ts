@@ -27,25 +27,28 @@ export default defineCloudflareConfig({
     mode: "long-lived",
 
     /**
-     * Entries live for the adapter's default (30 minutes), and the tag cache
-     * is consulted on every hit.
+     * Tuned for the Worker's CPU allowance, which is the binding constraint
+     * here — not for freshness.
      *
-     * These two settings were briefly the other way round — a 60-second
-     * lifetime with the tag check skipped — to bound how long an admin edit
-     * could sit behind the cache. That took the site down: a 60s lifetime
-     * means the homepage falls out of cache constantly, and a full render of
-     * it (hero, three rails, occasion tiles) exceeds the Worker's CPU
-     * allowance. Both locales were returning Cloudflare 1102 "Worker exceeded
-     * resource limits" on roughly two requests in three, while the lighter
-     * pages stayed up.
+     * Two things cost CPU: rendering a page, and calling the tag-cache
+     * Durable Object. Both of the earlier settings made one of them happen
+     * constantly and took the site down with Cloudflare 1102, "Worker
+     * exceeded resource limits":
      *
-     * A long lifetime is what keeps renders rare, and rare renders are what
-     * keep the Worker inside its budget. Correctness then has to come from
-     * the tag check rather than from expiry, so it stays on: it costs a round
-     * trip in latency, which is I/O rather than CPU, and an admin edit is
-     * still live on the next request.
+     *   - a 60-second entry lifetime meant the homepage fell out of cache
+     *     continuously, and a full render of it does not fit in the budget;
+     *   - consulting the tag cache on every hit put a Durable Object round
+     *     trip on every request.
+     *
+     * So: long-lived entries, and no tag check on a hit. Renders stay rare
+     * and a cache hit is close to free.
+     *
+     * The cost is staleness. An admin edit is picked up when the regional
+     * entry expires rather than on the next request, so allow up to half an
+     * hour. Cloudflare's tag-based purge would give both, but it needs a zone
+     * on an Enterprise plan and this worker is on workers.dev.
      */
-    bypassTagCacheOnCacheHit: false,
+    bypassTagCacheOnCacheHit: true,
   }),
 
   /**
