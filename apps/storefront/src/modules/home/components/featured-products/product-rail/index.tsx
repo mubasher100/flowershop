@@ -30,7 +30,12 @@ export default async function ProductRail({
     queryParams: {
       collection_id: collection.id,
       fields: "*variants.calculated_price",
-      limit: 8,
+      // Six, not eight. Desktop shows one row of four and a phone scrolls
+      // through them, so the last two were never reached — and every extra
+      // card is React work in a render that has to fit inside a Worker's CPU
+      // allowance. Three rails at eight cards was a third of the homepage's
+      // rendering cost going to products nobody saw.
+      limit: 6,
     },
   })
 

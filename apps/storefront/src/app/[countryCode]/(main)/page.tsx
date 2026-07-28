@@ -57,12 +57,21 @@ export async function generateMetadata(props: {
 }
 
 /**
- * Rebuild at most every 5 minutes, serving from the R2 incremental cache in
- * between. The homepage shows the catalogue, which is identical for every
- * visitor, yet it was re-rendering and re-fetching collections, categories
- * and five product rails on every single request.
+ * Effectively static, refreshed by tag invalidation rather than by a timer.
+ *
+ * This was 300s, which meant the heaviest page on the site re-rendered every
+ * five minutes per locale — hero, three product rails and the occasion tiles,
+ * seven backend calls and around twenty product cards. That does not fit in a
+ * Cloudflare Worker's CPU allowance, so the render died with a 1102 and the
+ * cache was never repopulated: the Arabic homepage could not recover, because
+ * every attempt to produce a cached copy was the thing that failed.
+ *
+ * A day is long enough that the page is served from cache essentially always.
+ * Freshness comes from the `homepage` and `products` tags instead — the
+ * backend purges them when the shopkeeper changes anything, which it can now
+ * actually do since the tag cache is real.
  */
-export const revalidate = 300
+export const revalidate = 86400
 
 /**
  * Without this, Next has no way to know which country codes exist, so it
