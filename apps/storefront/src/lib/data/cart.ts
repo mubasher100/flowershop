@@ -34,10 +34,19 @@ export async function retrieveCart(cartId?: string, fields?: string) {
     ...(await getAuthHeaders()),
   }
 
-  const next = {
-    ...(await getCacheOptions("carts")),
-  }
-
+  /**
+   * Never cached.
+   *
+   * This used `force-cache` with a per-visitor tag, relying on `revalidateTag`
+   * after every mutation to clear it. That stopped being enough once the
+   * incremental cache started skipping the tag check on a regional hit — an
+   * added item then took up to a minute to appear, so the bag looked empty
+   * right after something was put in it.
+   *
+   * There was never much to win here anyway: a cart belongs to one visitor,
+   * changes on every interaction, and comes back in about half a second.
+   * Correctness is worth more than that.
+   */
   return await sdk.client
     .fetch<HttpTypes.StoreCartResponse>(`/store/carts/${id}`, {
       method: "GET",
@@ -45,8 +54,7 @@ export async function retrieveCart(cartId?: string, fields?: string) {
         fields,
       },
       headers,
-      next,
-      cache: "force-cache",
+      cache: "no-store",
     })
     .then(({ cart }: { cart: HttpTypes.StoreCart }) => cart)
     .catch(() => null)

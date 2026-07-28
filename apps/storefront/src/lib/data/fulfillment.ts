@@ -9,10 +9,9 @@ export const listCartShippingMethods = async (cartId: string) => {
     ...(await getAuthHeaders()),
   }
 
-  const next = {
-    ...(await getCacheOptions("fulfillment")),
-  }
-
+  // Cart-scoped, so not cached — same reasoning as retrieveCart. These prices
+  // feed the checkout total, and a stale one is a wrong number in front of
+  // someone about to order.
   return sdk.client
     .fetch<HttpTypes.StoreShippingOptionListResponse>(
       `/store/shipping-options`,
@@ -22,8 +21,7 @@ export const listCartShippingMethods = async (cartId: string) => {
           cart_id: cartId,
         },
         headers,
-        next,
-        cache: "force-cache",
+        cache: "no-store",
       }
     )
     .then(({ shipping_options }) => shipping_options)
