@@ -10,8 +10,9 @@ import HeroCarousel, {
 
 import { getTranslations } from "@lib/i18n/dictionary"
 import { listCollections } from "@lib/data/collections"
-import { headingFor, listHomepageSections } from "@lib/data/homepage"
+import { listHomepageSections } from "@lib/data/homepage"
 import { getRegion, listRegions } from "@lib/data/regions"
+import { headingFor } from "@lib/util/homepage"
 import ProductRail from "@modules/home/components/featured-products/product-rail"
 import PromoBanner from "@modules/home/components/promo-banner"
 

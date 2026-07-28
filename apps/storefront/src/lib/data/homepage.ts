@@ -1,6 +1,7 @@
 "use server"
 
 import { sdk } from "@lib/config"
+import type { HomepageSection } from "@lib/util/homepage"
 import { getPublicCacheOptions } from "./cookies"
 
 /**
@@ -9,21 +10,11 @@ import { getPublicCacheOptions } from "./cookies"
  * Which rails appear, in what order and under what heading used to be a
  * hardcoded list in this repo. It now comes from the backend, so the
  * shopkeeper can rename a section or add a seasonal one without a deploy.
+ *
+ * Only the fetch lives here. Every export from a "use server" module is
+ * treated as a Server Action and must be async, so the section type and the
+ * heading helper sit in lib/util/homepage.ts.
  */
-
-export type HomepageSection = {
-  id: string
-  type: "product_rail" | "category_tiles" | "banner"
-  title: string
-  title_ar: string | null
-  resource_handle: string | null
-  subtitle: string | null
-  image_url: string | null
-  cta_label: string | null
-  cta_href: string | null
-  rank: number
-}
-
 export const listHomepageSections = async (): Promise<HomepageSection[]> => {
   const next = {
     ...getPublicCacheOptions("homepage"),
@@ -45,15 +36,3 @@ export const listHomepageSections = async (): Promise<HomepageSection[]> => {
     return []
   }
 }
-
-/**
- * The heading to show for a section, in the visitor's language.
- *
- * Arabic is optional in the admin, so a section added before anyone
- * translated it falls back to the English heading rather than rendering a
- * blank line above the products.
- */
-export const headingFor = (section: HomepageSection, locale: string) =>
-  locale === "ar" && section.title_ar?.trim()
-    ? section.title_ar
-    : section.title
