@@ -8,6 +8,7 @@ import { HOMEPAGE_MODULE } from "../../modules/homepage"
  * because a typo would render nothing and look like data loss.
  */
 export const SECTION_TYPES = [
+  "hero_slide",
   "product_rail",
   "category_tiles",
   "banner",
@@ -78,6 +79,15 @@ function assertShape(input: SectionInput) {
     throw new MedusaError(
       MedusaError.Types.INVALID_DATA,
       "A banner needs an image."
+    )
+  }
+
+  // A hero slide is almost entirely its photograph — without one there is
+  // nothing to show, since the carousel has no fallback art.
+  if (input.type === "hero_slide" && !input.image_url?.trim()) {
+    throw new MedusaError(
+      MedusaError.Types.INVALID_DATA,
+      "A hero slide needs an image."
     )
   }
 }

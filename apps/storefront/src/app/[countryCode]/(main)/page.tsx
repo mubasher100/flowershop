@@ -127,6 +127,36 @@ export default async function Home(props: {
   const sections = await listHomepageSections()
   const collectionByHandle = new Map(collections.map((c) => [c.handle, c]))
 
+  /**
+   * Hero slides ride on the same request as everything else.
+   *
+   * Deliberately not a second endpoint: the homepage render has to fit inside
+   * a Worker's CPU allowance, and an extra round trip on the busiest page is
+   * exactly what it cannot afford. Configured slides replace the built-in
+   * ones entirely; with none configured the hardcoded set still shows, so the
+   * carousel is never empty.
+   */
+  const configuredHero = sections.filter((s) => s.type === "hero_slide")
+  const bodySections = sections.filter((s) => s.type !== "hero_slide")
+
+  const heroSlides: HeroSlide[] = configuredHero.length
+    ? configuredHero.map((s) => {
+        const heading = headingFor(s, locale)
+        return {
+          image: s.image_url ?? "",
+          // The heading sits next to the image, so repeating it as alt text
+          // would be read twice. It is the best available description short
+          // of a dedicated field, and better than an empty string here.
+          alt: heading,
+          eyebrow: s.subtitle ?? "",
+          title: heading,
+          body: s.subtitle ?? "",
+          ctaLabel: s.cta_label ?? t("nav.shopAll"),
+          href: s.cta_href ?? "/store",
+        }
+      })
+    : slides
+
   return (
     <>
       {/* The homepage had no h1 at all — the carousel's slide titles are h2s
@@ -137,9 +167,9 @@ export default async function Home(props: {
         {BRAND_NAME} — {t("home.title")}
       </h1>
 
-      <HeroCarousel slides={slides} />
+      <HeroCarousel slides={heroSlides} />
 
-      {sections.length === 0 ? (
+      {bodySections.length === 0 ? (
         <>
           <ul className="flex flex-col">
             <FeaturedProducts
@@ -153,7 +183,7 @@ export default async function Home(props: {
         </>
       ) : (
         <>
-          {sections.map((section, index) => {
+          {bodySections.map((section, index) => {
             const heading = headingFor(section, locale)
 
             if (section.type === "product_rail") {

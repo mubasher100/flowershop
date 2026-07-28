@@ -42,7 +42,7 @@ import { sdk } from "../../lib/sdk"
 
 type Section = {
   id: string
-  type: "product_rail" | "category_tiles" | "banner"
+  type: "hero_slide" | "product_rail" | "category_tiles" | "banner"
   title: string
   title_ar: string | null
   resource_handle: string | null
@@ -55,6 +55,7 @@ type Section = {
 }
 
 const TYPE_LABELS: Record<Section["type"], string> = {
+  hero_slide: "Hero slide",
   product_rail: "Product rail",
   category_tiles: "Category tiles",
   banner: "Banner",
@@ -102,6 +103,7 @@ function SectionForm({
   const isRail = draft.type === "product_rail"
   const isTiles = draft.type === "category_tiles"
   const isBanner = draft.type === "banner"
+  const isHero = draft.type === "hero_slide"
 
   return (
     <div className="flex flex-col gap-4">
@@ -170,7 +172,11 @@ function SectionForm({
         </div>
       )}
 
-      {isBanner && (
+      {/* Hero slides and banners carry the same shape: a photograph, a line
+          of supporting copy and a link. The only difference is where they
+          render — hero slides become the carousel at the top of the page,
+          in the order listed here. */}
+      {(isBanner || isHero) && (
         <>
           <div className="flex flex-col gap-2">
             <Label size="small" weight="plus">
@@ -180,6 +186,11 @@ function SectionForm({
               value={draft.subtitle}
               onChange={(e) => set("subtitle", e.target.value)}
             />
+            <Text size="small" leading="compact" className="text-ui-fg-subtle">
+              {isHero
+                ? "The line under the slide heading."
+                : "The line under the banner heading."}
+            </Text>
           </div>
           <div className="flex flex-col gap-2">
             <Label size="small" weight="plus">

@@ -10,7 +10,7 @@
 
 export type HomepageSection = {
   id: string
-  type: "product_rail" | "category_tiles" | "banner"
+  type: "hero_slide" | "product_rail" | "category_tiles" | "banner"
   title: string
   title_ar: string | null
   resource_handle: string | null

@@ -48,6 +48,10 @@ jobs:
           # Turns the contact page's WhatsApp button on once there is a
           # number. Digits with country code, e.g. 97430000000.
           NEXT_PUBLIC_WHATSAPP: ${{ vars.WHATSAPP_NUMBER }}
+          # The store name in the header, footer and page titles. Set the
+          # BRAND_NAME repo variable once the real name is decided; it falls
+          # back to the "Flowershop" placeholder.
+          NEXT_PUBLIC_BRAND_NAME: ${{ vars.BRAND_NAME }}
 
       # `opennextjs-cloudflare deploy`, not `wrangler deploy`.
       #

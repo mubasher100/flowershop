@@ -4,11 +4,20 @@ import { clx } from "@modules/common/components/ui"
 /**
  * The wordmark.
  *
- * Deliberately the only place the store name is written, so replacing
- * "Flowershop" with the real brand — or swapping in a logo — is a one-file
- * change. See roadmap phase 6; the name is still undecided.
+ * Still the only place the store name is written, but it now comes from an
+ * environment variable so the real brand can be set without touching code:
+ * set the `BRAND_NAME` repo variable and redeploy.
+ *
+ * Not fetched from the backend, deliberately. The name appears in the header
+ * and footer of every page, so reading it at runtime would put a round trip on
+ * every render — and the homepage render is already up against the Worker's
+ * CPU allowance. A build-time value costs nothing.
+ *
+ * "Flowershop" remains the placeholder until the name is decided; see roadmap
+ * phase 6.
  */
-export const BRAND_NAME = "Flowershop"
+export const BRAND_NAME =
+  process.env.NEXT_PUBLIC_BRAND_NAME?.trim() || "Flowershop"
 
 export default function Brand({
   className,
