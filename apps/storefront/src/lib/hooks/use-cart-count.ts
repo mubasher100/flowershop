@@ -38,10 +38,11 @@ export function useCartCount() {
       const delta = (event as CustomEvent<{ delta?: number }>).detail?.delta
 
       if (typeof delta === "number") {
+        // Optimistic only. Reconciling on a timer raced with adds still in
+        // flight: the fetch returned a count from before the newest item and
+        // overwrote it, so three taps could settle on two. The caller asks
+        // for a refresh once its request has actually landed.
         setCount((c) => Math.max(0, (c ?? 0) + delta))
-        // Reconcile once the add has had time to land. If it failed, or added
-        // a different quantity than assumed, the badge corrects itself.
-        window.setTimeout(fetchCount, 4000)
         return
       }
 

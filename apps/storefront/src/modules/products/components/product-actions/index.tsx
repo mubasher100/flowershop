@@ -3,7 +3,7 @@
 import { addToCart } from "@lib/data/cart"
 import { useIntersection } from "@lib/hooks/use-in-view"
 import { useTranslations } from "@lib/i18n/use-translations"
-import { bumpCartCount } from "@lib/util/cart-events"
+import { bumpCartCount, refreshCartCount } from "@lib/util/cart-events"
 import { HttpTypes } from "@medusajs/types"
 import { Button } from "@modules/common/components/ui"
 import Divider from "@modules/common/components/divider"
@@ -40,7 +40,6 @@ export default function ProductActions({
   const searchParams = useSearchParams()
 
   const [options, setOptions] = useState<Record<string, string | undefined>>({})
-  const [isAdding, setIsAdding] = useState(false)
   const [justAdded, setJustAdded] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const [giftNote, setGiftNote] = useState("")
@@ -128,54 +127,56 @@ export default function ProductActions({
 
   const inView = useIntersection(actionsRef, "0px")
 
-  // add the selected variant to the cart
   /**
    * Adding to the bag is optimistic.
    *
-   * The Store API's add-to-cart takes around 2.5–3s — it is a workflow that
+   * The Store API's add-to-cart takes around 2.8s — it is a workflow that
    * validates the variant, checks inventory, reprices and refreshes the cart.
-   * Blocking the button on that meant three seconds of spinner after every
-   * tap, which reads as broken rather than slow.
+   * Blocking the button on that meant three seconds of dead spinner after
+   * every tap, which reads as broken rather than slow.
    *
-   * The badge moves and the button confirms straight away; the request
-   * settles behind it. If it fails, the badge is corrected by the reconcile
-   * in useCartCount and the error is shown here.
+   * The badge moves and the button confirms immediately; the request settles
+   * behind it, and reconciles the badge against the server when it lands. A
+   * failure rolls the badge back and shows the error here.
    */
-  const handleAddToCart = async () => {
-    if (!selectedVariant?.id || isAdding) return
+  const handleAddToCart = () => {
+    if (!selectedVariant?.id) return
 
-    setIsAdding(true)
+    const metadata = {
+      ...(giftNote.trim() ? { gift_note: giftNote.trim() } : {}),
+      ...(ribbon ? { ribbon } : {}),
+    }
+
+    // Confirm before the request, not after. The button is deliberately not
+    // disabled while it runs: blocking it for the 2.8s the Store API takes
+    // is what made a working button feel broken, and adding twice is a
+    // legitimate thing to want.
     setAddError(null)
     bumpCartCount(1)
+    setJustAdded(true)
+    window.setTimeout(() => setJustAdded(false), 2500)
 
-    try {
-      await addToCart({
-        variantId: selectedVariant.id,
-        quantity: 1,
-        countryCode,
-        metadata: {
-          ...(giftNote.trim() ? { gift_note: giftNote.trim() } : {}),
-          ...(ribbon ? { ribbon } : {}),
-        },
+    // Cleared straight away — leaving it filled in implies it still applies
+    // to the page, and the next bouquet is usually for someone else.
+    setGiftNote("")
+    setRibbon("")
+
+    addToCart({
+      variantId: selectedVariant.id,
+      quantity: 1,
+      countryCode,
+      metadata,
+    })
+      // Reconcile against the server once this add has actually landed,
+      // rather than on a timer that could race a later one.
+      .then(() => refreshCartCount())
+      .catch((error) => {
+        bumpCartCount(-1)
+        setJustAdded(false)
+        setAddError(
+          error instanceof Error ? error.message : t("product.addFailed")
+        )
       })
-      setJustAdded(true)
-      window.setTimeout(() => setJustAdded(false), 2500)
-
-      // Clear the personalisation after it has been added. Leaving it filled
-      // in makes it look like it still applies to the page, and the next
-      // bouquet is usually for someone else.
-      setGiftNote("")
-      setRibbon("")
-    } catch (error) {
-      // Undo the optimistic bump rather than waiting for the reconcile, so
-      // the number is never wrong while an error is on screen.
-      bumpCartCount(-1)
-      setAddError(
-        error instanceof Error ? error.message : t("product.addFailed")
-      )
-    } finally {
-      setIsAdding(false)
-    }
   }
 
   return (
@@ -193,7 +194,7 @@ export default function ProductActions({
                       updateOption={setOptionValue}
                       title={option.title ?? ""}
                       data-testid="product-options"
-                      disabled={!!disabled || isAdding}
+                      disabled={!!disabled}
                     />
                   </div>
                 )
@@ -244,7 +245,7 @@ export default function ProductActions({
           ribbon={ribbon}
           onNoteChange={setGiftNote}
           onRibbonChange={setRibbon}
-          disabled={!!disabled || isAdding}
+          disabled={!!disabled}
         />
 
         {addError && (
@@ -262,7 +263,7 @@ export default function ProductActions({
             !inStock ||
             !selectedVariant ||
             !!disabled ||
-            isAdding ||
+
             !isValidVariant
           }
           variant="primary"
@@ -291,9 +292,9 @@ export default function ProductActions({
           updateOptions={setOptionValue}
           inStock={inStock}
           handleAddToCart={handleAddToCart}
-          isAdding={isAdding}
+          isAdding={false}
           show={!inView}
-          optionsDisabled={!!disabled || isAdding}
+          optionsDisabled={!!disabled}
         />
       </div>
     </>
