@@ -28,7 +28,11 @@ const DeliveryStrip = ({ segment }: { segment?: string }) => {
             a visible ring like everything else. */}
         <ul
           tabIndex={0}
-          role="group"
+          // role="list", not "group": a role on a <ul> replaces its implicit
+          // one, so "group" left every <li> inside it orphaned — an <li> with
+          // no list parent, which is its own WCAG failure. This keeps the list
+          // semantics while still naming the region.
+          role="list"
           aria-label={t("promise.title")}
           className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700 small:mx-0 small:grid small:grid-cols-4 small:gap-6 small:overflow-visible small:px-0"
         >

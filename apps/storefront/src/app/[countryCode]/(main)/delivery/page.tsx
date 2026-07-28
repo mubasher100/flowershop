@@ -1,5 +1,5 @@
 import { getTranslations } from "@lib/i18n/dictionary"
-import { segmentsFor } from "@lib/util/locale"
+import { alternatesFor, segmentsFor } from "@lib/util/locale"
 import ContentPage, {
   ContentBlock,
   ContentList,
@@ -40,6 +40,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   return {
     title: `${t("page.deliveryTitle")} | Flowershop`,
     description: t("page.deliveryIntro"),
+    alternates: alternatesFor(countryCode, "/delivery"),
   }
 }
 

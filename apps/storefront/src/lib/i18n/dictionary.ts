@@ -121,6 +121,7 @@ export const DICTIONARY = {
       "Hand-tied bouquets, vase arrangements and signature roses, arranged in Doha and delivered the same day. Order by 6pm.",
 
     "a11y.skipToContent": "Skip to main content",
+    "product.related": "You may also like",
     "home.title": "Same-day flower delivery in Doha",
 
     // Content pages
@@ -347,6 +348,7 @@ export const DICTIONARY = {
       "باقات مربوطة يدوياً وتنسيقات مزهريات وورود مميزة، تُنسّق في الدوحة وتُوصّل في نفس اليوم. اطلب قبل ٦ مساءً.",
 
     "a11y.skipToContent": "تخطَّ إلى المحتوى الرئيسي",
+    "product.related": "قد يعجبك أيضاً",
     "home.title": "توصيل ورود في نفس اليوم بالدوحة",
 
     "page.deliveryTitle": "التوصيل والمناطق",

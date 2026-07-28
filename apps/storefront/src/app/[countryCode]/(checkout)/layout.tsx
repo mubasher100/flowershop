@@ -46,9 +46,13 @@ export default async function CheckoutLayout({
         </nav>
       </div>
 
-      <div className="relative" data-testid="checkout-container">
+      <main
+        id="main-content"
+        className="relative"
+        data-testid="checkout-container"
+      >
         {children}
-      </div>
+      </main>
     </div>
   )
 }

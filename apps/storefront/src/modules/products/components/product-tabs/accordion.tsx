@@ -55,7 +55,11 @@ const Item: React.FC<AccordionItemProps> = ({
       {/* The whole row is the trigger. Previously only the small icon was,
           giving a 32px tap target — and people reach for the label, not a
           chevron they can barely hit. */}
-      <AccordionPrimitive.Header className="px-1">
+      {/* asChild so this is an h2, not the h3 Radix renders by default. The
+          product title is the page's h1 and there is nothing between, so h3
+          skipped a level in the heading outline. */}
+      <AccordionPrimitive.Header asChild>
+        <h2 className="px-1">
         <AccordionPrimitive.Trigger className="flex min-h-[2.75rem] w-full flex-col text-start focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700">
           <div className="flex w-full items-center justify-between gap-4">
             <span className="text-base font-medium text-ink-900">{title}</span>
@@ -64,7 +68,8 @@ const Item: React.FC<AccordionItemProps> = ({
           {subtitle && (
             <span className="mt-1 text-sm text-ink-600">{subtitle}</span>
           )}
-        </AccordionPrimitive.Trigger>
+          </AccordionPrimitive.Trigger>
+        </h2>
       </AccordionPrimitive.Header>
       <AccordionPrimitive.Content
         forceMount={forceMountContent}

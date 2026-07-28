@@ -11,8 +11,11 @@ export async function generateMetadata(props: {
   const { t } = getTranslations(countryCode)
 
   return {
-    title: t("cart.title"),
+    title: `${t("cart.title")} | Flowershop`,
     description: t("cart.metaDescription"),
+    // Same reasoning as checkout: a bag belongs to one session, so there is
+    // nothing here for a search engine to index or to pair across languages.
+    robots: { index: false, follow: true },
   }
 }
 

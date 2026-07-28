@@ -1,5 +1,6 @@
 import { listProducts } from "@lib/data/products"
 import { getRegion } from "@lib/data/regions"
+import { getTranslations } from "@lib/i18n/dictionary"
 import { HttpTypes } from "@medusajs/types"
 import Product from "../product-preview"
 
@@ -13,6 +14,7 @@ export default async function RelatedProducts({
   countryCode,
 }: RelatedProductsProps) {
   const region = await getRegion(countryCode)
+  const { t } = getTranslations(countryCode)
 
   if (!region) {
     return null
@@ -48,21 +50,19 @@ export default async function RelatedProducts({
 
   return (
     <div className="product-page-constraint">
-      <div className="flex flex-col items-center text-center mb-16">
-        <span className="text-base-regular text-gray-600 mb-6">
-          Related products
-        </span>
-        <p className="text-2xl-regular text-ui-fg-base max-w-lg">
-          You might also want to check out these products.
-        </p>
-      </div>
+      {/* Was an unheaded span plus "You might also want to check out these
+          products" — starter copy, untranslated, and no heading at all, so
+          the section did not appear in the outline a screen reader builds. */}
+      <h2 className="mb-6 font-display text-3xl text-ink-900 small:text-4xl">
+        {t("product.related")}
+      </h2>
 
       {/* Same min-w-0 guard as the store grid: without it a long product name
           widens its track past its share and scrolls the page sideways. */}
       <ul className="grid w-full grid-cols-2 gap-x-3 gap-y-8 small:grid-cols-3 small:gap-x-6 medium:grid-cols-4">
         {products.map((product) => (
           <li key={product.id} className="min-w-0">
-            <Product region={region} product={product} />
+            <Product region={region} product={product} segment={countryCode} />
           </li>
         ))}
       </ul>

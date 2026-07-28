@@ -6,7 +6,12 @@ import { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 export const metadata: Metadata = {
-  title: "Checkout",
+  title: "Checkout | Flowershop",
+  description: "Confirm your delivery details and place your order.",
+  // Deliberately not indexed, which is also why it carries no canonical or
+  // hreflang: a checkout is a step in one person's session, not a page anyone
+  // should reach from a search result.
+  robots: { index: false, follow: false },
 }
 
 /**
