@@ -4,6 +4,7 @@ import { addToCart } from "@lib/data/cart"
 import { useIntersection } from "@lib/hooks/use-in-view"
 import { useTranslations } from "@lib/i18n/use-translations"
 import { bumpCartCount, refreshCartCount } from "@lib/util/cart-events"
+import { enqueueCartMutation } from "@lib/util/cart-queue"
 import { HttpTypes } from "@medusajs/types"
 import { Button } from "@modules/common/components/ui"
 import Divider from "@modules/common/components/divider"
@@ -161,12 +162,16 @@ export default function ProductActions({
     setGiftNote("")
     setRibbon("")
 
-    addToCart({
-      variantId: selectedVariant.id,
-      quantity: 1,
-      countryCode,
-      metadata,
-    })
+    // Queued, not fired directly: concurrent adds each create their own cart
+    // when none has the cookie yet. See lib/util/cart-queue.ts.
+    enqueueCartMutation(() =>
+      addToCart({
+        variantId: selectedVariant.id,
+        quantity: 1,
+        countryCode,
+        metadata,
+      })
+    )
       // Reconcile against the server once this add has actually landed,
       // rather than on a timer that could race a later one.
       .then(() => refreshCartCount())
