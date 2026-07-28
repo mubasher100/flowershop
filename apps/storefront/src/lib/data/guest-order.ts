@@ -8,6 +8,12 @@ import {
   updateCart,
 } from "./cart"
 import { listCartPaymentMethods } from "./payment"
+import {
+  DELIVERY_WINDOWS,
+  FIELD_LIMITS,
+  isDeliveryArea,
+  isDeliveryWindow,
+} from "@lib/util/delivery"
 
 /**
  * Guest ordering.
@@ -38,14 +44,22 @@ export async function placeGuestOrder(
   _prev: GuestOrderState,
   formData: FormData
 ): Promise<GuestOrderState> {
-  const get = (k: string) => String(formData.get(k) ?? "").trim()
+  /**
+   * Every field is capped on the way in. The form limits these in the
+   * browser, but a form post is just an HTTP request — nothing stopped a
+   * crafted one writing a megabyte of text into an order's metadata.
+   */
+  const get = (k: string, max = 200) =>
+    String(formData.get(k) ?? "")
+      .trim()
+      .slice(0, max)
 
-  const name = get("name")
-  const phone = get("phone")
+  const name = get("name", FIELD_LIMITS.name)
+  const phone = get("phone", FIELD_LIMITS.phone)
   const area = get("area")
-  const address = get("address")
-  const recipient = get("recipient")
-  const giftNote = get("gift_note")
+  const address = get("address", FIELD_LIMITS.address)
+  const recipient = get("recipient", FIELD_LIMITS.recipient)
+  const giftNote = get("gift_note", FIELD_LIMITS.giftNote)
 
   // Only ever a DEMO- reference from the simulated gateway. Guarded so a
   // crafted request cannot stamp an order as paid through some other value.
@@ -54,7 +68,13 @@ export async function placeGuestOrder(
     ? rawReference
     : ""
   const deliveryDate = get("delivery_date")
-  const deliveryWindow = get("delivery_window")
+  // Falls back to the first window rather than rejecting: an unrecognised
+  // value is not worth blocking an order over, but it must not reach the
+  // shopkeeper as arbitrary text either.
+  const rawWindow = get("delivery_window")
+  const deliveryWindow = isDeliveryWindow(rawWindow)
+    ? rawWindow
+    : DELIVERY_WINDOWS[0]
   const shippingOptionId = get("shipping_option_id")
 
   if (!name) return { error: "Please tell us your name." }
@@ -64,7 +84,11 @@ export async function placeGuestOrder(
       error: "Please enter a valid phone number so we can confirm your order.",
     }
   }
-  if (!area) return { error: "Please choose a delivery area." }
+  // Checked against the list the form offers, rather than accepted as free
+  // text — the select is a convenience, not a constraint.
+  if (!isDeliveryArea(area)) {
+    return { error: "Please choose a delivery area from the list." }
+  }
   if (!address) return { error: "Please add the delivery address." }
   if (!shippingOptionId) return { error: "Please choose a delivery speed." }
 

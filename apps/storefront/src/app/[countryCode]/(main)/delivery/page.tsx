@@ -7,24 +7,13 @@ import ContentPage, {
 import { Metadata } from "next"
 
 import { listRegions } from "@lib/data/regions"
+import {
+  DELIVERY_AREAS as AREAS,
+  DELIVERY_WINDOWS as WINDOWS,
+} from "@lib/util/delivery"
 
 type Props = { params: Promise<{ countryCode: string }> }
 
-/**
- * Areas and windows are the same lists the checkout form offers. They stay in
- * English in both locales on purpose: the shopkeeper reads the area off the
- * order, and a translated address is one they have to translate back.
- */
-const AREAS = [
-  "Al Dafna", "West Bay", "The Pearl", "Lusail", "Msheireb", "Al Sadd",
-  "Bin Mahmoud", "Al Waab", "Aziziya", "Al Rayyan", "Umm Salal",
-  "Al Wakrah", "Al Khor", "Education City", "Old Airport", "Muaither",
-]
-
-const WINDOWS = [
-  "10am – 12pm", "12pm – 2pm", "2pm – 4pm",
-  "4pm – 6pm", "6pm – 8pm", "8pm – 9pm",
-]
 
 export async function generateStaticParams() {
   const countryCodes = await listRegions().then((regions) =>

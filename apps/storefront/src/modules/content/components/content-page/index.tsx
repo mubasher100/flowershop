@@ -63,7 +63,7 @@ export function ContentBlock({
   )
 }
 
-export function ContentList({ items }: { items: string[] }) {
+export function ContentList({ items }: { items: readonly string[] }) {
   return (
     <ul className="flex list-disc flex-col gap-2 ps-5 text-base leading-relaxed text-ink-600 marker:text-blush-400">
       {items.map((item) => (

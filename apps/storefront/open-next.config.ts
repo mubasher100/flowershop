@@ -27,27 +27,25 @@ export default defineCloudflareConfig({
     mode: "long-lived",
 
     /**
-     * Serve a regionally cached page without asking the tag cache whether it
-     * is still valid. That question is a round trip, and it was being asked on
-     * every single request — which is what took the catalogue from 60ms back
-     * to 315ms when the tag cache was introduced.
+     * Entries live for the adapter's default (30 minutes), and the tag cache
+     * is consulted on every hit.
      *
-     * Correctness now comes from the entry's own lifetime rather than from a
-     * check per request: after 60 seconds the regional copy expires, the next
-     * request goes to R2, and *that* path does consult the tag cache and picks
-     * up anything the admin changed.
+     * These two settings were briefly the other way round — a 60-second
+     * lifetime with the tag check skipped — to bound how long an admin edit
+     * could sit behind the cache. That took the site down: a 60s lifetime
+     * means the homepage falls out of cache constantly, and a full render of
+     * it (hero, three rails, occasion tiles) exceeds the Worker's CPU
+     * allowance. Both locales were returning Cloudflare 1102 "Worker exceeded
+     * resource limits" on roughly two requests in three, while the lighter
+     * pages stayed up.
      *
-     * So the guarantee is "an edit is live within a minute" rather than "on
-     * the next request", bought for a 5x faster page. Cloudflare's tag-based
-     * purge would give us both, but it needs a zone on an Enterprise plan and
-     * this worker is on workers.dev.
-     *
-     * Safe on Next 15. The adapter defaults this to false on Next 16+, where
-     * revalidateTag is stale-while-revalidate by default and skipping the tag
-     * cache would break it.
+     * A long lifetime is what keeps renders rare, and rare renders are what
+     * keep the Worker inside its budget. Correctness then has to come from
+     * the tag check rather than from expiry, so it stays on: it costs a round
+     * trip in latency, which is I/O rather than CPU, and an admin edit is
+     * still live on the next request.
      */
-    bypassTagCacheOnCacheHit: true,
-    defaultLongLivedTtlSec: 60,
+    bypassTagCacheOnCacheHit: false,
   }),
 
   /**

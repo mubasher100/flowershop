@@ -4,6 +4,15 @@ import { HttpTypes } from "@medusajs/types"
 import { useActionState, useState } from "react"
 
 import DemoPayment from "@modules/checkout/components/demo-payment"
+import {
+  DELIVERY_AREAS as AREAS,
+  DELIVERY_WINDOWS as WINDOWS,
+  FIELD_LIMITS,
+} from "@lib/util/delivery"
+
+import { convertToLocale } from "@lib/util/money"
+import { placeGuestOrder, GuestOrderState } from "@lib/data/guest-order"
+import { useTranslations } from "@lib/i18n/use-translations"
 
 /**
  * The demo card gateway is opt-in. Without this flag the checkout is exactly
@@ -12,9 +21,6 @@ import DemoPayment from "@modules/checkout/components/demo-payment"
  */
 const DEMO_PAYMENT_ENABLED = process.env.NEXT_PUBLIC_DEMO_PAYMENT === "true"
 
-import { convertToLocale } from "@lib/util/money"
-import { placeGuestOrder, GuestOrderState } from "@lib/data/guest-order"
-import { useTranslations } from "@lib/i18n/use-translations"
 
 /**
  * Guest checkout.
@@ -24,17 +30,7 @@ import { useTranslations } from "@lib/i18n/use-translations"
  * so the phone number is the only truly required contact detail.
  */
 
-/** Doha municipalities and the districts people actually name. */
-const AREAS = [
-  "Al Dafna", "West Bay", "The Pearl", "Lusail", "Msheireb", "Al Sadd",
-  "Bin Mahmoud", "Al Waab", "Aziziya", "Al Rayyan", "Umm Salal",
-  "Al Wakrah", "Al Khor", "Education City", "Old Airport", "Muaither",
-]
 
-const WINDOWS = [
-  "10am – 12pm", "12pm – 2pm", "2pm – 4pm",
-  "4pm – 6pm", "6pm – 8pm", "8pm – 9pm",
-]
 
 const labelClass = "text-sm font-medium text-ink-800"
 const fieldClass =
@@ -78,6 +74,7 @@ export default function GuestCheckout({
             {t("checkout.name")}
           </label>
           <input id="name" name="name" required autoComplete="name"
+            maxLength={FIELD_LIMITS.name}
             className={fieldClass} placeholder={t("checkout.namePlaceholder")} />
         </div>
 
@@ -89,7 +86,7 @@ export default function GuestCheckout({
               left-to-right sequence even in Arabic, and letting it inherit RTL
               puts the leading digits on the wrong end as you type. */}
           <input id="phone" name="phone" required type="tel"
-            inputMode="tel" autoComplete="tel" dir="ltr"
+            inputMode="tel" autoComplete="tel" dir="ltr" maxLength={FIELD_LIMITS.phone}
             className={`${fieldClass} text-start`}
             placeholder={t("checkout.phonePlaceholder")} />
           <p className="text-xs text-ink-500">{t("checkout.phoneHelp")}</p>
@@ -109,6 +106,7 @@ export default function GuestCheckout({
             </span>
           </label>
           <input id="recipient" name="recipient" className={fieldClass}
+            maxLength={FIELD_LIMITS.recipient}
             placeholder={t("checkout.recipientPlaceholder")} />
         </div>
 
@@ -131,6 +129,7 @@ export default function GuestCheckout({
             {t("checkout.address")}
           </label>
           <textarea id="address" name="address" required rows={3}
+            maxLength={FIELD_LIMITS.address}
             className={`${fieldClass} py-3`}
             placeholder={t("checkout.addressPlaceholder")} />
         </div>
@@ -186,7 +185,8 @@ export default function GuestCheckout({
               {t("checkout.optional")}
             </span>
           </label>
-          <textarea id="gift_note" name="gift_note" rows={3} maxLength={300}
+          <textarea id="gift_note" name="gift_note" rows={3}
+            maxLength={FIELD_LIMITS.giftNote}
             className={`${fieldClass} py-3`}
             placeholder={t("checkout.giftNotePlaceholder")} />
         </div>
