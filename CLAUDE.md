@@ -167,6 +167,26 @@ The defining homepage rhythm is **promotional banners alternating with product r
 
 ---
 
+## Accessibility & web standards
+
+The target is [UMN's web standards](https://umarcomm.umn.edu/resources/web-standards-and-best-practices), which mandate **WCAG 2.1 level AA**, plus valid markup, a custom 404, working redirects and basic SEO hygiene. The page is behind a Cloudflare challenge — fetch it with a real browser, not `curl`.
+
+Audited with axe-core across the homepage, catalogue, product page, cart and checkout × both locales × 375px and 1280px. **Currently zero WCAG 2.1 AA violations.** Re-run it after any significant UI change; the script lives in the session scratchpad and is quick to recreate.
+
+Things that were wrong and are worth not reintroducing:
+
+- **`ink-400` is 3.04:1 on white — it fails AA and must never carry text.** It was on struck-through original prices, so the "was" half of every discount was unreadable. `ink-500` is 5.04:1, `ink-600` 7.60:1, `blush-700` 7.35:1.
+- **A `role` on a `<ul>` replaces its implicit `list` role,** orphaning every `<li>` inside it. `role="list"` is the one you want when adding `tabindex` to a scrolling rail.
+- **Radix renders `Accordion.Header` as `h3`.** Under a product `h1` that skips a level; pass `asChild` and supply your own `h2`.
+- **Product cards take their heading level from context** — `h2` under a page heading, `h3` under a rail. Don't hardcode it.
+- The skip link is `sr-only` until focused, which means automated tap-target checks will flag it at 1px. That is correct; exclude visually-hidden controls from those checks.
+
+**Cart and checkout are deliberately `noindex`**, which is why they carry no canonical or hreflang. Checkout has no skip link on purpose: its header is two links, so a skip link would be a third stop to bypass two.
+
+**Unmatched paths are caught inside the locale** by `[countryCode]/(main)/[...notFound]`, which calls `notFound()`. Without it they fell through to the root not-found, which renders outside `[countryCode]` — so an Arabic visitor got an English 404 on a bare page with no way back.
+
+---
+
 ## Localization (English + Arabic)
 
 **Locale lives in the URL,** as the first path segment carrying language *and* country: `/en-qa/...`, `/ar-qa/...`. It cannot be a cookie — catalogue pages are statically prerendered, and a cookie is unreadable during static generation, so every cached page would ship the default language. In the URL each locale gets its own prerendered variant and the R2 cache still works. A bare country (`/qa/store`) redirects to the default locale rather than 404ing, so old links survive.
@@ -361,7 +381,8 @@ Run `npm run build` in `apps/storefront`, not just `tsc`, before pushing anythin
 | 8 | SkipCash payment provider | 🔒 Pending merchant account |
 | 9 | Arabic / RTL localization | 🟡 UI done and live; catalogue copy pending a translator |
 | 10 | Homepage sections editable from the admin | ✅ Done |
-| 11 | Email notifications, analytics | 🔒 Later |
+| 11 | Accessibility — WCAG 2.1 AA / UMN standards | ✅ Done — zero axe violations |
+| 12 | Email notifications, analytics | 🔒 Later |
 
 ### Phase 8 notes — SkipCash
 
