@@ -38,6 +38,74 @@ if (
  *
  * Gated on REDIS_URL so `npm run dev` works without a local Redis.
  */
+/**
+ * Where product photography uploaded in the admin is stored.
+ *
+ * With no file module configured, Medusa falls back to the local provider,
+ * which writes into `static/` and hands back a `http://localhost:9000/...`
+ * URL. That is broken three ways over: the address means nothing to a
+ * visitor's browser, it is plain http on an https page, and Railway's
+ * filesystem does not survive a deploy — so the file disappears anyway.
+ *
+ * Cloudflare R2 is S3-compatible and already part of this stack. Set the five
+ * variables below and uploads go there with a public URL that works. Leave
+ * them unset and the local provider stays, which is only good enough for
+ * local development.
+ *
+ * The bucket must be a *separate*, publicly readable one — not
+ * `flowershop-cache`, which holds the storefront's incremental cache and
+ * should stay private.
+ */
+const S3_FILE_URL = process.env.S3_FILE_URL
+const S3_BUCKET = process.env.S3_BUCKET
+const S3_ENDPOINT = process.env.S3_ENDPOINT
+
+const fileModule =
+  S3_FILE_URL && S3_BUCKET && S3_ENDPOINT
+    ? [
+        {
+          resolve: '@medusajs/medusa/file',
+          options: {
+            providers: [
+              {
+                resolve: '@medusajs/medusa/file-s3',
+                id: 's3',
+                options: {
+                  file_url: S3_FILE_URL,
+                  bucket: S3_BUCKET,
+                  endpoint: S3_ENDPOINT,
+                  access_key_id: process.env.S3_ACCESS_KEY_ID,
+                  secret_access_key: process.env.S3_SECRET_ACCESS_KEY,
+                  // R2 has no regions, but the S3 client insists on one.
+                  region: process.env.S3_REGION || 'auto',
+                },
+              },
+            ],
+          },
+        },
+      ]
+    : [
+        {
+          resolve: '@medusajs/medusa/file',
+          options: {
+            providers: [
+              {
+                resolve: '@medusajs/medusa/file-local',
+                id: 'local',
+                options: {
+                  // Without this the provider hardcodes localhost:9000, so an
+                  // uploaded image is unreachable from anywhere but the
+                  // machine that received it.
+                  backend_url: `${
+                    process.env.MEDUSA_BACKEND_URL ?? 'http://localhost:9000'
+                  }/static`,
+                },
+              },
+            ],
+          },
+        },
+      ]
+
 const redisModules = REDIS_URL
   ? [
       {
@@ -119,6 +187,7 @@ module.exports = defineConfig({
 
   modules: [
     ...redisModules,
+    ...fileModule,
 
     /**
      * Homepage sections.

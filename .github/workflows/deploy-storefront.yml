@@ -52,6 +52,11 @@ jobs:
           # BRAND_NAME repo variable once the real name is decided; it falls
           # back to the "Flowershop" placeholder.
           NEXT_PUBLIC_BRAND_NAME: ${{ vars.BRAND_NAME }}
+          # Host serving product photography uploaded in the admin — the R2
+          # public bucket, e.g. pub-xxxx.r2.dev with pathname /**. next.config
+          # adds it to remotePatterns so next/image will accept it.
+          NEXT_PUBLIC_MEDIA_HOSTNAME: ${{ vars.MEDIA_HOSTNAME }}
+          NEXT_PUBLIC_MEDIA_PATHNAME: ${{ vars.MEDIA_PATHNAME || '/**' }}
 
       # `opennextjs-cloudflare deploy`, not `wrangler deploy`.
       #
