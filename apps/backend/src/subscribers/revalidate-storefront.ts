@@ -30,6 +30,11 @@ const TAGS_BY_EVENT: Record<string, string[]> = {
   "product-category.deleted": ["categories", "products"],
   "inventory-level.updated": ["products"],
   "price-list.updated": ["products"],
+
+  // Homepage layout. Emitted by the workflows in
+  // src/workflows/manage-homepage-sections.ts — a custom module does not emit
+  // CRUD events on its own, so they are raised explicitly.
+  "homepage-section.changed": ["homepage"],
 }
 
 export default async function revalidateStorefront({

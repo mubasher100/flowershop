@@ -65,3 +65,8 @@ yarn-error.log*
 ehthumbs.db
 Thumbs.db
 **/.DS_Store
+# Backups of env files. `**/.env` does not match `.env.bak`, so a stray
+# copy made while editing was committable — and one was.
+**/.env.*.bak
+**/.env.bak
+*.bak

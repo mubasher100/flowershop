@@ -121,6 +121,15 @@ module.exports = defineConfig({
     ...redisModules,
 
     /**
+     * Homepage sections.
+     *
+     * Which collections get a rail, in what order and under what heading used
+     * to be a hardcoded list in the storefront, so renaming a section or
+     * adding a seasonal one meant a code change and a deploy.
+     */
+    { resolve: "./src/modules/homepage" },
+
+    /**
      * Translation module.
      *
      * Registers the locales this store serves and exposes /store/locales,
