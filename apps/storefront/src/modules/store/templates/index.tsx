@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 
 import { listCategories } from "@lib/data/categories"
+import { getTranslations } from "@lib/i18n/dictionary"
 import { listProducts } from "@lib/data/products"
 import { OptionValueIds } from "@lib/util/product-option-filters"
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
@@ -82,6 +83,8 @@ const StoreTemplate = async ({
   const pageNumber = page ? parseInt(page) : 1
   const sort = sortBy || "created_at"
 
+  const { t } = getTranslations(countryCode)
+
   const [{ colours, tagIdByValue, maxPrice }, allCategories] =
     await Promise.all([getFacets(countryCode), listCategories({ limit: 20 })])
 
@@ -127,7 +130,7 @@ const StoreTemplate = async ({
           className="mb-6 font-display text-3xl text-ink-900 small:text-4xl"
           data-testid="store-page-title"
         >
-          All flowers
+          {t("nav.allFlowers")}
         </h1>
         <Suspense fallback={<SkeletonProductGrid />}>
           <PaginatedProducts

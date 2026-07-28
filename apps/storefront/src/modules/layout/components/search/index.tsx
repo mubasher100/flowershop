@@ -248,7 +248,7 @@ export default function Search() {
                     // the gesture chain, and autoFocus is honoured in more of
                     // them than .focus() is.
                     autoFocus
-                    className="min-h-[2.75rem] w-full border-0 bg-transparent text-base text-ink-900 placeholder:text-ink-400 focus:outline-none"
+                    className="min-h-[2.75rem] w-full border-0 bg-transparent text-base text-ink-900 placeholder:text-ink-500 focus:outline-none"
                   />
                   <button
                     type="button"

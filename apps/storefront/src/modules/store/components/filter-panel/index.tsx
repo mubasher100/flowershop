@@ -162,7 +162,7 @@ export default function FilterPanel({
               setSingle("q", e.target.value.trim())
             }
           }}
-          className="min-h-[2.75rem] w-full rounded-xl border border-ink-200 px-3.5 text-base text-ink-900 placeholder:text-ink-400 focus:border-blush-500 focus:outline-none focus:ring-2 focus:ring-blush-200"
+          className="min-h-[2.75rem] w-full rounded-xl border border-ink-200 px-3.5 text-base text-ink-900 placeholder:text-ink-500 focus:border-blush-500 focus:outline-none focus:ring-2 focus:ring-blush-200"
         />
       </div>
 

@@ -21,14 +21,18 @@ export default async function ProductPreview({
   isFeatured,
   region: _region,
   segment,
+  headingLevel = 3,
 }: {
   product: HttpTypes.StoreProduct
   isFeatured?: boolean
   region: HttpTypes.StoreRegion
   segment?: string
+  /** 2 where the grid sits under the page h1; 3 under a rail heading. */
+  headingLevel?: 2 | 3
 }) {
   const { cheapestPrice } = getProductPrice({ product })
   const { t } = getTranslations(segment)
+  const Heading = headingLevel === 2 ? "h2" : "h3"
 
   const hasSizeLadder = (product.variants?.length ?? 0) > 1
 
@@ -68,12 +72,16 @@ export default async function ProductPreview({
         </div>
 
         <div className="flex flex-col gap-1">
-          <h3
+          {/* Heading level follows the page, not the component. On a homepage
+              rail the card sits under the rail's h2, so h3 is right; on the
+              catalogue the grid sits directly under the page h1, where a
+              hardcoded h3 skipped a level. */}
+          <Heading
             className="text-sm leading-snug text-ink-900 small:text-base"
             data-testid="product-title"
           >
             {product.title}
-          </h3>
+          </Heading>
 
           {/* Wraps, because a discounted item shows two prices side by side
               ("From QAR 1,015.00  QAR 865.00"). Unwrapped, that set a ~165px

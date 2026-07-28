@@ -85,7 +85,12 @@ export default function RootLayout(props: { children: React.ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: DIR_SCRIPT }} />
       </head>
       <body className={googleSans.className}>
-        <main className="relative">{props.children}</main>
+        {/* A plain wrapper, not <main>. This element wraps the whole document
+            including the nav and footer, so calling it "main" put the site
+            navigation inside the main landmark and left the page with no
+            meaningful skip target. The real <main> is in the locale layout,
+            around the page content only. */}
+        <div className="relative">{props.children}</div>
       </body>
     </html>
   )

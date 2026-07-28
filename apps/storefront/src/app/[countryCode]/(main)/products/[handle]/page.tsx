@@ -1,4 +1,4 @@
-import { segmentsFor } from "@lib/util/locale"
+import { alternatesFor, segmentsFor } from "@lib/util/locale"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { listProducts } from "@lib/data/products"
@@ -93,12 +93,19 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     notFound()
   }
 
+  // The description was the title again, which gives a search result two
+  // copies of the same line and nothing about the product.
+  const description =
+    product.description?.trim().slice(0, 155) ||
+    `${product.title} — arranged in Doha and delivered the same day.`
+
   return {
     title: `${product.title} | Flowershop`,
-    description: `${product.title}`,
+    description,
+    alternates: alternatesFor(params.countryCode, `/products/${handle}`),
     openGraph: {
       title: `${product.title} | Flowershop`,
-      description: `${product.title}`,
+      description,
       images: product.thumbnail ? [product.thumbnail] : [],
     },
   }

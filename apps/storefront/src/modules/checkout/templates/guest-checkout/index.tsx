@@ -29,7 +29,7 @@ const WINDOWS = [
 
 const labelClass = "text-sm font-medium text-ink-800"
 const fieldClass =
-  "min-h-[3rem] w-full rounded-xl border border-ink-200 bg-white px-4 text-base text-ink-900 placeholder:text-ink-400 focus:border-blush-500 focus:outline-none focus:ring-2 focus:ring-blush-200"
+  "min-h-[3rem] w-full rounded-xl border border-ink-200 bg-white px-4 text-base text-ink-900 placeholder:text-ink-500 focus:border-blush-500 focus:outline-none focus:ring-2 focus:ring-blush-200"
 
 export default function GuestCheckout({
   cart,

@@ -1,6 +1,7 @@
 import { Metadata } from "next"
 
 import { getBaseURL } from "@lib/util/env"
+import { getTranslations } from "@lib/i18n/dictionary"
 import Footer from "@modules/layout/templates/footer"
 import BottomNav from "@modules/layout/components/bottom-nav"
 import DirectionSync from "@modules/layout/components/direction-sync"
@@ -38,13 +39,32 @@ export default async function PageLayout(props: {
   // component re-deriving it.
   const { countryCode } = await props.params
 
+  const { t } = getTranslations(countryCode)
+
   return (
     <>
       <DirectionSync />
+
+      {/* Skip link. Every page puts a delivery bar, a menu, a brand, search,
+          a language switch, a bag and a row of categories before the content —
+          around a dozen stops for someone tabbing or using a screen reader.
+          Visually hidden until focused, which is the point: it is there for
+          the keyboard, not the layout. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-[100] focus:inline-flex focus:min-h-[2.75rem] focus:items-center focus:rounded-full focus:bg-blush-700 focus:px-6 focus:text-sm focus:font-semibold focus:text-white"
+      >
+        {t("a11y.skipToContent")}
+      </a>
+
       <Nav segment={countryCode} />
+
       {/* pb-16 on mobile keeps the last of the page clear of the fixed bottom
           bar — without it the footer's final links sit underneath it. */}
-      <div className="pb-16 small:pb-0">{props.children}</div>
+      <main id="main-content" className="pb-16 small:pb-0">
+        {props.children}
+      </main>
+
       <Footer segment={countryCode} />
       <BottomNav />
     </>

@@ -24,13 +24,22 @@ const OCCASION_HANDLES = [
 ]
 
 /** CC0 photography, distinct per occasion so the row isn't six identical discs. */
+/**
+ * These pointed at /products/bloom-01.jpg … bloom-12.jpg, a naming scheme that
+ * never existed — product photography is named by handle. Every one of the six
+ * tiles was a broken image on the homepage.
+ *
+ * Each now points at a real photograph chosen to suit the occasion: red roses
+ * for an anniversary, soft white for get-well and a new baby, something with
+ * colour for a birthday.
+ */
 const TILE_IMAGE: Record<string, string> = {
-  birthday: "/products/bloom-03.jpg",
-  anniversary: "/products/bloom-09.jpg",
-  congratulations: "/products/bloom-11.jpg",
-  "get-well-soon": "/products/bloom-04.jpg",
-  "new-baby": "/products/bloom-07.jpg",
-  "thank-you": "/products/bloom-10.jpg",
+  birthday: "/products/piccadilly-charm.jpg",
+  anniversary: "/products/50-red-rose-vase.jpg",
+  congratulations: "/products/hearts-crystal-sphere.jpg",
+  "get-well-soon": "/products/9-white-hydrangea-black-vase.jpg",
+  "new-baby": "/products/pink-parkhome.jpg",
+  "thank-you": "/products/aveline.jpg",
 }
 
 export default async function OccasionTiles({
@@ -77,7 +86,9 @@ export default async function OccasionTiles({
             >
               <div className="relative aspect-square w-full overflow-hidden rounded-full ring-1 ring-inset ring-ink-200/60 transition-transform duration-200 group-hover:-translate-y-1 group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-blush-700">
                 <Image
-                  src={TILE_IMAGE[occasion.handle ?? ""] ?? "/products/bloom-01.jpg"}
+                  src={
+                    TILE_IMAGE[occasion.handle ?? ""] ?? "/products/ashford.jpg"
+                  }
                   alt=""
                   fill
                   sizes="(max-width: 1024px) 25vw, 12vw"

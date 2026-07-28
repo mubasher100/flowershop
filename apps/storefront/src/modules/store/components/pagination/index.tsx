@@ -56,7 +56,7 @@ export function Pagination({
     <span
       key={key}
       aria-hidden="true"
-      className="inline-flex h-11 cursor-default items-center px-1 text-ink-400"
+      className="inline-flex h-11 cursor-default items-center px-1 text-ink-500"
     >
       …
     </span>

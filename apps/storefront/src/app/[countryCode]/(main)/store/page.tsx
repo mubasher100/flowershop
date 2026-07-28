@@ -1,12 +1,27 @@
 import { Metadata } from "next"
 
+import { getTranslations } from "@lib/i18n/dictionary"
+import { alternatesFor } from "@lib/util/locale"
 import { parseOptionValueIds } from "@lib/util/product-option-filters"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import StoreTemplate from "@modules/store/templates"
 
-export const metadata: Metadata = {
-  title: "Store",
-  description: "Explore all of our products.",
+/**
+ * "Store / Explore all of our products" was the starter's, and said nothing a
+ * searcher would type. UMN's SEO guidance is explicit about putting the words
+ * people search for in titles and descriptions.
+ */
+export async function generateMetadata(props: {
+  params: Promise<{ countryCode: string }>
+}): Promise<Metadata> {
+  const { countryCode } = await props.params
+  const { t } = getTranslations(countryCode)
+
+  return {
+    title: `${t("nav.allFlowers")} | Flowershop`,
+    description: t("meta.homeDescription"),
+    alternates: alternatesFor(countryCode, "/store"),
+  }
 }
 
 type StorePageSearchParams = Record<string, string | string[] | undefined> & {

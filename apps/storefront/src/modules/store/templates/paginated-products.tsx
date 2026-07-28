@@ -152,7 +152,12 @@ export default async function PaginatedProducts({
         {products.map((p) => {
           return (
             <li key={p.id} className="min-w-0">
-              <ProductPreview product={p} region={region} segment={countryCode} />
+              <ProductPreview
+                product={p}
+                region={region}
+                segment={countryCode}
+                headingLevel={2}
+              />
             </li>
           )
         })}

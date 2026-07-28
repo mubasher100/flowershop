@@ -120,6 +120,37 @@ export const DICTIONARY = {
     "meta.homeDescription":
       "Hand-tied bouquets, vase arrangements and signature roses, arranged in Doha and delivered the same day. Order by 6pm.",
 
+    "a11y.skipToContent": "Skip to main content",
+    "home.title": "Same-day flower delivery in Doha",
+
+    // Content pages
+    "page.deliveryTitle": "Delivery & areas",
+    "page.deliveryIntro":
+      "We deliver across Doha and the surrounding municipalities, seven days a week.",
+    "page.areasHeading": "Where we deliver",
+    "page.areasNote":
+      "If your area is not listed, order anyway and we will confirm on WhatsApp before charging anything.",
+    "page.windowsHeading": "Delivery windows",
+    "page.careTitle": "Flower care",
+    "page.careIntro":
+      "Cut flowers last far longer with a little attention. This is what we do in the shop.",
+    "page.contactTitle": "Contact us",
+    "page.contactIntro":
+      "The quickest way to reach us is WhatsApp. We answer every order personally.",
+    "page.contactOrder": "About an order",
+    "page.contactOrderBody":
+      "Place the order first — we confirm availability and payment with you on WhatsApp straight afterwards, so there is nothing to arrange in advance.",
+    "page.contactHours": "When we answer",
+    "page.contactHoursBody": "Every day, 9am to 9pm Doha time.",
+    "page.backToShop": "Back to the flowers",
+
+    // 404
+    "notFound.title": "We can't find that page",
+    "notFound.body":
+      "The link may be out of date, or the page may have moved. The flowers are all still here.",
+    "notFound.shop": "Browse the flowers",
+    "notFound.home": "Go to the homepage",
+
     // Search
     "search.open": "Search",
     "search.placeholder": "Search flowers, roses, vases…",
@@ -314,6 +345,35 @@ export const DICTIONARY = {
     "meta.homeTitle": "فلاورشوب — توصيل ورود في نفس اليوم بالدوحة",
     "meta.homeDescription":
       "باقات مربوطة يدوياً وتنسيقات مزهريات وورود مميزة، تُنسّق في الدوحة وتُوصّل في نفس اليوم. اطلب قبل ٦ مساءً.",
+
+    "a11y.skipToContent": "تخطَّ إلى المحتوى الرئيسي",
+    "home.title": "توصيل ورود في نفس اليوم بالدوحة",
+
+    "page.deliveryTitle": "التوصيل والمناطق",
+    "page.deliveryIntro":
+      "نوصّل في جميع أنحاء الدوحة والبلديات المجاورة، سبعة أيام في الأسبوع.",
+    "page.areasHeading": "مناطق التوصيل",
+    "page.areasNote":
+      "إذا لم تجد منطقتك في القائمة، أرسل طلبك على أي حال وسنؤكد لك على واتساب قبل أي دفع.",
+    "page.windowsHeading": "أوقات التوصيل",
+    "page.careTitle": "العناية بالورود",
+    "page.careIntro":
+      "تدوم الورود المقطوفة أطول بكثير مع القليل من العناية. هذا ما نتّبعه في المتجر.",
+    "page.contactTitle": "اتصل بنا",
+    "page.contactIntro":
+      "أسرع طريقة للتواصل معنا هي واتساب. نرد على كل طلب بأنفسنا.",
+    "page.contactOrder": "بخصوص طلب",
+    "page.contactOrderBody":
+      "أرسل الطلب أولاً — سنؤكد التوفر وطريقة الدفع معك على واتساب مباشرة بعده، فلا حاجة لترتيب أي شيء مسبقاً.",
+    "page.contactHours": "أوقات الرد",
+    "page.contactHoursBody": "كل يوم، من ٩ صباحاً حتى ٩ مساءً بتوقيت الدوحة.",
+    "page.backToShop": "العودة إلى الورود",
+
+    "notFound.title": "لم نتمكن من العثور على الصفحة",
+    "notFound.body":
+      "قد يكون الرابط قديماً أو تكون الصفحة قد نُقلت. أما الورود فما زالت هنا جميعها.",
+    "notFound.shop": "تصفح الورود",
+    "notFound.home": "الذهاب إلى الصفحة الرئيسية",
 
     "search.open": "البحث",
     "search.placeholder": "ابحث عن ورود، مزهريات…",

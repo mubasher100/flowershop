@@ -22,7 +22,16 @@ const DeliveryStrip = ({ segment }: { segment?: string }) => {
   return (
     <section className="border-y border-ink-200/70 bg-white">
       <div className="content-container py-6 small:py-8">
-        <ul className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 small:mx-0 small:grid small:grid-cols-4 small:gap-6 small:overflow-visible small:px-0">
+        {/* Scrolls sideways on a phone and contains no links, so without a
+            tabindex a keyboard user could reach the first promise and no
+            further — the rest was unreachable. Focusable, named, and it keeps
+            a visible ring like everything else. */}
+        <ul
+          tabIndex={0}
+          role="group"
+          aria-label={t("promise.title")}
+          className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700 small:mx-0 small:grid small:grid-cols-4 small:gap-6 small:overflow-visible small:px-0"
+        >
           {PROMISES.map((promise) => (
             <li
               key={promise.title}

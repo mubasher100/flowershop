@@ -65,3 +65,40 @@ export const segmentsFor = (countryCodes: (string | undefined)[]) =>
     .flatMap((countryCode) =>
       LOCALES.map((locale) => buildSegment(locale, countryCode))
     )
+
+/**
+ * Canonical and hreflang metadata for a page.
+ *
+ * The site serves the same page under two language prefixes. Without
+ * `alternates`, a search engine sees `/en-qa/store` and `/ar-qa/store` as
+ * unrelated pages competing with each other rather than two versions of one —
+ * it may index the wrong language for a given searcher, or treat one as
+ * duplicate content.
+ *
+ * `path` is the part after the locale segment, with a leading slash or empty
+ * for the homepage.
+ */
+export function alternatesFor(segment: string | undefined, path = "") {
+  const { countryCode } = parseSegment(segment)
+
+  const languages = Object.fromEntries(
+    LOCALES.map((locale) => [
+      // Language plus region, e.g. "ar-QA" — a bare "ar" would claim this is
+      // the right page for every Arabic speaker anywhere.
+      `${locale}-${countryCode.toUpperCase()}`,
+      `/${buildSegment(locale, countryCode)}${path}`,
+    ])
+  )
+
+  return {
+    canonical: `/${buildSegment(
+      parseSegment(segment).locale,
+      countryCode
+    )}${path}`,
+    languages: {
+      ...languages,
+      // Tells search engines which to serve when no language matches.
+      "x-default": `/${buildSegment(DEFAULT_LOCALE, countryCode)}${path}`,
+    },
+  }
+}

@@ -1,4 +1,4 @@
-import { segmentsFor } from "@lib/util/locale"
+import { alternatesFor, segmentsFor } from "@lib/util/locale"
 import { Metadata } from "next"
 
 import DeliveryStrip from "@modules/home/components/delivery-strip"
@@ -13,6 +13,7 @@ import { listCollections } from "@lib/data/collections"
 import { listHomepageSections } from "@lib/data/homepage"
 import { getRegion, listRegions } from "@lib/data/regions"
 import { headingFor } from "@lib/util/homepage"
+import { BRAND_NAME } from "@modules/common/components/brand"
 import ProductRail from "@modules/home/components/featured-products/product-rail"
 import PromoBanner from "@modules/home/components/promo-banner"
 
@@ -51,6 +52,7 @@ export async function generateMetadata(props: {
   return {
     title: t("meta.homeTitle"),
     description: t("meta.homeDescription"),
+    alternates: alternatesFor(countryCode),
   }
 }
 
@@ -118,6 +120,14 @@ export default async function Home(props: {
 
   return (
     <>
+      {/* The homepage had no h1 at all — the carousel's slide titles are h2s
+          that change every few seconds, so there was nothing stating what the
+          page is, for either a screen reader or a search engine. Visually
+          hidden because the carousel already says it in pictures. */}
+      <h1 className="sr-only">
+        {BRAND_NAME} — {t("home.title")}
+      </h1>
+
       <HeroCarousel slides={slides} />
 
       {sections.length === 0 ? (
