@@ -230,6 +230,22 @@ Re-run the Qatar configuration at any time — it is idempotent:
 cd apps/backend && npx medusa exec ./src/scripts/seed-qatar.ts
 ```
 
+### Homepage sections
+
+The homepage layout is data, not code. **Admin → Homepage** lists the blocks below the hero carousel; they can be added, renamed (in both languages), reordered, hidden and deleted without a deploy.
+
+Three types: `product_rail` (products from a collection handle), `category_tiles` (occasion tiles), `banner` (image, subtitle and a link). A rail pointing at a deleted collection renders nothing rather than an empty heading, and a missing Arabic heading falls back to English.
+
+The hero carousel and the delivery-reassurance strip are deliberately *not* managed here — the strip answers "will it arrive in time", which decides the purchase, and should not be switchable off by accident.
+
+```bash
+cd apps/backend && npx medusa exec ./src/scripts/seed-homepage.ts
+```
+
+Idempotent, and it matches on type plus resource handle. It deliberately **does not overwrite headings** on re-run — undoing a rename made in the admin would defeat the point of the table.
+
+If the backend is unreachable or no sections exist, the storefront falls back to the layout it used to hardcode. That is also why the two apps can deploy in either order.
+
 > **Never reintroduce a `src/migration-scripts/` seed.** The starter shipped `initial-data-seed.ts`, which built a European store. It has been deleted. Medusa records executed migration scripts **by filename**, and local dev runs the `.ts` while a production build runs the compiled `.js` — different names, so it re-ran on every single deploy and kept resurrecting the Europe region. `seed-qatar.ts` is the one canonical setup script; it bootstraps a fresh database and cleans up a stale one.
 
 ---
@@ -321,6 +337,13 @@ A wrong port does not fail at boot. It surfaces later as intermittent `prepared 
 
 **`next build` skips type and lint checks** (`ignoreBuildErrors` / `ignoreDuringBuilds` are set in `next.config.js`). A green build proves nothing about types. `npx tsc --noEmit` is what actually gates storefront type safety, and CI runs it separately.
 
+**The reverse is also true: `tsc` does not gate the build.** Next has rules TypeScript knows nothing about, and they only surface in `next build`:
+
+- Every export from a `"use server"` module is a Server Action and must be `async`. A synchronous helper next to a fetch fails with *"Server Actions must be async functions"*. Keep pure helpers in a separate module.
+- `useSearchParams()` opts a component out of static rendering unless it is under a `<Suspense>` boundary. In a component that lives in the nav, that silently stops every page prerendering.
+
+Run `npm run build` in `apps/storefront`, not just `tsc`, before pushing anything that touches a server module or a nav component.
+
 ---
 
 ## Roadmap
@@ -334,10 +357,11 @@ A wrong port does not fail at boot. It surfaces later as intermittent `prepared 
 | 4 | Railway deploy (backend + Redis) | ✅ Done — live |
 | 5 | Cloudflare storefront deploy | ✅ Done — live |
 | 6 | Branding — palette + font done; name and logo pending | 🟡 Partial |
-| 7 | Storefront design — homepage done; product page next | 🟡 In progress |
+| 7 | Storefront design — homepage, product page, catalogue, checkout | ✅ Done |
 | 8 | SkipCash payment provider | 🔒 Pending merchant account |
 | 9 | Arabic / RTL localization | 🟡 UI done and live; catalogue copy pending a translator |
-| 10 | Email notifications, file storage (R2), search, analytics | 🔒 Later |
+| 10 | Homepage sections editable from the admin | ✅ Done |
+| 11 | Email notifications, analytics | 🔒 Later |
 
 ### Phase 8 notes — SkipCash
 
