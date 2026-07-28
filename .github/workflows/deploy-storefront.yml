@@ -49,10 +49,21 @@ jobs:
           # number. Digits with country code, e.g. 97430000000.
           NEXT_PUBLIC_WHATSAPP: ${{ vars.WHATSAPP_NUMBER }}
 
-      - name: Deploy
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/storefront
-          command: deploy
+      # `opennextjs-cloudflare deploy`, not `wrangler deploy`.
+      #
+      # wrangler only uploads the Worker. It does not seed the R2 incremental
+      # cache with the pages Next prerendered at build time — that is a
+      # separate step the adapter owns, and we were skipping it entirely.
+      #
+      # The consequence was not a slow first request, it was an outage: with
+      # nothing in R2, every request was a cache miss that had to render the
+      # page inside the Worker, and a full homepage render does not fit in the
+      # CPU allowance. Both locales returned Cloudflare 1102 on most requests
+      # and could not recover, because the render that would have populated
+      # the cache was the thing failing.
+      - name: Deploy (uploads the Worker and seeds the R2 cache)
+        working-directory: apps/storefront
+        run: npx opennextjs-cloudflare deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
