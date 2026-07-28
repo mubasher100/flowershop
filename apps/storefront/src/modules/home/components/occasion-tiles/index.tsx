@@ -35,15 +35,25 @@ const TILE_IMAGE: Record<string, string> = {
 
 export default async function OccasionTiles({
   segment,
+  heading,
+  handle,
 }: {
   segment?: string
+  /** Set from the admin; falls back to the built-in "Shop by occasion". */
+  heading?: string
+  /** A single category to show. Blank means every occasion. */
+  handle?: string | null
 }) {
   const categories = await listCategories({ limit: 20 })
   const { t } = getTranslations(segment)
 
-  const occasions = OCCASION_HANDLES.map((handle) =>
-    categories?.find((c) => c.handle === handle)
-  ).filter(Boolean) as NonNullable<typeof categories>
+  // A handle from the admin narrows this to one tile; the shadowed parameter
+  // in the map below was renamed so it cannot collide with it.
+  const wanted = handle?.trim() ? [handle.trim()] : OCCASION_HANDLES
+
+  const occasions = wanted
+    .map((h) => categories?.find((c) => c.handle === h))
+    .filter(Boolean) as NonNullable<typeof categories>
 
   if (!occasions.length) {
     return null
@@ -52,7 +62,7 @@ export default async function OccasionTiles({
   return (
     <section className="content-container py-8 small:py-12">
       <h2 className="mb-5 font-display text-3xl text-ink-900 small:mb-7 small:text-4xl">
-        {t("section.shopByOccasion")}
+        {heading?.trim() || t("section.shopByOccasion")}
       </h2>
 
       <ul className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-1 small:mx-0 small:grid small:grid-cols-6 small:gap-6 small:overflow-visible small:px-0">

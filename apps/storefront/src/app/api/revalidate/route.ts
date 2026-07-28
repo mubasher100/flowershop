@@ -23,6 +23,8 @@ const VALID_TAGS = new Set([
   "collections",
   "categories",
   "regions",
+  // Homepage layout, edited in the admin's Homepage screen.
+  "homepage",
 ])
 
 export async function POST(req: NextRequest) {

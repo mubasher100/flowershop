@@ -1,3 +1,5 @@
+import Image from "next/image"
+
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { clx } from "@modules/common/components/ui"
 
@@ -16,9 +18,15 @@ export type PromoBannerProps = {
   body?: string
   ctaLabel: string
   href: string
+  /**
+   * Photography, when the shopkeeper has set one in the admin. The gradient
+   * below is the fallback, so a banner created without an image still renders
+   * on brand rather than as an empty box.
+   */
+  image?: string | null
   /** Two-stop gradient drawn from brand tokens. */
-  from: string
-  to: string
+  from?: string
+  to?: string
   /** Dark art needs light type. */
   tone?: "light" | "dark"
   /** Short banners break up rails; tall ones anchor the page. */
@@ -31,12 +39,15 @@ export default function PromoBanner({
   body,
   ctaLabel,
   href,
-  from,
-  to,
+  image,
+  from = "var(--blush-200)",
+  to = "var(--champagne-200)",
   tone = "dark",
   size = "standard",
 }: PromoBannerProps) {
-  const onDark = tone === "light"
+  // A photograph always needs light type: the shopkeeper chooses the image, so
+  // its contrast cannot be checked here and the scrim has to carry it.
+  const onDark = image ? true : tone === "light"
 
   return (
     <section className="content-container py-4 small:py-6">
@@ -53,6 +64,16 @@ export default function PromoBanner({
           )}
           style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
         >
+          {image && (
+            <Image
+              src={image}
+              alt=""
+              fill
+              sizes="(max-width: 1024px) 100vw, 1200px"
+              className="object-cover"
+            />
+          )}
+
           {/* Scrim keeps the type legible whatever the art becomes. */}
           <div
             aria-hidden="true"

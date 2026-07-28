@@ -10,7 +10,10 @@ import HeroCarousel, {
 
 import { getTranslations } from "@lib/i18n/dictionary"
 import { listCollections } from "@lib/data/collections"
+import { headingFor, listHomepageSections } from "@lib/data/homepage"
 import { getRegion, listRegions } from "@lib/data/regions"
+import ProductRail from "@modules/home/components/featured-products/product-rail"
+import PromoBanner from "@modules/home/components/promo-banner"
 
 /**
  * Hero slides.
@@ -80,7 +83,7 @@ export default async function Home(props: {
   const { countryCode } = params
 
   const region = await getRegion(countryCode)
-  const { t } = getTranslations(countryCode)
+  const { t, locale } = getTranslations(countryCode)
 
   const { collections } = await listCollections({
     fields: "id, handle, title",
@@ -103,27 +106,86 @@ export default async function Home(props: {
     ctaLabel: t(`${slide.key}.cta`),
   }))
 
+  /**
+   * The blocks below the carousel come from the admin. If the request fails or
+   * nothing has been configured yet, fall back to the layout this page used to
+   * hardcode — an unreachable backend should cost the homepage its rails, not
+   * render an empty shop.
+   */
+  const sections = await listHomepageSections()
+  const collectionByHandle = new Map(collections.map((c) => [c.handle, c]))
+
   return (
     <>
       <HeroCarousel slides={slides} />
 
-      {/* Best Sellers leads, directly under the carousel — the "Shop by type"
-          tiles that used to sit here were removed on request. */}
-      <ul className="flex flex-col">
-        <FeaturedProducts
-          collections={collections}
-          region={region}
-          segment={countryCode}
-        />
-      </ul>
+      {sections.length === 0 ? (
+        <>
+          <ul className="flex flex-col">
+            <FeaturedProducts
+              collections={collections}
+              region={region}
+              segment={countryCode}
+            />
+          </ul>
+          <DeliveryStrip segment={countryCode} />
+          <OccasionTiles segment={countryCode} />
+        </>
+      ) : (
+        <>
+          {sections.map((section, index) => {
+            const heading = headingFor(section, locale)
 
-      {/* Delivery reassurance: in flower gifting, "will it arrive in time"
-          blocks the purchase more often than "is it pretty". */}
-      <DeliveryStrip segment={countryCode} />
+            if (section.type === "product_rail") {
+              const collection = section.resource_handle
+                ? collectionByHandle.get(section.resource_handle)
+                : undefined
 
-      {/* Occasion-led browsing is how flower gifting usually starts —
-          someone has a birthday, not a craving for hydrangea. */}
-      <OccasionTiles segment={countryCode} />
+              // A rail pointing at a collection that has since been deleted
+              // renders nothing rather than an empty heading.
+              if (!collection) return null
+
+              return (
+                <ProductRail
+                  key={section.id}
+                  collection={{ ...collection, title: heading }}
+                  region={region}
+                  segment={countryCode}
+                />
+              )
+            }
+
+            if (section.type === "category_tiles") {
+              return (
+                <OccasionTiles
+                  key={section.id}
+                  segment={countryCode}
+                  heading={heading}
+                  handle={section.resource_handle}
+                />
+              )
+            }
+
+            return (
+              <PromoBanner
+                key={section.id}
+                title={heading}
+                body={section.subtitle ?? undefined}
+                image={section.image_url}
+                ctaLabel={section.cta_label ?? ""}
+                href={section.cta_href ?? "/store"}
+                // The first banner is likely above the fold on a phone.
+                size={index === 0 ? "tall" : "standard"}
+              />
+            )
+          })}
+
+          {/* Delivery reassurance is not a section the shopkeeper manages: in
+              flower gifting "will it arrive in time" blocks the purchase more
+              often than "is it pretty", so it always shows. */}
+          <DeliveryStrip segment={countryCode} />
+        </>
+      )}
     </>
   )
 }
