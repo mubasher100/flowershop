@@ -1,7 +1,16 @@
 "use client"
 
 import { HttpTypes } from "@medusajs/types"
-import { useActionState } from "react"
+import { useActionState, useState } from "react"
+
+import DemoPayment from "@modules/checkout/components/demo-payment"
+
+/**
+ * The demo card gateway is opt-in. Without this flag the checkout is exactly
+ * as before — one form, confirmed on WhatsApp — so a simulated payment can
+ * never appear on a live storefront by accident.
+ */
+const DEMO_PAYMENT_ENABLED = process.env.NEXT_PUBLIC_DEMO_PAYMENT === "true"
 
 import { convertToLocale } from "@lib/util/money"
 import { placeGuestOrder, GuestOrderState } from "@lib/data/guest-order"
@@ -44,6 +53,8 @@ export default function GuestCheckout({
   >(placeGuestOrder, {})
 
   const { t } = useTranslations()
+  const [payMethod, setPayMethod] = useState<"whatsapp" | "card">("whatsapp")
+  const [paymentRef, setPaymentRef] = useState<string | null>(null)
 
   // Today, in Qatar, as a yyyy-mm-dd bound for the date picker.
   const today = new Date().toLocaleDateString("en-CA", {
@@ -188,8 +199,80 @@ export default function GuestCheckout({
         </p>
       )}
 
+      {/* Payment. The card path is a simulation, shown only when
+          NEXT_PUBLIC_DEMO_PAYMENT is set, so it cannot appear on a real
+          storefront by accident. SkipCash replaces it in phase 8. */}
+      {DEMO_PAYMENT_ENABLED && (
+        <section className="flex flex-col gap-4">
+          <h2 className="font-display text-2xl text-ink-900">
+            {t("pay.heading")}
+          </h2>
+
+          <fieldset className="flex flex-col gap-2">
+            <legend className={`${labelClass} mb-1.5`}>{t("pay.method")}</legend>
+
+            {(
+              [
+                ["whatsapp", "pay.onDelivery", "pay.onDeliveryHint"],
+                ["card", "pay.card", "pay.cardHint"],
+              ] as const
+            ).map(([value, label, hint]) => (
+              <label
+                key={value}
+                className="flex min-h-[3.25rem] cursor-pointer items-start gap-3 rounded-xl border border-ink-200 bg-white px-4 py-3 has-[:checked]:border-blush-500 has-[:checked]:ring-2 has-[:checked]:ring-blush-200"
+              >
+                <input
+                  type="radio"
+                  name="payment_method"
+                  value={value}
+                  checked={payMethod === value}
+                  onChange={() => {
+                    setPayMethod(value)
+                    setPaymentRef(null)
+                  }}
+                  className="mt-1 h-4 w-4 accent-blush-600"
+                />
+                <span className="flex flex-col">
+                  <span className="text-base text-ink-900">{t(label)}</span>
+                  <span className="text-sm text-ink-600">{t(hint)}</span>
+                </span>
+              </label>
+            ))}
+          </fieldset>
+
+          {payMethod === "card" && !paymentRef && (
+            <DemoPayment
+              amount={convertToLocale({
+                amount: cart.total ?? 0,
+                currency_code: cart.currency_code,
+              })}
+              onApproved={(result) => setPaymentRef(result.reference)}
+            />
+          )}
+
+          {paymentRef && (
+            <p
+              role="status"
+              className="rounded-xl border border-sage-300 bg-sage-50 px-4 py-3 text-sm text-sage-800"
+            >
+              {t("pay.approved")} — {paymentRef}
+            </p>
+          )}
+
+          {/* Carried into the order so a demo order is always identifiable. */}
+          <input type="hidden" name="payment_reference" value={paymentRef ?? ""} />
+        </section>
+      )}
+
       <div className="flex flex-col gap-3">
-        <button type="submit" disabled={pending}
+        <button
+          type="submit"
+          // Card selected means the simulated authorisation has to succeed
+          // before the order can go in, which is the sequence a real gateway
+          // enforces too.
+          disabled={
+            pending || (DEMO_PAYMENT_ENABLED && payMethod === "card" && !paymentRef)
+          }
           className="inline-flex min-h-[3.25rem] items-center justify-center rounded-full bg-blush-600 px-8 text-base font-semibold text-white transition-colors hover:bg-blush-700 disabled:opacity-60">
           {pending ? t("checkout.placing") : t("checkout.place")}
         </button>

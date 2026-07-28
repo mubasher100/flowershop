@@ -62,7 +62,13 @@ export default async function ProductRail({
         {pricedProducts.map((product) => (
           <li
             key={product.id}
-            className="w-[43vw] max-w-[15rem] flex-none snap-start xsmall:w-[31vw] small:w-auto small:max-w-none"
+            // On desktop the rail is a four-column grid, so any collection
+            // whose size is not a multiple of four left a ragged part-row —
+            // Best Sellers has five products, which showed as four and a lone
+            // orphan. Everything past the fourth is hidden at that width, so
+            // every rail is exactly one clean row and "View all" carries the
+            // rest. On a phone it stays a scroll, where the count is free.
+            className="w-[43vw] max-w-[15rem] flex-none snap-start xsmall:w-[31vw] small:w-auto small:max-w-none small:[&:nth-child(n+5)]:hidden"
           >
             <ProductPreview
               product={product}

@@ -46,6 +46,13 @@ export async function placeGuestOrder(
   const address = get("address")
   const recipient = get("recipient")
   const giftNote = get("gift_note")
+
+  // Only ever a DEMO- reference from the simulated gateway. Guarded so a
+  // crafted request cannot stamp an order as paid through some other value.
+  const rawReference = get("payment_reference")
+  const paymentReference = /^DEMO-\d{8}$/.test(rawReference)
+    ? rawReference
+    : ""
   const deliveryDate = get("delivery_date")
   const deliveryWindow = get("delivery_window")
   const shippingOptionId = get("shipping_option_id")
@@ -87,6 +94,17 @@ export async function placeGuestOrder(
         delivery_window: deliveryWindow,
         gift_note: giftNote,
         fulfilment_channel: "whatsapp",
+        /**
+         * Present only when the demo card gateway was used, and prefixed
+         * DEMO- by the component that issues it. No money moved; this exists
+         * so a simulated order is never mistaken for a paid one in the admin.
+         */
+        ...(paymentReference
+          ? {
+              payment_reference: paymentReference,
+              payment_status: "simulated_demo_no_funds_taken",
+            }
+          : {}),
       },
     })
 

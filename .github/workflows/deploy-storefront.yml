@@ -40,6 +40,14 @@ jobs:
           NEXT_PUBLIC_MEDUSA_BACKEND_URL: ${{ vars.MEDUSA_BACKEND_URL }}
           NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${{ secrets.MEDUSA_PUBLISHABLE_KEY }}
           NEXT_PUBLIC_BASE_URL: ${{ vars.STOREFRONT_BASE_URL }}
+          # Simulated card gateway in checkout, for demonstrating the flow
+          # while SkipCash is blocked on a merchant account. Defaults on;
+          # set the DEMO_PAYMENT repo variable to "false" to hide it, and
+          # remove this line entirely once SkipCash is live.
+          NEXT_PUBLIC_DEMO_PAYMENT: ${{ vars.DEMO_PAYMENT || 'true' }}
+          # Turns the contact page's WhatsApp button on once there is a
+          # number. Digits with country code, e.g. 97430000000.
+          NEXT_PUBLIC_WHATSAPP: ${{ vars.WHATSAPP_NUMBER }}
 
       - name: Deploy
         uses: cloudflare/wrangler-action@v4

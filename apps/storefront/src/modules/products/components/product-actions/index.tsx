@@ -3,10 +3,12 @@
 import { addToCart } from "@lib/data/cart"
 import { useIntersection } from "@lib/hooks/use-in-view"
 import { useTranslations } from "@lib/i18n/use-translations"
+import { bumpCartCount } from "@lib/util/cart-events"
 import { HttpTypes } from "@medusajs/types"
 import { Button } from "@modules/common/components/ui"
 import Divider from "@modules/common/components/divider"
 import OptionSelect from "@modules/products/components/product-actions/option-select"
+import Personalisation from "@modules/products/components/personalisation"
 import { isEqual } from "lodash"
 import { useParams, usePathname, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -39,6 +41,10 @@ export default function ProductActions({
 
   const [options, setOptions] = useState<Record<string, string | undefined>>({})
   const [isAdding, setIsAdding] = useState(false)
+  const [justAdded, setJustAdded] = useState(false)
+  const [addError, setAddError] = useState<string | null>(null)
+  const [giftNote, setGiftNote] = useState("")
+  const [ribbon, setRibbon] = useState("")
   const countryCode = useParams().countryCode as string
   const { t } = useTranslations()
 
@@ -123,18 +129,53 @@ export default function ProductActions({
   const inView = useIntersection(actionsRef, "0px")
 
   // add the selected variant to the cart
+  /**
+   * Adding to the bag is optimistic.
+   *
+   * The Store API's add-to-cart takes around 2.5–3s — it is a workflow that
+   * validates the variant, checks inventory, reprices and refreshes the cart.
+   * Blocking the button on that meant three seconds of spinner after every
+   * tap, which reads as broken rather than slow.
+   *
+   * The badge moves and the button confirms straight away; the request
+   * settles behind it. If it fails, the badge is corrected by the reconcile
+   * in useCartCount and the error is shown here.
+   */
   const handleAddToCart = async () => {
-    if (!selectedVariant?.id) return null
+    if (!selectedVariant?.id || isAdding) return
 
     setIsAdding(true)
+    setAddError(null)
+    bumpCartCount(1)
 
-    await addToCart({
-      variantId: selectedVariant.id,
-      quantity: 1,
-      countryCode,
-    })
+    try {
+      await addToCart({
+        variantId: selectedVariant.id,
+        quantity: 1,
+        countryCode,
+        metadata: {
+          ...(giftNote.trim() ? { gift_note: giftNote.trim() } : {}),
+          ...(ribbon ? { ribbon } : {}),
+        },
+      })
+      setJustAdded(true)
+      window.setTimeout(() => setJustAdded(false), 2500)
 
-    setIsAdding(false)
+      // Clear the personalisation after it has been added. Leaving it filled
+      // in makes it look like it still applies to the page, and the next
+      // bouquet is usually for someone else.
+      setGiftNote("")
+      setRibbon("")
+    } catch (error) {
+      // Undo the optimistic bump rather than waiting for the reconcile, so
+      // the number is never wrong while an error is on screen.
+      bumpCartCount(-1)
+      setAddError(
+        error instanceof Error ? error.message : t("product.addFailed")
+      )
+    } finally {
+      setIsAdding(false)
+    }
   }
 
   return (
@@ -196,6 +237,25 @@ export default function ProductActions({
             </p>
           )}
 
+        {/* Sits above the buy button: it is part of deciding what to send,
+            not an afterthought once the order is placed. */}
+        <Personalisation
+          note={giftNote}
+          ribbon={ribbon}
+          onNoteChange={setGiftNote}
+          onRibbonChange={setRibbon}
+          disabled={!!disabled || isAdding}
+        />
+
+        {addError && (
+          <p
+            role="alert"
+            className="rounded-xl border border-blush-300 bg-blush-50 px-4 py-3 text-sm text-blush-800"
+          >
+            {addError}
+          </p>
+        )}
+
         <Button
           onClick={handleAddToCart}
           disabled={
@@ -207,7 +267,8 @@ export default function ProductActions({
           }
           variant="primary"
           className="w-full"
-          isLoading={isAdding}
+          // Deliberately not isLoading: the add is optimistic, so a spinner
+          // would be showing work the shopper does not have to wait for.
           data-testid="add-product-button"
         >
           {/* Order matters. The original checked `!selectedVariant && !options`
@@ -219,6 +280,8 @@ export default function ProductActions({
             ? t("product.selectSize")
             : !inStock || !isValidVariant
             ? t("product.outOfStock")
+            : justAdded
+            ? t("product.added")
             : t("product.addToBag")}
         </Button>
         <MobileActions

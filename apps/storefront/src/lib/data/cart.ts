@@ -59,11 +59,24 @@ export async function getOrSetCart(countryCode: string) {
     throw new Error(`Region not found for country code: ${countryCode}`)
   }
 
-  let cart = await retrieveCart(undefined, "id,region_id")
+  /**
+   * Skip the lookup when we already hold a cart id.
+   *
+   * This fetched the cart on every add just to read back its region, which is
+   * a round trip to the Store API — around half a second — before the add
+   * itself could start. There is only one region, so the answer was always the
+   * same. The id is enough to add a line item; if the cart has since expired,
+   * createLineItem fails and the caller retries with a fresh one.
+   */
+  const existingId = await getCartId()
 
   const headers = {
     ...(await getAuthHeaders()),
   }
+
+  let cart = existingId
+    ? ({ id: existingId, region_id: region.id } as HttpTypes.StoreCart)
+    : await retrieveCart(undefined, "id,region_id")
 
   if (!cart) {
     const locale = await getLocale()
@@ -118,10 +131,17 @@ export async function addToCart({
   variantId,
   quantity,
   countryCode,
+  metadata,
 }: {
   variantId: string
   quantity: number
   countryCode: string
+  /**
+   * Per-item personalisation — the gift message and ribbon chosen on the
+   * product page. It rides on the line item rather than the cart because two
+   * bouquets in one order can go to different people with different notes.
+   */
+  metadata?: Record<string, string>
 }) {
   if (!variantId) {
     throw new Error("Missing variant ID when adding to cart")
@@ -143,6 +163,9 @@ export async function addToCart({
       {
         variant_id: variantId,
         quantity,
+        // Omitted entirely when empty, so a plain order carries no empty keys
+        // for the shopkeeper to read past.
+        ...(metadata && Object.keys(metadata).length ? { metadata } : {}),
       },
       {},
       headers

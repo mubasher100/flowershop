@@ -1,8 +1,8 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
 
+import { useCartCount } from "@lib/hooks/use-cart-count"
 import { TranslationKey } from "@lib/i18n/dictionary"
 import { useTranslations } from "@lib/i18n/use-translations"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
@@ -105,19 +105,10 @@ const ITEMS: Item[] = [
 
 export default function BottomNav() {
   const pathname = usePathname()
-  const [count, setCount] = useState<number | null>(null)
+  // Shared with the header badge, so both move the moment something is added
+  // rather than only after the next navigation.
+  const count = useCartCount()
   const { t } = useTranslations()
-
-  useEffect(() => {
-    let cancelled = false
-    fetch("/api/cart-count", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : { count: 0 }))
-      .then((d) => !cancelled && setCount(d.count ?? 0))
-      .catch(() => !cancelled && setCount(0))
-    return () => {
-      cancelled = true
-    }
-  }, [pathname])
 
   // Path is /{countryCode}/rest — compare on the segment after the locale.
   const segment = pathname.split("/").filter(Boolean)[1] ?? ""
