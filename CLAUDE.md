@@ -228,6 +228,10 @@ Two settings that look harmless and are not:
 - `regionalCacheTtlSec` on the tag cache defaults to 5s. At this shop's traffic most requests arrive further apart than that, so the lookup expires before it is ever reused and every request pays the round trip anyway.
 - `bypassTagCacheOnCacheHit` must stay `false` on Next 16+, where `revalidateTag` is stale-while-revalidate by default. It is only safe here because the storefront is on Next 15.
 
+> **Never cache the cart.** `retrieveCart` and `listCartShippingMethods` are `no-store`, deliberately. They used `force-cache` with a per-visitor tag and relied on `revalidateTag` after each mutation — which silently stopped working once `bypassTagCacheOnCacheHit` was set, because a regional hit no longer consults the tag cache. The symptom was an item taking up to a minute to appear in the bag. A cart belongs to one visitor, changes on every interaction and returns in ~0.5s; there is nothing to win and correctness to lose.
+
+**Adding to the bag is optimistic, and cart mutations are serialised.** The Store API's add-to-cart is ~2.8s — it validates the variant, checks inventory, reprices and refreshes the cart — so the button confirms immediately and the request settles behind it. Because the button no longer blocks, concurrent adds became possible, and they are not safe: the first add has no cart cookie yet so it creates one, and anything fired before it returns creates another. `lib/util/cart-queue.ts` runs them one at a time.
+
 **Don't read cookies in catalogue code paths.** Reading them during render forces the route out of static rendering, which stops the incremental cache serving the page at all — this is why `getPublicCacheOptions` exists alongside `getCacheOptions`. Cart, customer and order data keep the per-visitor tag; the catalogue must not.
 
 **Search does not touch the network.** `/api/search-index` serves a ~12KB index of the whole catalogue; the overlay fetches it once on idle and every query after that is a synchronous filter over an array (12–15ms end to end). Revisit at a few hundred products, where it wants a real search index rather than a bigger download.
@@ -383,6 +387,12 @@ Run `npm run build` in `apps/storefront`, not just `tsc`, before pushing anythin
 | 10 | Homepage sections editable from the admin | ✅ Done |
 | 11 | Accessibility — WCAG 2.1 AA / UMN standards | ✅ Done — zero axe violations |
 | 12 | Email notifications, analytics | 🔒 Later |
+
+### Demo payment gateway
+
+A simulated card payment exists in checkout so the flow can be shown before SkipCash is live. It is deliberately built so it cannot be misused as real payment: the card number is a fixed, read-only test value, so there is nowhere to type a real one. Nothing is transmitted, the outcome is chosen explicitly, and the reference is prefixed `DEMO-` and stored with `payment_status: simulated_demo_no_funds_taken` so a demo order is never mistaken for a paid one.
+
+Controlled by `NEXT_PUBLIC_DEMO_PAYMENT` (repo variable `DEMO_PAYMENT`, currently defaulting to `true`). **Remove it from the deploy workflow when SkipCash goes live.**
 
 ### Phase 8 notes — SkipCash
 
