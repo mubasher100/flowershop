@@ -66,7 +66,7 @@ const meta = (order: PrintableOrder, key: string) => {
   return typeof value === "string" ? value : ""
 }
 
-const BASE_CSS = `
+export const BASE_CSS = `
   * { box-sizing: border-box; }
   body {
     margin: 0;
@@ -95,7 +95,7 @@ const BASE_CSS = `
   @page { margin: 0; }
 `
 
-function labelHtml(order: PrintableOrder, shopName: string) {
+export function labelHtml(order: PrintableOrder, shopName: string) {
   const ship = order.shipping_address
   const recipient =
     meta(order, "recipient_name") ||
@@ -152,7 +152,7 @@ function labelHtml(order: PrintableOrder, shopName: string) {
   `
 }
 
-function receiptHtml(order: PrintableOrder, shopName: string) {
+export function receiptHtml(order: PrintableOrder, shopName: string) {
   const currency = order.currency_code || "qar"
   const rows = (order.items ?? [])
     .map((item) => {
@@ -182,6 +182,23 @@ function receiptHtml(order: PrintableOrder, shopName: string) {
 
   const shipping =
     order.shipping_total ?? order.shipping_methods?.[0]?.amount ?? 0
+
+  /**
+   * Goods are summed from the lines rather than read from `order.subtotal`.
+   *
+   * On a real order that field came back as 275 for a single 225 item with 50
+   * delivery — it already included shipping. Printed as "Subtotal 275" above
+   * "Delivery 50" against a total of 275, the receipt contradicted itself.
+   * The line items are unambiguous, and `total` is what was actually charged.
+   */
+  const goods = (order.items ?? []).reduce(
+    (sum, i) => sum + (i.total ?? (i.unit_price ?? 0) * i.quantity),
+    0
+  )
+
+  // Anything left over is a discount or an adjustment. Showing it as its own
+  // line is better than three numbers that do not add up.
+  const adjustment = (order.total ?? goods + shipping) - goods - shipping
 
   return `
     <div style="display:flex;justify-content:space-between;align-items:baseline">
@@ -227,9 +244,15 @@ function receiptHtml(order: PrintableOrder, shopName: string) {
     <hr class="rule" />
 
     <table class="totals" style="width:70mm;margin-left:auto">
-      <tr><td class="muted">Subtotal</td><td class="right">${money(order.subtotal, currency)}</td></tr>
+      <tr><td class="muted">Items</td><td class="right">${money(goods, currency)}</td></tr>
       <tr><td class="muted">Delivery</td><td class="right">${money(shipping, currency)}</td></tr>
-      <tr class="grand"><td>Total</td><td class="right">${money(order.total, currency)}</td></tr>
+      ${
+        Math.abs(adjustment) > 0.005
+          ? `<tr><td class="muted">${adjustment < 0 ? "Discount" : "Adjustment"}</td>
+             <td class="right">${money(adjustment, currency)}</td></tr>`
+          : ""
+      }
+      <tr class="grand"><td>Total</td><td class="right">${money(order.total ?? goods + shipping, currency)}</td></tr>
     </table>
 
     ${
