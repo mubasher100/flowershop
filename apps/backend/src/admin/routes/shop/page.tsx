@@ -17,6 +17,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 
+import { printOrderDocument } from "../../lib/print"
 import { sdk } from "../../lib/sdk"
 
 /**
@@ -55,8 +56,26 @@ type AdminOrder = {
   currency_code: string
   fulfillment_status?: string
   email?: string
+  subtotal?: number
+  shipping_total?: number
   metadata?: Record<string, unknown> | null
-  items?: { id: string; title: string; quantity: number }[]
+  items?: {
+    id: string
+    title: string
+    quantity: number
+    unit_price?: number
+    total?: number
+    variant_title?: string | null
+    metadata?: Record<string, unknown> | null
+  }[]
+  shipping_address?: {
+    first_name?: string | null
+    last_name?: string | null
+    phone?: string | null
+    address_1?: string | null
+    city?: string | null
+  } | null
+  shipping_methods?: { name?: string; amount?: number }[]
 }
 
 const PRODUCTS_KEY = ["shop-products"]
@@ -260,7 +279,7 @@ const ShopPage = () => {
     queryKey: ORDERS_KEY,
     queryFn: () =>
       sdk.client.fetch<{ orders: AdminOrder[] }>(
-        "/admin/orders?limit=25&order=-created_at&fields=id,display_id,created_at,total,currency_code,fulfillment_status,email,metadata,*items"
+        "/admin/orders?limit=25&order=-created_at&fields=id,display_id,created_at,total,subtotal,shipping_total,currency_code,fulfillment_status,email,metadata,*items,*shipping_address,*shipping_methods"
       ),
   })
 
@@ -404,6 +423,20 @@ const ShopPage = () => {
                     <Text size="small" leading="compact" weight="plus">
                       {money(order.total, order.currency_code)}
                     </Text>
+                    <Button
+                      size="small"
+                      variant="transparent"
+                      onClick={() => printOrderDocument(order, "label")}
+                    >
+                      Label
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="transparent"
+                      onClick={() => printOrderDocument(order, "receipt")}
+                    >
+                      Receipt
+                    </Button>
                     <Button
                       size="small"
                       variant="secondary"
