@@ -61,7 +61,7 @@ export default function Brand({
           "h-auto w-auto",
           hero
             ? "max-h-[3.25rem] xsmall:max-h-[4.5rem] small:max-h-[6rem]"
-            : "max-h-[1.55rem] small:max-h-[1.75rem]"
+            : "max-h-[1.3rem] xsmall:max-h-[1.5rem] small:max-h-[1.75rem]"
         )}
       />
     </LocalizedClientLink>

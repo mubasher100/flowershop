@@ -1,4 +1,5 @@
 import { listCategories } from "@lib/data/categories"
+import { getTranslations } from "@lib/i18n/dictionary"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 /**
@@ -13,7 +14,8 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
  */
 const TYPE_HANDLES = ["bouquets", "vases", "roses", "luxury", "everyday"]
 
-export default async function CategoryNav() {
+export default async function CategoryNav({ segment }: { segment?: string }) {
+  const { t } = getTranslations(segment)
   const categories = await listCategories({ limit: 20 })
 
   const ordered = TYPE_HANDLES.map((h) =>
@@ -48,9 +50,9 @@ export default async function CategoryNav() {
         <li className="flex-none snap-start">
           <LocalizedClientLink
             href="/store"
-            className="inline-flex min-h-[2.75rem] items-center whitespace-nowrap px-3 text-sm font-semibold text-blush-700 transition-colors hover:text-blush-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blush-700 small:px-4"
+            className="inline-flex min-h-[2.75rem] items-center whitespace-nowrap px-3 text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-blush-700 transition-colors hover:text-blush-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blush-700 small:px-4 small:text-xs"
           >
-            All flowers
+            {t("nav.allFlowers")}
           </LocalizedClientLink>
         </li>
         </ul>

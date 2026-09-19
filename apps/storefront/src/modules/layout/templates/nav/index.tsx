@@ -91,7 +91,7 @@ export default async function Nav({ segment }: { segment?: string }) {
         </nav>
       </header>
 
-      <CategoryNav />
+      <CategoryNav segment={segment} />
     </div>
   )
 }

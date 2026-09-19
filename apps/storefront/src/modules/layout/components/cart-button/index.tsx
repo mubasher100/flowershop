@@ -26,7 +26,7 @@ export default function CartButton() {
 
   return (
     <LocalizedClientLink
-      className="inline-flex min-h-[2.75rem] items-center text-ink-700 hover:text-blush-700"
+      className="inline-flex min-h-[2.75rem] items-center whitespace-nowrap text-ink-700 hover:text-blush-700"
       href="/cart"
       data-testid="nav-cart-link"
     >
