@@ -133,6 +133,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // One canonical host. Both www and the apex are bound to the Worker so
+  // either resolves, but a shop reachable at two addresses splits its cache
+  // and its search ranking; www is redirected permanently to the apex.
+  const host = request.headers.get("host") ?? ""
+  if (host.startsWith("www.")) {
+    const url = request.nextUrl.clone()
+    url.host = host.slice(4)
+    return NextResponse.redirect(url, 308)
+  }
+
   const cacheIdCookie = request.cookies.get("_medusa_cache_id")
   const cacheId = cacheIdCookie?.value || crypto.randomUUID()
 
