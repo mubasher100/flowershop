@@ -26,6 +26,7 @@ const CARE_POINTS: TranslationKey[] = [
 ]
 
 const DELIVERY_POINTS: TranslationKey[] = [
+  "delivery.midnight",
   "delivery.window",
   "delivery.fresh",
   "delivery.confirm",

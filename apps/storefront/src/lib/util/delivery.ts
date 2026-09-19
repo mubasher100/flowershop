@@ -58,3 +58,22 @@ export const isDeliveryArea = (value: string): boolean =>
 
 export const isDeliveryWindow = (value: string): boolean =>
   (DELIVERY_WINDOWS as readonly string[]).includes(value)
+
+/**
+ * The 11:59 midnight surprise.
+ *
+ * Identified by the shipping option's type code, which is stable, with the
+ * name as a fallback for a response that did not include the type. It is a
+ * delivery *option* rather than a product — any bouquet, at one specific
+ * minute — so checkout treats it as a shipping choice with two differences:
+ * the time is fixed, and the date means "the night before".
+ */
+export const MIDNIGHT_CODE = "midnight"
+export const MIDNIGHT_WINDOW = "11:59 PM"
+
+export const isMidnightOption = (option?: {
+  name?: string | null
+  type?: { code?: string | null } | null
+}): boolean =>
+  option?.type?.code === MIDNIGHT_CODE ||
+  /11[:.]59/.test(option?.name ?? "")

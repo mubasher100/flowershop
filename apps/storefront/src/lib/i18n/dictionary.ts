@@ -87,6 +87,8 @@ export const DICTIONARY = {
       "Every arrangement is made the morning it goes out. Nothing sits in a fridge waiting for an order.",
     "delivery.confirm":
       "We'll message you on WhatsApp to confirm before the courier leaves.",
+    "delivery.midnight":
+      "For a birthday, choose 11:59 at checkout: we arrive at one minute to midnight the night before, so it is in their hands as the day begins.",
 
     "payment.nothingCharged": "Nothing is charged when you place the order.",
     "payment.confirm":
@@ -218,7 +220,19 @@ export const DICTIONARY = {
       "Villa 12, Street 850, near Al Sadd Sports Club",
     "checkout.date": "Delivery date",
     "checkout.time": "Preferred time",
-    "checkout.speed": "Delivery speed",
+    "checkout.speed": "Delivery",
+    "midnight.name": "11:59 Midnight Surprise",
+    "midnight.tag": "11:59",
+    "midnight.pitch":
+      "We arrive at 11:59pm the night before, so it is in their hands the moment the day begins.",
+    "midnight.window": "Arrives at 11:59pm",
+    "midnight.dateLabel": "The night before — we arrive at 11:59pm",
+    "midnight.dateHint":
+      "Choose the day before the birthday. The surprise lands as the clock turns midnight.",
+    "midnight.pageTitle": "11:59 — the midnight surprise",
+    "midnight.pageBody":
+      "Some moments should not wait until morning. Choose 11:59 at checkout and our courier arrives at one minute to midnight the night before, so the first thing that happens on their birthday is your flowers at the door.",
+    "midnight.priceNote": "An extra {amount} on any bouquet.",
     "checkout.giftNote": "Gift note",
     "checkout.giftNotePlaceholder":
       "We'll write this by hand and seal it with the flowers.",
@@ -360,6 +374,8 @@ export const DICTIONARY = {
       "تُنسّق كل باقة صباح يوم التوصيل. لا شيء ينتظر في الثلاجة حتى يأتي طلب.",
     "delivery.confirm":
       "سنراسلك على واتساب للتأكيد قبل خروج المندوب.",
+    "delivery.midnight":
+      "لعيد ميلاد، اختر ١١:٥٩ عند إتمام الطلب: نصل قبل منتصف الليل بدقيقة في الليلة السابقة، لتكون الهدية بين يديه مع بداية اليوم.",
 
     "payment.nothingCharged": "لا يتم خصم أي مبلغ عند تقديم الطلب.",
     "payment.confirm":
@@ -480,7 +496,19 @@ export const DICTIONARY = {
     "checkout.addressPlaceholder": "فيلا ١٢، شارع ٨٥٠، بالقرب من نادي السد الرياضي",
     "checkout.date": "تاريخ التوصيل",
     "checkout.time": "الوقت المفضل",
-    "checkout.speed": "سرعة التوصيل",
+    "checkout.speed": "التوصيل",
+    "midnight.name": "مفاجأة منتصف الليل ١١:٥٩",
+    "midnight.tag": "١١:٥٩",
+    "midnight.pitch":
+      "نصل الساعة ١١:٥٩ مساءً في الليلة السابقة، لتكون الهدية بين يديه لحظة بداية اليوم.",
+    "midnight.window": "يصل الساعة ١١:٥٩ مساءً",
+    "midnight.dateLabel": "الليلة السابقة — نصل الساعة ١١:٥٩ مساءً",
+    "midnight.dateHint":
+      "اختر اليوم الذي يسبق عيد الميلاد. تصل المفاجأة مع دقّة منتصف الليل.",
+    "midnight.pageTitle": "١١:٥٩ — مفاجأة منتصف الليل",
+    "midnight.pageBody":
+      "بعض اللحظات لا تحتمل الانتظار حتى الصباح. اختر ١١:٥٩ عند إتمام الطلب، ويصل مندوبنا قبل منتصف الليل بدقيقة في الليلة السابقة، ليكون أول ما يحدث في عيد ميلاده هو ورودك على الباب.",
+    "midnight.priceNote": "رسوم إضافية {amount} على أي باقة.",
     "checkout.giftNote": "بطاقة إهداء",
     "checkout.giftNotePlaceholder": "سنكتبها بخط اليد ونرفقها مع الورود.",
     "pay.heading": "الدفع",

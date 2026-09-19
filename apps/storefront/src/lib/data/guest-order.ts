@@ -13,6 +13,7 @@ import {
   FIELD_LIMITS,
   isDeliveryArea,
   isDeliveryWindow,
+  MIDNIGHT_WINDOW,
 } from "@lib/util/delivery"
 
 /**
@@ -72,9 +73,10 @@ export async function placeGuestOrder(
   // value is not worth blocking an order over, but it must not reach the
   // shopkeeper as arbitrary text either.
   const rawWindow = get("delivery_window")
-  const deliveryWindow = isDeliveryWindow(rawWindow)
-    ? rawWindow
-    : DELIVERY_WINDOWS[0]
+  const deliveryWindow =
+    isDeliveryWindow(rawWindow) || rawWindow === MIDNIGHT_WINDOW
+      ? rawWindow
+      : DELIVERY_WINDOWS[0]
   const shippingOptionId = get("shipping_option_id")
 
   if (!name) return { error: "Please tell us your name." }

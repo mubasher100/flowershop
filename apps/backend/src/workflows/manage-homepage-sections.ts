@@ -27,7 +27,8 @@ import {
  * the storefront's `homepage` cache tag — without that the homepage keeps
  * serving its cached copy and an edit looks like it did nothing.
  */
-const CHANGED = "homepage-section.changed"
+export const HOMEPAGE_SECTION_CHANGED = "homepage-section.changed"
+const CHANGED = HOMEPAGE_SECTION_CHANGED
 
 export const createHomepageSectionWorkflow = createWorkflow(
   "create-homepage-section",

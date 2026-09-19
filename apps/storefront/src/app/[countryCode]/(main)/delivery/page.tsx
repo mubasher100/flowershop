@@ -44,6 +44,16 @@ export default async function DeliveryPage(props: Props) {
       intro={t("page.deliveryIntro")}
       backLabel={t("page.backToShop")}
     >
+      {/* Leads the page: it is the one delivery option that is a reason to
+          buy in itself, not a logistics detail. The surcharge is read from
+          nowhere here on purpose — it is set in the admin and shown at
+          checkout, so this copy cannot drift from the real price. */}
+      <ContentBlock heading={t("midnight.pageTitle")}>
+        <p className="text-base leading-relaxed text-ink-600">
+          {t("midnight.pageBody")}
+        </p>
+      </ContentBlock>
+
       <ContentBlock heading={t("promise.title")}>
         <p className="text-base leading-relaxed text-ink-600">
           {t("product.promiseBody")}

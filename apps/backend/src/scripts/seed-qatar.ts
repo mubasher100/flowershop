@@ -333,6 +333,84 @@ export default async function seedQatar({
   }
 
   // ---------------------------------------------------------------------
+  // 11:59 — the midnight surprise.
+  //
+  // The courier arrives at 11:59pm so the gift is in their hands as the
+  // birthday begins. It is a delivery option rather than a product because
+  // that is what it is: any bouquet, delivered at one specific minute. As a
+  // shipping option it is priced, chosen at checkout, printed on the label
+  // and receipt, and charged — with nothing custom in the order flow.
+  //
+  // Seeded separately from the block above, which only runs on a brand-new
+  // store, so this lands on an existing one too. The price is a placeholder
+  // until the real surcharge is decided; change it in Admin → Settings →
+  // Locations & Shipping rather than here.
+  //
+  // `type.code` is the stable identifier the storefront keys on — not the
+  // name, which the shopkeeper may reword.
+  {
+    const MIDNIGHT_CODE = "midnight"
+
+    const { data: existingOptions } = await query.graph({
+      entity: "shipping_option",
+      fields: ["id", "name", "type.code"],
+    })
+
+    const alreadyThere = (
+      existingOptions as { type?: { code?: string } | null }[]
+    ).some((o) => o.type?.code === MIDNIGHT_CODE)
+
+    if (alreadyThere) {
+      logger.info("11:59 midnight delivery already exists, skipping.")
+    } else {
+      const { data: sets } = await query.graph({
+        entity: "fulfillment_set",
+        fields: ["id", "service_zones.id"],
+      })
+      const { data: profiles } = await query.graph({
+        entity: "shipping_profile",
+        fields: ["id"],
+      })
+      const zoneId = (
+        sets as { service_zones?: { id: string }[] }[]
+      )[0]?.service_zones?.[0]?.id
+      const profileId = (profiles as { id: string }[])[0]?.id
+
+      if (!zoneId || !profileId) {
+        logger.warn("No service zone or shipping profile yet — 11:59 not created.")
+      } else {
+        await createShippingOptionsWorkflow(container).run({
+          input: [
+            {
+              name: "11:59 Midnight Surprise",
+              price_type: "flat",
+              provider_id: "manual_manual",
+              service_zone_id: zoneId,
+              shipping_profile_id: profileId,
+              type: {
+                label: "11:59",
+                description:
+                  "We arrive at 11:59pm, so it is in their hands as the day begins.",
+                code: MIDNIGHT_CODE,
+              },
+              // Placeholder surcharge. Stored as-is: 50 means 50.00 QAR.
+              prices: [
+                { currency_code: CURRENCY, amount: 50 },
+                { region_id: qatarRegion.id, amount: 50 },
+              ],
+              rules: [
+                { attribute: "enabled_in_store", value: "true", operator: "eq" },
+                { attribute: "is_return", value: "false", operator: "eq" },
+              ],
+            },
+          ],
+        })
+        logger.info("Created 11:59 midnight delivery (50 QAR placeholder).")
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // Product prices: give every variant a QAR price
   //
   // Without this, products exist but cannot be added to a Qatar cart —

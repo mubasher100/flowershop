@@ -1,7 +1,8 @@
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import type { ExecArgs } from "@medusajs/framework/types"
 
 import { HOMEPAGE_MODULE } from "../modules/homepage"
+import { HOMEPAGE_SECTION_CHANGED } from "../workflows/manage-homepage-sections"
 
 /**
  * Seeds the homepage layout that used to be hardcoded in the storefront.
@@ -20,6 +21,10 @@ type SeedSection = {
   title_ar: string | null
   resource_handle: string | null
   rank: number
+  subtitle?: string
+  image_url?: string
+  cta_label?: string
+  cta_href?: string
 }
 
 /**
@@ -80,6 +85,24 @@ export default async function seedHomepage({ container }: ExecArgs) {
     rank += 10
   }
 
+  // 11:59, as a banner between the first rail and the rest — the homepage
+  // rhythm is banner-alternating-with-rail, and this is the one delivery
+  // option that sells itself. Rank 15 slots it after Best Sellers (10).
+  // Editable, movable and hideable in Admin → Homepage like any section;
+  // the photograph is a stand-in until there is one shot for it.
+  desired.push({
+    type: "banner",
+    title: "11:59 — the midnight surprise",
+    title_ar: "١١:٥٩ — مفاجأة منتصف الليل",
+    resource_handle: "midnight",
+    rank: 15,
+    subtitle:
+      "We arrive at 11:59pm the night before, so it is in their hands the moment the day begins.",
+    image_url: "/hero/hero-04.jpg",
+    cta_label: "How it works",
+    cta_href: "/delivery",
+  })
+
   desired.push({
     type: "category_tiles",
     title: "Shop by occasion",
@@ -109,6 +132,13 @@ export default async function seedHomepage({ container }: ExecArgs) {
     await homepage.createHomepageSections({ ...section, enabled: true })
     logger.info(`Homepage: added "${section.title}".`)
   }
+
+  // The admin edits go through a workflow that emits this, and a subscriber
+  // turns it into a storefront cache purge. Writing through the module skips
+  // the workflow, so without this the live homepage kept serving the old
+  // section list until its cache happened to expire.
+  const eventBus = container.resolve(Modules.EVENT_BUS)
+  await eventBus.emit({ name: HOMEPAGE_SECTION_CHANGED, data: {} })
 
   logger.info("Homepage sections seeded.")
 }

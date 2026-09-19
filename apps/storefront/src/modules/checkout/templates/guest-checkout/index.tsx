@@ -8,6 +8,8 @@ import {
   DELIVERY_AREAS as AREAS,
   DELIVERY_WINDOWS as WINDOWS,
   FIELD_LIMITS,
+  MIDNIGHT_WINDOW,
+  isMidnightOption,
 } from "@lib/util/delivery"
 
 import { convertToLocale } from "@lib/util/money"
@@ -50,6 +52,17 @@ export default function GuestCheckout({
 
   const { t } = useTranslations()
   const [payMethod, setPayMethod] = useState<"whatsapp" | "card">("whatsapp")
+
+  /**
+   * Which delivery is selected. Needed because 11:59 changes the form: the
+   * time is fixed at one minute to midnight, and the date means the night
+   * before rather than the day of.
+   */
+  const [shippingId, setShippingId] = useState<string>(
+    shippingOptions[0]?.id ?? ""
+  )
+  const selectedOption = shippingOptions.find((o) => o.id === shippingId)
+  const midnight = isMidnightOption(selectedOption)
   const [paymentRef, setPaymentRef] = useState<string | null>(null)
 
   // Today, in Qatar, as a yyyy-mm-dd bound for the date picker.
@@ -134,39 +147,32 @@ export default function GuestCheckout({
             placeholder={t("checkout.addressPlaceholder")} />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 xsmall:grid-cols-2">
-          <div className="flex flex-col gap-1.5">
-            <label className={labelClass} htmlFor="delivery_date">
-              {t("checkout.date")}
-            </label>
-            <input id="delivery_date" name="delivery_date" type="date"
-              min={today} defaultValue={today} className={fieldClass} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className={labelClass} htmlFor="delivery_window">
-              {t("checkout.time")}
-            </label>
-            <select id="delivery_window" name="delivery_window"
-              defaultValue={WINDOWS[0]} className={fieldClass}>
-              {WINDOWS.map((w) => <option key={w} value={w}>{w}</option>)}
-            </select>
-          </div>
-        </div>
-
+        {/* Delivery choice comes before date and time because choosing 11:59
+            rewrites both — the date becomes "the night before" and the time
+            is fixed. Put after them, the change happened off-screen. */}
         <fieldset className="flex flex-col gap-2">
           <legend className={`${labelClass} mb-1.5`}>
             {t("checkout.speed")}
           </legend>
-          {shippingOptions.map((option, i) => (
+          {shippingOptions.map((option) => (
             <label
               key={option.id}
-              className="flex min-h-[3.25rem] cursor-pointer items-center justify-between gap-3 rounded-xl border border-ink-200 bg-white px-4 has-[:checked]:border-blush-500 has-[:checked]:ring-2 has-[:checked]:ring-blush-200"
+              className="flex min-h-[3.25rem] cursor-pointer items-center justify-between gap-3 rounded-xl border border-ink-200 bg-white px-4 py-3 has-[:checked]:border-blush-500 has-[:checked]:ring-2 has-[:checked]:ring-blush-200"
             >
-              <span className="flex items-center gap-3">
+              <span className="flex items-start gap-3">
                 <input type="radio" name="shipping_option_id"
-                  value={option.id} defaultChecked={i === 0} required
-                  className="h-4 w-4 accent-blush-600" />
-                <span className="text-base text-ink-900">{option.name}</span>
+                  value={option.id} required
+                  checked={shippingId === option.id}
+                  onChange={() => setShippingId(option.id)}
+                  className="mt-1 h-4 w-4 accent-blush-600" />
+                <span className="flex flex-col">
+                  <span className="text-base text-ink-900">
+                    {isMidnightOption(option) ? t("midnight.name") : option.name}
+                  </span>
+                  {isMidnightOption(option) && (
+                    <span className="text-sm text-ink-600">{t("midnight.pitch")}</span>
+                  )}
+                </span>
               </span>
               <span className="tabular-nums text-ink-700">
                 {convertToLocale({
@@ -177,6 +183,41 @@ export default function GuestCheckout({
             </label>
           ))}
         </fieldset>
+
+        <div className="grid grid-cols-1 gap-4 xsmall:grid-cols-2">
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass} htmlFor="delivery_date">
+              {midnight ? t("midnight.dateLabel") : t("checkout.date")}
+            </label>
+            <input id="delivery_date" name="delivery_date" type="date"
+              min={today} defaultValue={today} className={fieldClass} />
+            {midnight && (
+              <p className="text-xs text-ink-500">{t("midnight.dateHint")}</p>
+            )}
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass} htmlFor="delivery_window">
+              {t("checkout.time")}
+            </label>
+            {midnight ? (
+              <>
+                {/* The time is the whole point of 11:59, so it is shown as a
+                    fact rather than offered as a choice — and still submitted,
+                    so the label and receipt print it. */}
+                <div className={`${fieldClass} flex items-center bg-blush-50 font-semibold text-blush-700`}>
+                  {t("midnight.window")}
+                </div>
+                <input type="hidden" name="delivery_window" value={MIDNIGHT_WINDOW} />
+              </>
+            ) : (
+              <select id="delivery_window" name="delivery_window"
+                defaultValue={WINDOWS[0]} className={fieldClass}>
+                {WINDOWS.map((w) => <option key={w} value={w}>{w}</option>)}
+              </select>
+            )}
+          </div>
+        </div>
+
 
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="gift_note">

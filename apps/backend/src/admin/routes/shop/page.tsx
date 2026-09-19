@@ -382,6 +382,13 @@ const ShopPage = () => {
                           demo payment
                         </Badge>
                       )}
+                      {/* A midnight run is the one order that cannot slip to
+                          the next van. Loud on purpose. */}
+                      {meta.delivery_window === "11:59 PM" && (
+                        <Badge size="2xsmall" color="purple">
+                          11:59 midnight
+                        </Badge>
+                      )}
                     </div>
 
                     <Text
