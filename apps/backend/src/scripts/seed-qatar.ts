@@ -9,6 +9,8 @@ import {
   createRegionsWorkflow,
   createSalesChannelsWorkflow,
   createShippingOptionsWorkflow,
+  deleteShippingOptionsWorkflow,
+  updateShippingOptionsWorkflow,
   createStockLocationsWorkflow,
   createTaxRegionsWorkflow,
   deleteRegionsWorkflow,
@@ -295,30 +297,10 @@ export default async function seedQatar({
             description: "Delivered within Doha in 1-2 days.",
             code: "standard",
           },
-          // Prices are stored as-is, NOT in cents. 25 means 25.00 QAR.
+          // Prices are stored as-is, NOT in cents. 20 means 20.00 QAR.
           prices: [
-            { currency_code: CURRENCY, amount: 25 },
-            { region_id: qatarRegion.id, amount: 25 },
-          ],
-          rules: [
-            { attribute: "enabled_in_store", value: "true", operator: "eq" },
-            { attribute: "is_return", value: "false", operator: "eq" },
-          ],
-        },
-        {
-          name: "Same-Day Delivery",
-          price_type: "flat",
-          provider_id: "manual_manual",
-          service_zone_id: qatarFulfillmentSet.service_zones[0].id,
-          shipping_profile_id: shippingProfiles[0].id,
-          type: {
-            label: "Same Day",
-            description: "Order before 2pm for delivery today.",
-            code: "same-day",
-          },
-          prices: [
-            { currency_code: CURRENCY, amount: 50 },
-            { region_id: qatarRegion.id, amount: 50 },
+            { currency_code: CURRENCY, amount: 20 },
+            { region_id: qatarRegion.id, amount: 20 },
           ],
           rules: [
             { attribute: "enabled_in_store", value: "true", operator: "eq" },
@@ -407,6 +389,58 @@ export default async function seedQatar({
         })
         logger.info("Created 11:59 midnight delivery (50 QAR placeholder).")
       }
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Delivery line-up (19 Sep 2026): Standard at 20 QAR with a time slot, and
+  // 11:59. Same-Day as a paid tier is gone — Standard on today's date with a
+  // slot already is same-day, so the 50 QAR option was a second price for the
+  // same thing.
+  //
+  // Runs on an existing store too: reprices Standard if it still carries the
+  // old 25, and removes Same-Day if it is still there. Orders that already
+  // used Same-Day keep their line — a shipping option is soft-deleted.
+  // ---------------------------------------------------------------------
+  {
+    const STANDARD_AMOUNT = 20
+
+    const { data: lineup } = await query.graph({
+      entity: "shipping_option",
+      fields: ["id", "name", "prices.amount", "prices.currency_code"],
+    })
+    type Opt = {
+      id: string
+      name: string
+      prices?: { amount: number; currency_code: string }[] | null
+    }
+
+    const standard = (lineup as Opt[]).find((o) => o.name === "Standard Delivery")
+    const sameDay = (lineup as Opt[]).find((o) => o.name === "Same-Day Delivery")
+
+    if (
+      standard &&
+      (standard.prices ?? []).some((p) => Number(p.amount) !== STANDARD_AMOUNT)
+    ) {
+      await updateShippingOptionsWorkflow(container).run({
+        input: [
+          {
+            id: standard.id,
+            prices: [
+              { currency_code: CURRENCY, amount: STANDARD_AMOUNT },
+              { region_id: qatarRegion.id, amount: STANDARD_AMOUNT },
+            ],
+          },
+        ],
+      })
+      logger.info(`Standard Delivery repriced to ${STANDARD_AMOUNT} QAR.`)
+    }
+
+    if (sameDay) {
+      await deleteShippingOptionsWorkflow(container).run({
+        input: { ids: [sameDay.id] },
+      })
+      logger.info("Removed Same-Day Delivery — Standard with a slot covers it.")
     }
   }
 

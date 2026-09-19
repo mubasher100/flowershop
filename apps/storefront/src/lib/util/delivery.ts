@@ -77,3 +77,48 @@ export const isMidnightOption = (option?: {
 }): boolean =>
   option?.type?.code === MIDNIGHT_CODE ||
   /11[:.]59/.test(option?.name ?? "")
+
+/**
+ * 11:59 is pre-order only.
+ *
+ * The florist goes home at 8pm, so tonight's midnight run has to be made up
+ * during the afternoon: orders for a given night are taken between these two
+ * hours (Qatar time) on that day. Earlier and the shop has not opened the
+ * day's midnight list; later and the bouquet cannot be made in time. Future
+ * nights can be booked at any hour. Both bounds are shown at checkout and
+ * enforced when the order is placed.
+ */
+export const MIDNIGHT_ORDER_OPENS_HOUR = 12
+export const MIDNIGHT_ORDER_CLOSES_HOUR = 18
+
+/** The date (yyyy-mm-dd) and hour in Qatar right now. */
+export const qatarClock = (now = new Date()) => {
+  const date = now.toLocaleDateString("en-CA", { timeZone: "Asia/Qatar" })
+  const hour = Number(
+    now.toLocaleString("en-US", {
+      timeZone: "Asia/Qatar",
+      hour: "numeric",
+      hour12: false,
+    })
+  )
+  const next = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+  const tomorrow = next.toLocaleDateString("en-CA", { timeZone: "Asia/Qatar" })
+  // "24" is how some engines spell midnight in hour12: false.
+  return { date, hour: hour % 24, tomorrow }
+}
+
+export type MidnightAvailability = "open" | "not-yet" | "closed"
+
+/**
+ * Whether an 11:59 order for the given night can be taken right now.
+ * Only tonight is gated; any later night is always open.
+ */
+export const midnightAvailability = (
+  night: string,
+  clock = qatarClock()
+): MidnightAvailability => {
+  if (night !== clock.date) return "open"
+  if (clock.hour < MIDNIGHT_ORDER_OPENS_HOUR) return "not-yet"
+  if (clock.hour >= MIDNIGHT_ORDER_CLOSES_HOUR) return "closed"
+  return "open"
+}

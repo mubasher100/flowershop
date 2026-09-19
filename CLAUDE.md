@@ -242,7 +242,7 @@ Seeded and verified against the live Supabase database.
 
 - **Region:** Qatar · country code `qa` · currency **QAR** (store default). The starter's Europe/EUR region has been removed, so `qa` is the only region.
 - **Warehouse:** Doha Warehouse · fulfillment set "Qatar delivery" · service zone covering `qa`
-- **Shipping:** Standard Delivery (25 QAR), Same-Day Delivery (50 QAR)
+- **Shipping:** Standard Delivery (20 QAR, with a time slot; today's date is same-day) and **11:59 Midnight Surprise** (50 QAR placeholder, type code `midnight`). 11:59 is pre-order only: orders for a night are taken 12pm–6pm Qatar time that day (`MIDNIGHT_ORDER_OPENS_HOUR` / `MIDNIGHT_ORDER_CLOSES_HOUR` in `apps/storefront/src/lib/util/delivery.ts`), enforced server-side in `guest-order.ts`. Same-Day as a paid tier was removed on 19 Sep 2026; `seed-qatar` deletes it if it reappears.
 - **Tax region:** `qa` at 0% — Qatar has no VAT on most goods, but the region must exist or checkout can't calculate totals
 - **Products:** 4 placeholder items from the starter, repriced in QAR. Real flower products land in phase 7.
 - **Languages:** English + Arabic, with RTL. Live at `/en-qa` and `/ar-qa`. Interface copy is translated; the catalogue is not — see the localization section below.

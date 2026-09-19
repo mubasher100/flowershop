@@ -20,7 +20,7 @@ export const metadata: Metadata = {
  *   - CartMismatchBanner needs a logged-in customer, and this shop has no
  *     accounts, so `customer` was always null.
  *   - FreeShippingPriceNudge needs a shipping option carrying an item_total
- *     price rule; ours are flat 25/50 QAR with no free-shipping tier.
+ *     price rule; ours are flat 20 QAR (or 50 for 11:59) with no free-shipping tier.
  *
  * That was three backend round trips per page for markup nobody ever saw —
  * and because all three read cookies, it forced every route under (main) into

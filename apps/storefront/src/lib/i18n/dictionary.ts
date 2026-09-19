@@ -88,7 +88,7 @@ export const DICTIONARY = {
     "delivery.confirm":
       "We'll message you on WhatsApp to confirm before the courier leaves.",
     "delivery.midnight":
-      "For a birthday, choose 11:59 at checkout: we arrive at one minute to midnight the night before, so it is in their hands as the day begins.",
+      "For a birthday, choose 11:59 at checkout: we arrive at one minute to midnight the night before, so it is in their hands as the day begins. Pre-order only — we take tonight's 11:59 orders between 12pm and 6pm.",
 
     "payment.nothingCharged": "Nothing is charged when you place the order.",
     "payment.confirm":
@@ -233,6 +233,13 @@ export const DICTIONARY = {
     "midnight.pageBody":
       "Some moments should not wait until morning. Choose 11:59 at checkout and our courier arrives at one minute to midnight the night before, so the first thing that happens on their birthday is your flowers at the door.",
     "midnight.priceNote": "An extra {amount} on any bouquet.",
+    "midnight.preorder": "Pre-order only",
+    "midnight.preorderHint":
+      "We take 11:59 orders between 12pm and 6pm for that night. Later nights can be booked any time.",
+    "midnight.closedTonight":
+      "Tonight's 11:59 orders closed at 6pm, so the earliest night is tomorrow.",
+    "midnight.notYetTonight":
+      "Tonight's 11:59 orders open at 12pm. Pick another night, or come back after 12.",
     "checkout.giftNote": "Gift note",
     "checkout.giftNotePlaceholder":
       "We'll write this by hand and seal it with the flowers.",
@@ -375,7 +382,7 @@ export const DICTIONARY = {
     "delivery.confirm":
       "سنراسلك على واتساب للتأكيد قبل خروج المندوب.",
     "delivery.midnight":
-      "لعيد ميلاد، اختر ١١:٥٩ عند إتمام الطلب: نصل قبل منتصف الليل بدقيقة في الليلة السابقة، لتكون الهدية بين يديه مع بداية اليوم.",
+      "لعيد ميلاد، اختر ١١:٥٩ عند إتمام الطلب: نصل قبل منتصف الليل بدقيقة في الليلة السابقة، لتكون الهدية بين يديه مع بداية اليوم. بالطلب المسبق فقط — نستقبل طلبات الليلة من ١٢ ظهراً حتى ٦ مساءً.",
 
     "payment.nothingCharged": "لا يتم خصم أي مبلغ عند تقديم الطلب.",
     "payment.confirm":
@@ -509,6 +516,13 @@ export const DICTIONARY = {
     "midnight.pageBody":
       "بعض اللحظات لا تحتمل الانتظار حتى الصباح. اختر ١١:٥٩ عند إتمام الطلب، ويصل مندوبنا قبل منتصف الليل بدقيقة في الليلة السابقة، ليكون أول ما يحدث في عيد ميلاده هو ورودك على الباب.",
     "midnight.priceNote": "رسوم إضافية {amount} على أي باقة.",
+    "midnight.preorder": "بالطلب المسبق فقط",
+    "midnight.preorderHint":
+      "نستقبل طلبات ١١:٥٩ من ١٢ ظهراً حتى ٦ مساءً لليلة نفسها. الليالي اللاحقة يمكن حجزها في أي وقت.",
+    "midnight.closedTonight":
+      "أُغلقت طلبات ١١:٥٩ لهذه الليلة عند ٦ مساءً، وأقرب ليلة متاحة هي الغد.",
+    "midnight.notYetTonight":
+      "تفتح طلبات ١١:٥٩ لهذه الليلة عند ١٢ ظهراً. اختر ليلة أخرى أو عُد بعد الظهر.",
     "checkout.giftNote": "بطاقة إهداء",
     "checkout.giftNotePlaceholder": "سنكتبها بخط اليد ونرفقها مع الورود.",
     "pay.heading": "الدفع",

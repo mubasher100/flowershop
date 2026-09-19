@@ -14,6 +14,7 @@ import {
   isDeliveryArea,
   isDeliveryWindow,
   MIDNIGHT_WINDOW,
+  midnightAvailability,
 } from "@lib/util/delivery"
 
 /**
@@ -93,6 +94,25 @@ export async function placeGuestOrder(
   }
   if (!address) return { error: "Please add the delivery address." }
   if (!shippingOptionId) return { error: "Please choose a delivery speed." }
+
+  // 11:59 is pre-order only: tonight's run is made up in the afternoon, so
+  // an order for tonight is taken only inside the window. The form says the
+  // same thing, but the form is not the boundary.
+  if (deliveryWindow === MIDNIGHT_WINDOW) {
+    const availability = midnightAvailability(deliveryDate)
+    if (availability === "closed") {
+      return {
+        error:
+          "Tonight's 11:59 orders closed at 6pm. Please choose tomorrow night or later.",
+      }
+    }
+    if (availability === "not-yet") {
+      return {
+        error:
+          "Tonight's 11:59 orders open at 12pm. Please choose another night, or come back after 12.",
+      }
+    }
+  }
 
   const cart = await retrieveCart()
   if (!cart) return { error: "Your bag is empty." }

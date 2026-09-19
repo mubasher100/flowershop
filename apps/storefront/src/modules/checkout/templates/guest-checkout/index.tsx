@@ -10,6 +10,8 @@ import {
   FIELD_LIMITS,
   MIDNIGHT_WINDOW,
   isMidnightOption,
+  midnightAvailability,
+  qatarClock,
 } from "@lib/util/delivery"
 
 import { convertToLocale } from "@lib/util/money"
@@ -66,9 +68,27 @@ export default function GuestCheckout({
   const [paymentRef, setPaymentRef] = useState<string | null>(null)
 
   // Today, in Qatar, as a yyyy-mm-dd bound for the date picker.
-  const today = new Date().toLocaleDateString("en-CA", {
-    timeZone: "Asia/Qatar",
-  })
+  const clock = qatarClock()
+  const today = clock.date
+  const [deliveryDate, setDeliveryDate] = useState(today)
+
+  /**
+   * 11:59 is pre-order only, and tonight's list closes in the afternoon.
+   * Once it has closed the picker will not offer tonight at all; before it
+   * opens, tonight is offered with a note, because a customer who came in at
+   * 10am is most likely planning tonight and should be told when to return
+   * rather than silently pushed to tomorrow.
+   */
+  const midnightStatus = midnight ? midnightAvailability(deliveryDate, clock) : "open"
+  // Computed without reference to the current choice, because it is needed
+  // in the handler that makes 11:59 the choice.
+  const midnightMinDate =
+    midnightAvailability(today, clock) === "closed" ? clock.tomorrow : today
+  const minDate = midnight ? midnightMinDate : today
+  const selectMidnight = (id: string) => {
+    setShippingId(id)
+    if (deliveryDate < midnightMinDate) setDeliveryDate(midnightMinDate)
+  }
 
   return (
     <form action={formAction} className="flex flex-col gap-8">
@@ -163,7 +183,11 @@ export default function GuestCheckout({
                 <input type="radio" name="shipping_option_id"
                   value={option.id} required
                   checked={shippingId === option.id}
-                  onChange={() => setShippingId(option.id)}
+                  onChange={() =>
+                    isMidnightOption(option)
+                      ? selectMidnight(option.id)
+                      : setShippingId(option.id)
+                  }
                   className="mt-1 h-4 w-4 accent-blush-600" />
                 <span className="flex flex-col">
                   <span className="text-base text-ink-900">
@@ -190,9 +214,17 @@ export default function GuestCheckout({
               {midnight ? t("midnight.dateLabel") : t("checkout.date")}
             </label>
             <input id="delivery_date" name="delivery_date" type="date"
-              min={today} defaultValue={today} className={fieldClass} />
+              min={minDate} value={deliveryDate}
+              onChange={(e) => setDeliveryDate(e.target.value)}
+              className={fieldClass} />
             {midnight && (
-              <p className="text-xs text-ink-500">{t("midnight.dateHint")}</p>
+              <p className="text-xs text-ink-500">
+                {midnightStatus === "not-yet"
+                  ? t("midnight.notYetTonight")
+                  : minDate !== today
+                    ? t("midnight.closedTonight")
+                    : t("midnight.dateHint")}
+              </p>
             )}
           </div>
           <div className="flex flex-col gap-1.5">
@@ -204,9 +236,15 @@ export default function GuestCheckout({
                 {/* The time is the whole point of 11:59, so it is shown as a
                     fact rather than offered as a choice — and still submitted,
                     so the label and receipt print it. */}
-                <div className={`${fieldClass} flex items-center bg-blush-50 font-semibold text-blush-700`}>
-                  {t("midnight.window")}
+                <div className={`${fieldClass} flex flex-col justify-center gap-0.5 bg-blush-50 py-2`}>
+                  <span className="font-semibold text-blush-700">
+                    {t("midnight.window")}
+                  </span>
+                  <span className="text-xs text-ink-600">
+                    {t("midnight.preorder")}
+                  </span>
                 </div>
+                <p className="text-xs text-ink-500">{t("midnight.preorderHint")}</p>
                 <input type="hidden" name="delivery_window" value={MIDNIGHT_WINDOW} />
               </>
             ) : (

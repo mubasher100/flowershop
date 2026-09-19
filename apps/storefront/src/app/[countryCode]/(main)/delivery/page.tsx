@@ -52,6 +52,12 @@ export default async function DeliveryPage(props: Props) {
         <p className="text-base leading-relaxed text-ink-600">
           {t("midnight.pageBody")}
         </p>
+        <p className="mt-3 text-base leading-relaxed text-ink-600">
+          <strong className="font-semibold text-ink-800">
+            {t("midnight.preorder")}
+          </strong>{" "}
+          — {t("midnight.preorderHint")}
+        </p>
       </ContentBlock>
 
       <ContentBlock heading={t("promise.title")}>
