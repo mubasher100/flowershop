@@ -29,7 +29,10 @@ import PromoBanner from "@modules/home/components/promo-banner"
  * arrangements when they exist; nothing else needs to change.
  */
 const HERO_SLIDES = [
-  { image: "/hero/hero-01.jpg", key: "hero.1", href: "/store" },
+  // The brand slide. The photograph is cropped from the brand reference —
+  // tulips in blush wrapping with the shop's own ribbon — and the title is
+  // the wordmark rather than text.
+  { image: "/hero/tulips.jpg", key: "hero.1", href: "/store", wordmark: true },
   { image: "/hero/hero-02.jpg", key: "hero.2", href: "/categories/roses" },
   {
     image: "/hero/hero-03.jpg",
@@ -108,6 +111,7 @@ export default async function Home(props: {
   const slides: HeroSlide[] = HERO_SLIDES.map((slide) => ({
     image: slide.image,
     href: slide.href,
+    wordmark: "wordmark" in slide && slide.wordmark,
     // The const assertion above narrows `key` to the literal union, so these
     // template keys are checked against the dictionary — a typo or a missing
     // hero string is a build error, not a raw key rendered on the page.

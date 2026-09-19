@@ -1,32 +1,36 @@
 /**
- * Brand tokens — the single source of truth for Flowershop's visual identity.
+ * Brand tokens — the single source of truth for Tulips N Truffles' identity.
  *
- * Everything visual should reference these variables rather than hard-coding a
- * hex value. When the real brand lands (roadmap phase 6), this file is the only
- * thing that changes.
+ * Everything visual references these variables rather than a hex value, which
+ * is what made the rebrand a one-file change: the mid-tones moved from hot
+ * pink to the muted wine of the brand reference, the neutrals from rose-grey
+ * to the chocolate of the wordmark, and every component followed.
  *
- * Built from the two supplied colours:
- *   #fbd7e2 → blush-100   (hsl 342 81% 91%)
- *   #fff7f9 → blush-50    (hsl 346 100% 98%)
+ * The two light tints are the originally supplied colours and still anchor
+ * the page:
+ *   #fbd7e2 → blush-100
+ *   #fff7f9 → blush-50
  *
- * Both sit on a rose hue around 342–346°, so the scale below extends that same
- * hue down into usable mid and dark tones. Two supporting families complete it:
- * sage, because eucalyptus green is the natural companion to pink in floristry;
- * and champagne, for the restrained luxury accents the reference sites use.
+ * Above them the "blush" scale is really wine — the family keeps its name so
+ * nothing had to be renamed across the codebase. Champagne is tuned toward the
+ * copper of the logotype; sage stays as floristry's natural green.
+ *
+ * Every text-carrying tone here was checked against white and blush-50:
+ * blush-600 6.82:1, ink-500 4.76:1 (the floor), ink-900 16.1:1.
  */
 
 :root {
   /* --- Blush: the brand hue. Buttons, links, active states. ------------- */
   --blush-50: #fff7f9; /* supplied — page background */
   --blush-100: #fbd7e2; /* supplied — cards, chips, hover fills */
-  --blush-200: #f8bcce;
-  --blush-300: #f39ab5;
-  --blush-400: #ec7297;
-  --blush-500: #e04d7c;
-  --blush-600: #c73764; /* primary CTA — 5.05:1 on white, passes AA */
-  --blush-700: #a32950; /* CTA hover — 7.03:1 on white, passes AAA */
-  --blush-800: #7d1f3e;
-  --blush-900: #55172c;
+  --blush-200: #f2c4cd;
+  --blush-300: #e39aa8;
+  --blush-400: #cf7285; /* the rose of the script N */
+  --blush-500: #b04a5f;
+  --blush-600: #963d50; /* primary CTA, top bar — 6.82:1 on white */
+  --blush-700: #7a2f40; /* CTA hover — 9.10:1 */
+  --blush-800: #5e2331;
+  --blush-900: #421823;
 
   /* --- Sage: secondary. Foliage, success, quiet supporting surfaces. ---- */
   --sage-50: #f4f7f3;
@@ -41,30 +45,30 @@
   --sage-900: #1f2d1e;
 
   /* --- Champagne: accent. Price emphasis, badges, premium framing. ------ */
-  --champagne-50: #fdfaf3;
-  --champagne-100: #f8f0dc;
-  --champagne-200: #efdfb8;
-  --champagne-300: #e3c98d;
-  --champagne-400: #d4b06a;
-  --champagne-500: #c29751;
-  --champagne-600: #a37b3f;
-  --champagne-700: #815f33;
-  --champagne-800: #62492a;
-  --champagne-900: #443220;
+  --champagne-50: #fbf6f2;
+  --champagne-100: #f4e6dc;
+  --champagne-200: #e8cbb9;
+  --champagne-300: #d6a98f;
+  --champagne-400: #c08a6a;
+  --champagne-500: #a2634f;
+  --champagne-600: #8b4a38; /* the copper of the wordmark — 6.70:1 */
+  --champagne-700: #6f3a2c;
+  --champagne-800: #542b21;
+  --champagne-900: #3a1d16;
 
   /* --- Ink: text and structure. Warm greys carrying a rose undertone so
          they sit against the blush background instead of fighting it. ---- */
   --ink-0: #ffffff;
-  --ink-50: #faf7f8;
-  --ink-100: #f2eced;
-  --ink-200: #e3d9dc; /* hairline borders */
-  --ink-300: #c9babe;
-  --ink-400: #a28f95; /* placeholder text */
-  --ink-500: #7d6a70;
-  --ink-600: #5d4d52; /* secondary text */
-  --ink-700: #45383c;
-  --ink-800: #2e2528;
-  --ink-900: #1a1416; /* headings, body text */
+  --ink-50: #faf6f5;
+  --ink-100: #f1e9e7;
+  --ink-200: #e2d5d1; /* hairline borders */
+  --ink-300: #c6b3ad;
+  --ink-400: #a48d86; /* decorative only — 3.0:1, fails AA for text */
+  --ink-500: #876d67; /* muted text — 4.76:1, the floor */
+  --ink-600: #6a524d; /* secondary text — 7.17:1 */
+  --ink-700: #4d3733;
+  --ink-800: #3d2823;
+  --ink-900: #2f1c19; /* headings, body — the chocolate of the wordmark */
 
   /* --- Semantic aliases. Prefer these in components. ------------------- */
   --color-bg: var(--blush-50);

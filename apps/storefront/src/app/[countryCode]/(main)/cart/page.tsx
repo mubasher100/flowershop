@@ -3,6 +3,7 @@ import { getTranslations } from "@lib/i18n/dictionary"
 import CartTemplate from "@modules/cart/templates"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
+import { BRAND_NAME } from "@modules/common/components/brand"
 
 export async function generateMetadata(props: {
   params: Promise<{ countryCode: string }>
@@ -11,7 +12,7 @@ export async function generateMetadata(props: {
   const { t } = getTranslations(countryCode)
 
   return {
-    title: `${t("cart.title")} | Flowershop`,
+    title: `${t("cart.title")} | ${BRAND_NAME}`,
     description: t("cart.metaDescription"),
     // Same reasoning as checkout: a bag belongs to one session, so there is
     // nothing here for a search engine to index or to pair across languages.

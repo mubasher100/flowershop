@@ -8,6 +8,7 @@ import { HttpTypes, StoreRegion } from "@medusajs/types"
 import CategoryTemplate from "@modules/categories/templates"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import { parseOptionValueIds } from "@lib/util/product-option-filters"
+import { BRAND_NAME } from "@modules/common/components/brand"
 
 type Props = {
   params: Promise<{ category: string[]; countryCode: string }>
@@ -52,12 +53,12 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   try {
     const productCategory = await getCategoryByHandle(params.category)
 
-    const title = productCategory.name + " | Flowershop"
+    const title = productCategory.name + ` | ${BRAND_NAME}`
 
     const description = productCategory.description ?? `${title} category.`
 
     return {
-      title: `${title} | Flowershop`,
+      title: `${title} | ${BRAND_NAME}`,
       description,
       alternates: {
         canonical: `${params.category.join("/")}`,

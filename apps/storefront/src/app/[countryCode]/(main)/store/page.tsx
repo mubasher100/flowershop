@@ -5,6 +5,7 @@ import { alternatesFor } from "@lib/util/locale"
 import { parseOptionValueIds } from "@lib/util/product-option-filters"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import StoreTemplate from "@modules/store/templates"
+import { BRAND_NAME } from "@modules/common/components/brand"
 
 /**
  * "Store / Explore all of our products" was the starter's, and said nothing a
@@ -18,7 +19,7 @@ export async function generateMetadata(props: {
   const { t } = getTranslations(countryCode)
 
   return {
-    title: `${t("nav.allFlowers")} | Flowershop`,
+    title: `${t("nav.allFlowers")} | ${BRAND_NAME}`,
     description: t("meta.homeDescription"),
     alternates: alternatesFor(countryCode, "/store"),
   }

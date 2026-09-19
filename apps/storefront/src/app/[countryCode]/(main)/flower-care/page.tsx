@@ -6,6 +6,7 @@ import ContentPage, {
 import { Metadata } from "next"
 
 import { listRegions } from "@lib/data/regions"
+import { BRAND_NAME } from "@modules/common/components/brand"
 
 type Props = { params: Promise<{ countryCode: string }> }
 
@@ -21,7 +22,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const { t } = getTranslations(countryCode)
 
   return {
-    title: `${t("page.careTitle")} | Flowershop`,
+    title: `${t("page.careTitle")} | ${BRAND_NAME}`,
     description: t("page.careIntro"),
     alternates: alternatesFor(countryCode, "/flower-care"),
   }

@@ -3,6 +3,7 @@
 import Image from "next/image"
 import { useCallback, useEffect, useRef, useState } from "react"
 
+import Brand from "@modules/common/components/brand"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { clx } from "@modules/common/components/ui"
 
@@ -28,6 +29,12 @@ export type HeroSlide = {
   body: string
   ctaLabel: string
   href: string
+  /**
+   * Render the wordmark in place of the title text. Used by the brand slide:
+   * the logotype's metallic lettering is the identity, and no webfont sets it.
+   * The title is still emitted for screen readers and the heading outline.
+   */
+  wordmark?: boolean
 }
 
 const AUTOPLAY_MS = 6000
@@ -110,40 +117,52 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
             aria-label={`${i + 1} of ${slides.length}`}
             className="relative w-full flex-none snap-start"
           >
-            <div className="relative h-[26rem] w-full small:h-[34rem]">
-              <Image
-                src={slide.image}
-                alt={slide.alt}
-                fill
-                // Only the first slide is above the fold on load.
-                priority={i === 0}
-                loading={i === 0 ? undefined : "lazy"}
-                sizes="100vw"
-                className="object-cover object-center"
-              />
+            {/* Split composition, after the brand reference: dark type on
+                blush with the photograph beside it, rather than white type
+                over a darkened image. On a phone the photo comes first, since
+                the flowers are what sell; from the small breakpoint the two
+                sit side by side with the copy leading. */}
+            <div className="bg-blush-50">
+              <div className="content-container grid grid-cols-1 items-center gap-6 py-6 small:grid-cols-[1fr_1.15fr] small:gap-10 small:py-12">
+                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl small:order-2 small:aspect-[4/3]">
+                  <Image
+                    src={slide.image}
+                    alt={slide.alt}
+                    fill
+                    // Only the first slide is above the fold on load.
+                    priority={i === 0}
+                    loading={i === 0 ? undefined : "lazy"}
+                    sizes="(max-width: 1024px) 100vw, 55vw"
+                    className="object-cover object-center"
+                  />
+                </div>
 
-              {/* Scrim: the type has to stay readable over any photograph. */}
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-black/5"
-              />
-
-              <div className="content-container absolute inset-x-0 bottom-0 pb-10 small:pb-16">
-                <div className="flex max-w-[32ch] flex-col gap-3">
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-white/85">
+                <div className="flex flex-col items-start gap-4 small:order-1">
+                  <span className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-blush-600">
                     {slide.eyebrow}
                   </span>
-                  <h2 className="text-balance font-display text-4xl leading-[1.05] text-white small:text-6xl">
-                    {slide.title}
-                  </h2>
-                  <p className="max-w-[40ch] text-sm leading-relaxed text-white/90 small:text-base">
+
+                  {slide.wordmark ? (
+                    <>
+                      <h2 className="sr-only">{slide.title}</h2>
+                      <Brand size="hero" href={slide.href} />
+                    </>
+                  ) : (
+                    <h2 className="text-balance font-display text-4xl leading-[1.05] text-ink-900 small:text-6xl">
+                      {slide.title}
+                    </h2>
+                  )}
+
+                  <p className="max-w-[44ch] text-sm uppercase leading-relaxed tracking-[0.16em] text-ink-700 small:text-base">
                     {slide.body}
                   </p>
+
                   <LocalizedClientLink
                     href={slide.href}
-                    className="mt-2 inline-flex min-h-[3rem] w-fit items-center rounded-full bg-white px-7 text-base font-semibold text-ink-900 transition-colors hover:bg-blush-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    className="mt-2 inline-flex min-h-[3rem] w-fit items-center gap-3 rounded-full bg-blush-600 px-8 text-sm font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700"
                   >
                     {slide.ctaLabel}
+                    <span aria-hidden="true" className="rtl:-scale-x-100">→</span>
                   </LocalizedClientLink>
                 </div>
               </div>
@@ -162,14 +181,14 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
               onClick={() => goTo(i)}
               aria-label={`Go to slide ${i + 1}`}
               aria-current={i === active}
-              className="group flex h-11 w-8 items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="group flex h-11 w-8 items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700"
             >
               <span
                 className={clx(
                   "block h-1.5 rounded-full transition-all duration-300",
                   i === active
-                    ? "w-6 bg-white"
-                    : "w-1.5 bg-white/55 group-hover:bg-white/80"
+                    ? "w-6 bg-blush-600"
+                    : "w-1.5 bg-blush-300 group-hover:bg-blush-400"
                 )}
               />
             </button>

@@ -11,6 +11,7 @@ import {
   DELIVERY_AREAS as AREAS,
   DELIVERY_WINDOWS as WINDOWS,
 } from "@lib/util/delivery"
+import { BRAND_NAME } from "@modules/common/components/brand"
 
 type Props = { params: Promise<{ countryCode: string }> }
 
@@ -27,7 +28,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const { t } = getTranslations(countryCode)
 
   return {
-    title: `${t("page.deliveryTitle")} | Flowershop`,
+    title: `${t("page.deliveryTitle")} | ${BRAND_NAME}`,
     description: t("page.deliveryIntro"),
     alternates: alternatesFor(countryCode, "/delivery"),
   }

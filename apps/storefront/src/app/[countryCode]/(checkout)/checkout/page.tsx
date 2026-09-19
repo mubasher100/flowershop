@@ -4,9 +4,10 @@ import CheckoutSummary from "@modules/checkout/templates/checkout-summary"
 import GuestCheckout from "@modules/checkout/templates/guest-checkout"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
+import { BRAND_NAME } from "@modules/common/components/brand"
 
 export const metadata: Metadata = {
-  title: "Checkout | Flowershop",
+  title: `Checkout | ${BRAND_NAME}`,
   description: "Confirm your delivery details and place your order.",
   // Deliberately not indexed, which is also why it carries no canonical or
   // hreflang: a checkout is a step in one person's session, not a page anyone

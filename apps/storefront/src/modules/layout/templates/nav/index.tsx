@@ -35,12 +35,17 @@ export default async function Nav({ segment }: { segment?: string }) {
 
   return (
     <div className="sticky top-0 inset-x-0 z-50 group">
-      {/* Delivery bar. The reference site states its promise on every page,
-          not just the homepage — the answer to "can it get there in time"
-          should never be more than a glance away. */}
+      {/* Announcement bar, after the brand reference: the delivery promise
+          at the start, what the shop sells in the middle, where it is at the
+          end. On a phone only the promise fits — it is the one of the three
+          that decides a purchase, so it is the one that stays. */}
       <div className="bg-blush-600 text-white">
-        <div className="content-container flex h-8 items-center justify-center gap-2 text-center text-xs font-medium">
-          <span>{t("promise.sameDay")}</span>
+        <div className="content-container flex h-8 items-center justify-center gap-4 text-[0.68rem] font-medium uppercase tracking-[0.18em] small:justify-between small:text-xs">
+          <span className="truncate">{t("promise.sameDayShort")}</span>
+          <span className="hidden text-blush-100 medium:inline">
+            {t("brand.strapline")}
+          </span>
+          <span className="hidden small:inline">{t("brand.location")}</span>
         </div>
       </div>
 

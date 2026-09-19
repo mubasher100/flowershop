@@ -39,7 +39,7 @@ export default async function CategoryNav() {
           <li key={category.id} className="flex-none snap-start">
             <LocalizedClientLink
               href={`/categories/${category.handle}`}
-              className="inline-flex min-h-[2.75rem] items-center whitespace-nowrap px-3 text-sm font-medium text-ink-700 transition-colors hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blush-700 small:px-4"
+              className="inline-flex min-h-[2.75rem] items-center whitespace-nowrap px-3 text-[0.72rem] font-medium uppercase tracking-[0.16em] text-ink-700 transition-colors hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blush-700 small:px-4 small:text-xs"
             >
               {category.name}
             </LocalizedClientLink>

@@ -28,6 +28,9 @@ export const DICTIONARY = {
 
     // Standing promise
     "promise.sameDay": "Same-day delivery across Doha · Order before 6pm",
+    "promise.sameDayShort": "Same-day delivery across Qatar",
+    "brand.strapline": "Flowers • Chocolates • Gifts • Happiness",
+    "brand.location": "Doha, Qatar",
     "promise.title": "Same-day delivery across Doha",
     "promise.body": "Order before 6pm and it arrives today.",
 
@@ -91,26 +94,26 @@ export const DICTIONARY = {
     "payment.cardSoon": "Card payment is coming soon.",
 
     // Homepage delivery reassurance strip
-    "strip.sameDay": "Same-day across Doha",
-    "strip.sameDayDetail": "Order by 6pm, delivered today.",
-    "strip.hour": "Choose the hour",
-    "strip.hourDetail": "Two-hour delivery windows, 10am to 9pm.",
-    "strip.arranged": "Arranged to order",
-    "strip.arrangedDetail": "Nothing sits in a fridge waiting.",
-    "strip.note": "Free gift note",
-    "strip.noteDetail": "Handwritten and sealed, at no charge.",
+    "strip.sameDay": "Same day delivery",
+    "strip.sameDayDetail": "Across Qatar",
+    "strip.hour": "Fresh flowers",
+    "strip.hourDetail": "Handpicked with care",
+    "strip.arranged": "Luxury gifts",
+    "strip.arrangedDetail": "For every occasion",
+    "strip.note": "Make someone smile",
+    "strip.noteDetail": "Because you care",
 
     // Product page reassurance block
     "product.promiseBody":
       "Order before 6pm and it arrives today. Pick a two-hour window at checkout, and we'll confirm on WhatsApp before it leaves.",
 
     // Hero carousel
-    "hero.1.eyebrow": "Doha · Same-day delivery",
-    "hero.1.title": "Flowers worth the journey",
-    "hero.1.body":
-      "Arranged the morning they're delivered. Order before 6pm and it arrives today.",
-    "hero.1.cta": "Shop all flowers",
-    "hero.1.alt": "A loose hand-tied bouquet of mixed seasonal flowers",
+    "hero.1.eyebrow": "Flowers · Chocolates · Gifts",
+    "hero.1.title": "Tulips N Truffles",
+    "hero.1.body": "Beautiful blooms. Thoughtful gifts. Happier moments.",
+    "hero.1.cta": "Shop now",
+    "hero.1.alt":
+      "A bouquet of pink tulips in blush wrapping, tied with a Tulips N Truffles ribbon, beside a gift box",
 
     "hero.2.eyebrow": "Signature roses",
     "hero.2.title": "Fifty stems, one gesture",
@@ -133,9 +136,9 @@ export const DICTIONARY = {
     "hero.4.alt": "A luxury flower arrangement in a dark ceramic vase",
 
     // Homepage metadata
-    "meta.homeTitle": "Flowershop — Same-day flower delivery in Doha",
+    "meta.homeTitle": "Tulips N Truffles — Flowers & gifts, same-day delivery in Doha",
     "meta.homeDescription":
-      "Hand-tied bouquets, vase arrangements and signature roses, arranged in Doha and delivered the same day. Order by 6pm.",
+      "Beautiful blooms, thoughtful gifts, happier moments. Fresh flowers and luxury gifts, arranged in Doha and delivered across Qatar the same day.",
 
     "a11y.skipToContent": "Skip to main content",
     "product.related": "You may also like",
@@ -303,6 +306,9 @@ export const DICTIONARY = {
     "nav.open": "فتح القائمة",
 
     "promise.sameDay": "توصيل في نفس اليوم داخل الدوحة · اطلب قبل ٦ مساءً",
+    "promise.sameDayShort": "توصيل في نفس اليوم في جميع أنحاء قطر",
+    "brand.strapline": "ورود • شوكولاتة • هدايا • سعادة",
+    "brand.location": "الدوحة، قطر",
     "promise.title": "توصيل في نفس اليوم داخل الدوحة",
     "promise.body": "اطلب قبل ٦ مساءً ويصلك اليوم.",
 
@@ -360,23 +366,24 @@ export const DICTIONARY = {
       "نتأكد من توفر الورود، ثم نؤكد الطلب وطريقة الدفع معك على واتساب.",
     "payment.cardSoon": "الدفع بالبطاقة قريباً.",
 
-    "strip.sameDay": "توصيل في نفس اليوم بالدوحة",
-    "strip.sameDayDetail": "اطلب قبل ٦ مساءً، ويصلك اليوم.",
-    "strip.hour": "اختر الوقت المناسب",
-    "strip.hourDetail": "فترات توصيل من ساعتين، من ١٠ صباحاً حتى ٩ مساءً.",
-    "strip.arranged": "تُنسّق عند الطلب",
-    "strip.arrangedDetail": "لا شيء ينتظر في الثلاجة.",
-    "strip.note": "بطاقة إهداء مجاناً",
-    "strip.noteDetail": "مكتوبة بخط اليد ومغلّفة، دون أي رسوم.",
+    "strip.sameDay": "توصيل في نفس اليوم",
+    "strip.sameDayDetail": "في جميع أنحاء قطر",
+    "strip.hour": "ورود طازجة",
+    "strip.hourDetail": "مختارة بعناية",
+    "strip.arranged": "هدايا فاخرة",
+    "strip.arrangedDetail": "لكل مناسبة",
+    "strip.note": "أسعد من تحب",
+    "strip.noteDetail": "لأنك تهتم",
 
     "product.promiseBody":
       "اطلب قبل ٦ مساءً ويصلك اليوم. اختر فترة من ساعتين عند إتمام الطلب، وسنؤكد لك على واتساب قبل خروج الطلب.",
 
-    "hero.1.eyebrow": "الدوحة · توصيل في نفس اليوم",
-    "hero.1.title": "ورود تستحق الانتظار",
-    "hero.1.body": "تُنسّق صباح يوم التوصيل. اطلب قبل ٦ مساءً ويصلك اليوم.",
-    "hero.1.cta": "تسوق كل الورود",
-    "hero.1.alt": "باقة ورد موسمي متنوع مربوطة يدوياً",
+    "hero.1.eyebrow": "ورود · شوكولاتة · هدايا",
+    "hero.1.title": "Tulips N Truffles",
+    "hero.1.body": "أزهار جميلة. هدايا مدروسة. لحظات أسعد.",
+    "hero.1.cta": "تسوق الآن",
+    "hero.1.alt":
+      "باقة توليب وردية بغلاف وردي فاتح، مربوطة بشريطة Tulips N Truffles، بجانب علبة هدايا",
 
     "hero.2.eyebrow": "ورودنا المميزة",
     "hero.2.title": "خمسون ساقاً، لفتة واحدة",
@@ -398,9 +405,9 @@ export const DICTIONARY = {
     "hero.4.cta": "تصفح الفخامة",
     "hero.4.alt": "تنسيق ورد فاخر في مزهرية خزفية داكنة",
 
-    "meta.homeTitle": "فلاورشوب — توصيل ورود في نفس اليوم بالدوحة",
+    "meta.homeTitle": "Tulips N Truffles — ورود وهدايا، توصيل في نفس اليوم بالدوحة",
     "meta.homeDescription":
-      "باقات مربوطة يدوياً وتنسيقات مزهريات وورود مميزة، تُنسّق في الدوحة وتُوصّل في نفس اليوم. اطلب قبل ٦ مساءً.",
+      "أزهار جميلة، هدايا مدروسة، لحظات أسعد. ورود طازجة وهدايا فاخرة، تُنسّق في الدوحة وتُوصّل في جميع أنحاء قطر في نفس اليوم.",
 
     "a11y.skipToContent": "تخطَّ إلى المحتوى الرئيسي",
     "product.related": "قد يعجبك أيضاً",

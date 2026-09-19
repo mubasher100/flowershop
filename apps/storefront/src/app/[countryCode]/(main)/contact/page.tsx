@@ -7,6 +7,7 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import { Metadata } from "next"
 
 import { listRegions } from "@lib/data/regions"
+import { BRAND_NAME } from "@modules/common/components/brand"
 
 type Props = { params: Promise<{ countryCode: string }> }
 
@@ -33,7 +34,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const { t } = getTranslations(countryCode)
 
   return {
-    title: `${t("page.contactTitle")} | Flowershop`,
+    title: `${t("page.contactTitle")} | ${BRAND_NAME}`,
     description: t("page.contactIntro"),
     alternates: alternatesFor(countryCode, "/contact"),
   }
