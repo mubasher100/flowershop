@@ -109,11 +109,11 @@ export const DICTIONARY = {
 
     // Hero carousel
     "hero.1.eyebrow": "Flowers · Chocolates · Gifts",
-    "hero.1.title": "Tulips N Truffles",
+    "hero.1.title": "Tulips and Truffles",
     "hero.1.body": "Beautiful blooms. Thoughtful gifts. Happier moments.",
     "hero.1.cta": "Shop now",
     "hero.1.alt":
-      "A bouquet of pink tulips in blush wrapping, tied with a Tulips N Truffles ribbon, beside a gift box",
+      "A bouquet of pink tulips in blush wrapping, tied with a Tulips and Truffles ribbon, beside a gift box",
 
     "hero.2.eyebrow": "Signature roses",
     "hero.2.title": "Fifty stems, one gesture",
@@ -136,7 +136,7 @@ export const DICTIONARY = {
     "hero.4.alt": "A luxury flower arrangement in a dark ceramic vase",
 
     // Homepage metadata
-    "meta.homeTitle": "Tulips N Truffles — Flowers & gifts, same-day delivery in Doha",
+    "meta.homeTitle": "Tulips and Truffles — Flowers & gifts, same-day delivery in Doha",
     "meta.homeDescription":
       "Beautiful blooms, thoughtful gifts, happier moments. Fresh flowers and luxury gifts, arranged in Doha and delivered across Qatar the same day.",
 
@@ -379,11 +379,11 @@ export const DICTIONARY = {
       "اطلب قبل ٦ مساءً ويصلك اليوم. اختر فترة من ساعتين عند إتمام الطلب، وسنؤكد لك على واتساب قبل خروج الطلب.",
 
     "hero.1.eyebrow": "ورود · شوكولاتة · هدايا",
-    "hero.1.title": "Tulips N Truffles",
+    "hero.1.title": "Tulips and Truffles",
     "hero.1.body": "أزهار جميلة. هدايا مدروسة. لحظات أسعد.",
     "hero.1.cta": "تسوق الآن",
     "hero.1.alt":
-      "باقة توليب وردية بغلاف وردي فاتح، مربوطة بشريطة Tulips N Truffles، بجانب علبة هدايا",
+      "باقة توليب وردية بغلاف وردي فاتح، مربوطة بشريطة Tulips and Truffles، بجانب علبة هدايا",
 
     "hero.2.eyebrow": "ورودنا المميزة",
     "hero.2.title": "خمسون ساقاً، لفتة واحدة",
@@ -405,7 +405,7 @@ export const DICTIONARY = {
     "hero.4.cta": "تصفح الفخامة",
     "hero.4.alt": "تنسيق ورد فاخر في مزهرية خزفية داكنة",
 
-    "meta.homeTitle": "Tulips N Truffles — ورود وهدايا، توصيل في نفس اليوم بالدوحة",
+    "meta.homeTitle": "Tulips and Truffles — ورود وهدايا، توصيل في نفس اليوم بالدوحة",
     "meta.homeDescription":
       "أزهار جميلة، هدايا مدروسة، لحظات أسعد. ورود طازجة وهدايا فاخرة، تُنسّق في الدوحة وتُوصّل في جميع أنحاء قطر في نفس اليوم.",
 

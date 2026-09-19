@@ -14,7 +14,7 @@ A headless ecommerce platform for a flower shop serving Qatar. Built on Medusa v
 >
 > Non-negotiables: no horizontal body scroll at any width, touch targets ≥44px, thumb-reachable primary actions, images sized for mobile bandwidth, and sticky add-to-cart on product pages. Check every change at 375px before calling it done.
 
-> **Branding is not decided yet.** The store name, logo, and visual identity are pending. Do not invent a brand name — use "Flowershop" as a placeholder and keep branding in one place so it is cheap to swap later.
+> **The brand is Tulips and Truffles.** The name is written out as "Tulips and Truffles" in text; the logotype renders the "and" as a rose script flourish, which is a design choice, not a spelling. The mark lives in `apps/storefront/public/brand/`, the name in `BRAND_NAME` (`apps/storefront/src/modules/common/components/brand/index.tsx`, overridable by `NEXT_PUBLIC_BRAND_NAME`), and the palette in `brand.css`. Keep it to those three places.
 
 ---
 

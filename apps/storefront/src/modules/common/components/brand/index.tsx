@@ -10,7 +10,7 @@ import { clx } from "@modules/common/components/ui"
  * not a code change — but the default is now the real brand.
  */
 export const BRAND_NAME =
-  process.env.NEXT_PUBLIC_BRAND_NAME?.trim() || "Tulips N Truffles"
+  process.env.NEXT_PUBLIC_BRAND_NAME?.trim() || "Tulips and Truffles"
 
 /** The tagline from the brand reference. Used under the wordmark and in metadata. */
 export const BRAND_TAGLINE = "Beautiful blooms. Thoughtful gifts. Happier moments."
@@ -18,7 +18,8 @@ export const BRAND_TAGLINE = "Beautiful blooms. Thoughtful gifts. Happier moment
 /**
  * The wordmark.
  *
- * Renders the supplied logotype — copper serif with a rose script N — rather
+ * Renders the supplied logotype — copper serif with a rose script "and"
+ * flourish between the words — rather
  * than setting the name in a webfont, because the mark's metallic lettering is
  * the identity and no font reproduces it. It ships as a transparent WebP with a
  * PNG fallback, at two sizes so the header does not download the hero's copy.
