@@ -309,7 +309,13 @@ export async function applyPromotions(codes: string[]) {
     .catch(medusaError)
 }
 
-export async function placeOrder(cartId?: string) {
+/**
+ * @param segment The locale segment the customer is browsing in (`ar-qa`).
+ *   Without it the redirect uses the bare country from the address, and the
+ *   middleware then sends the customer to the default locale — an Arabic
+ *   shopper ended up on an English confirmation.
+ */
+export async function placeOrder(cartId?: string, segment?: string) {
   const id = cartId || (await getCartId())
 
   if (!id) {
@@ -337,7 +343,7 @@ export async function placeOrder(cartId?: string) {
     revalidateTag(orderCacheTag)
 
     removeCartId()
-    redirect(`/${countryCode}/order/${cartRes?.order.id}/confirmed`)
+    redirect(`/${segment || countryCode}/order/${cartRes?.order.id}/confirmed`)
   }
 
   return cartRes.cart

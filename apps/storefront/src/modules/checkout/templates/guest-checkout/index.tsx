@@ -55,7 +55,7 @@ export default function GuestCheckout({
     FormData
   >(placeGuestOrder, {})
 
-  const { t } = useTranslations()
+  const { t, segment } = useTranslations()
   const [payMethod, setPayMethod] = useState<"whatsapp" | "card">("whatsapp")
 
   /**
@@ -95,6 +95,8 @@ export default function GuestCheckout({
 
   return (
     <form action={formAction} className="flex flex-col gap-8">
+      {/* So the confirmation page opens in the language they ordered in. */}
+      <input type="hidden" name="segment" value={segment} />
       <section className="flex flex-col gap-4">
         <div>
           <h2 className="font-display text-2xl text-ink-900">

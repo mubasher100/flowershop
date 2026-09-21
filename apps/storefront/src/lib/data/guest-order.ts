@@ -79,6 +79,10 @@ export async function placeGuestOrder(
       ? rawWindow
       : DELIVERY_WINDOWS[0]
   const shippingOptionId = get("shipping_option_id")
+  // Where to send them afterwards. Checked against the shape of a locale
+  // segment so a crafted value cannot turn the redirect into an open one.
+  const rawSegment = get("segment", 8)
+  const segment = /^[a-z]{2}-[a-z]{2}$/.test(rawSegment) ? rawSegment : undefined
 
   if (!name) return { error: "Please tell us your name." }
   // Qatar mobile numbers are 8 digits; allow a country code and any spacing.
@@ -179,7 +183,7 @@ export async function placeGuestOrder(
 
   // placeOrder redirects to the confirmation page on success, so anything
   // returning here means the cart could not be completed.
-  await placeOrder(cart.id)
+  await placeOrder(cart.id, segment)
   return {
     error: "We couldn't confirm that order. Please check your details.",
   }

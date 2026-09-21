@@ -131,7 +131,11 @@ export const updateHomepageSectionStep = createStep(
 
     assertShape({ ...before, ...input } as SectionInput)
 
-    const [updated] = await service.updateHomepageSections(input)
+    // The generated service returns one row for one input and an array for
+    // an array. Destructuring the single case as an array threw
+    // "not iterable" and every rename from the admin came back as a 500.
+    const result = await service.updateHomepageSections(input)
+    const updated = Array.isArray(result) ? result[0] : result
 
     return new StepResponse(updated, before)
   },

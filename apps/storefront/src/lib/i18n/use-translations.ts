@@ -22,6 +22,8 @@ export function useTranslations() {
     const locale = localeOf(segment)
     return {
       locale,
+      /** The raw URL segment, for anything that needs to build a path. */
+      segment: segment ?? "",
       isRtl: locale === "ar",
       t: (key: TranslationKey, vars?: Record<string, string | number>) =>
         translate(locale, key, vars),
