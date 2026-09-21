@@ -46,6 +46,9 @@
     { "pattern": "tulipsandtruffle.com", "custom_domain": true },
     { "pattern": "www.tulipsandtruffle.com", "custom_domain": true }
   ],
+  // Keep the workers.dev address too — wrangler switches it off once routes
+  // exist. It is the test address; the domain is the real one.
+  "workers_dev": true,
   "observability": {
     "enabled": true
   }
