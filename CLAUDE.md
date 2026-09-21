@@ -309,14 +309,17 @@ CI never touches Supabase.
 
 | | |
 |---|---|
+| Storefront | **https://tulipsandtruffle.com** (www redirects to the apex) · test address https://flowershop-storefront.officialyuvraj24.workers.dev |
 | Backend API | https://medusa-backend-sg-production.up.railway.app |
 | Admin | https://medusa-backend-sg-production.up.railway.app/app |
-| Storefront | https://flowershop-storefront.mubashermohammad35.workers.dev |
+| Product images | https://media.tulipsandtruffle.com — R2 bucket `flowershop-media` on a custom domain, so a future account move never touches image URLs |
 | Railway project | Singapore region — services `@dtc/backend` and `redis` |
-| Cloudflare | account `fe381f34824a7e381581fba60f9a3176`, worker `flowershop-storefront`, R2 bucket `flowershop-cache` |
-| Database | Supabase, **session pooler** `aws-0-ap-southeast-1` |
+| Cloudflare | yuv's account `715d05fd56dbceb6ca11971d80974627` (moved 21 Sep 2026 from Mubasher's; the domain lives there), worker `flowershop-storefront`, R2 buckets `flowershop-cache` + `flowershop-media`, both APAC |
+| Database | Supabase project `moawqiebddyqfahnvoax`, **session pooler** `aws-0-ap-southeast-1` |
 
 The backend and database both moved to Singapore during the latency work; the original `dtcbackend-production-a265` / `ap-northeast-1` pair is gone. The storefront's real backend URL is the `MEDUSA_BACKEND_URL` repo variable — check there rather than trusting this table if a request 404s with "Application not found".
+
+**Moving Cloudflare accounts** (done once, 21 Sep 2026; the pieces are reusable): the Worker config is not account-bound, so it is secrets and data. GitHub: `CLOUDFLARE_API_TOKEN` (mint it from the *Edit Cloudflare Workers* template plus R2 and DNS — a hand-built token without *Account Settings: Read* / *Workers Tail: Read* makes the R2 cache seeding fail with "Failed to send request to R2 worker … timeout", because it cannot open wrangler's remote session) and `CLOUDFLARE_ACCOUNT_ID`; variables `MEDIA_HOSTNAME`, `STOREFRONT_BASE_URL`. Railway: the five `S3_*` values, `STORE_CORS` / `AUTH_CORS`, `STOREFRONT_URL`. Then `OLD_MEDIA_URL=… npx medusa exec ./src/scripts/rehost-media.ts` copies every product image into the new bucket and rewrites the URLs. `REVALIDATE_SECRET` is a Worker runtime secret; the deploy workflow re-applies it.
 
 Adding a new storefront origin means updating **`STORE_CORS` and `AUTH_CORS` on Railway**, not just Cloudflare.
 

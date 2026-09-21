@@ -83,3 +83,16 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+
+      # Runtime secret for /api/revalidate — the endpoint the backend calls
+      # so an admin edit is live within a minute. A Worker secret, not a
+      # build-time variable: it is read at request time. Re-applied on every
+      # deploy so a fresh Worker (a new account, a renamed script) has it.
+      - name: Set the revalidation secret on the Worker
+        working-directory: apps/storefront
+        run: printf '%s' "$REVALIDATE_SECRET" | npx wrangler secret put REVALIDATE_SECRET
+        env:
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
