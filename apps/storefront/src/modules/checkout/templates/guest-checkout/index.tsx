@@ -17,6 +17,7 @@ import {
 import { convertToLocale } from "@lib/util/money"
 import { placeGuestOrder, GuestOrderState } from "@lib/data/guest-order"
 import { useTranslations } from "@lib/i18n/use-translations"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 /**
  * The demo card gateway is opt-in. Without this flag the checkout is exactly
@@ -37,6 +38,8 @@ const DEMO_PAYMENT_ENABLED = process.env.NEXT_PUBLIC_DEMO_PAYMENT === "true"
 
 
 const labelClass = "text-sm font-medium text-ink-800"
+const legalLinkClass =
+  "font-medium text-blush-700 underline underline-offset-2 hover:text-blush-800"
 const fieldClass =
   "min-h-[3rem] w-full rounded-xl border border-ink-200 bg-white px-4 text-base text-ink-900 placeholder:text-ink-500 focus:border-blush-500 focus:outline-none focus:ring-2 focus:ring-blush-200"
 
@@ -357,6 +360,30 @@ export default function GuestCheckout({
         </button>
         <p className="text-center text-sm text-ink-600">
           {t("checkout.noCharge")}
+        </p>
+        {/* Pre-contract information, as Qatar's e-commerce law asks for at
+            the point of ordering: what the customer is agreeing to, that the
+            price is final, and that they can still change their mind. Links
+            open in the same tab on purpose — a half-filled form survives a
+            back navigation, and a new tab on a phone is where forms go to be
+            forgotten. */}
+        <p className="text-center text-xs leading-relaxed text-ink-500">
+          {t("checkout.agree")}{" "}
+          <LocalizedClientLink href="/terms" className={legalLinkClass}>
+            {t("footer.terms")}
+          </LocalizedClientLink>{" "}
+          {t("common.and")}{" "}
+          <LocalizedClientLink href="/privacy" className={legalLinkClass}>
+            {t("footer.privacy")}
+          </LocalizedClientLink>
+          . {t("checkout.cancelNote")}{" "}
+          <LocalizedClientLink href="/returns" className={legalLinkClass}>
+            {t("footer.returns")}
+          </LocalizedClientLink>
+          .
+        </p>
+        <p className="text-center text-xs leading-relaxed text-ink-500">
+          {t("checkout.pricesNote")}
         </p>
       </div>
     </form>

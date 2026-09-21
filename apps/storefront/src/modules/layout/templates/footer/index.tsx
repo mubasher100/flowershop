@@ -4,6 +4,7 @@ import { getTranslations, TranslationKey } from "@lib/i18n/dictionary"
 
 import Brand, { BRAND_NAME } from "@modules/common/components/brand"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import { LEGAL } from "@modules/content/components/legal-identity"
 
 /**
  * Site footer.
@@ -26,6 +27,15 @@ const HELP_LINKS: { label: TranslationKey; href: string }[] = [
   { label: "footer.yourBag", href: "/cart" },
 ]
 
+// Required reading for an online seller in Qatar: the consumer-protection
+// rules want terms and a returns policy reachable from every page, and the
+// data-protection law wants the privacy notice the same.
+const LEGAL_LINKS: { label: TranslationKey; href: string }[] = [
+  { label: "footer.terms", href: "/terms" },
+  { label: "footer.returns", href: "/returns" },
+  { label: "footer.privacy", href: "/privacy" },
+]
+
 const linkClass =
   "inline-flex min-h-[2.75rem] items-center text-sm text-ink-600 transition-colors hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700"
 
@@ -40,7 +50,7 @@ export default async function Footer({ segment }: { segment?: string }) {
   return (
     <footer className="mt-8 border-t border-ink-200/70 bg-blush-50">
       <div className="content-container flex flex-col">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-8 py-12 small:grid-cols-4 small:py-16">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 py-12 small:grid-cols-3 small:py-16 medium:grid-cols-5">
           <div className="col-span-2 flex flex-col gap-3 small:col-span-1">
             <Brand className="text-2xl" />
             <p className="max-w-[28ch] text-sm leading-relaxed text-ink-600">
@@ -109,11 +119,46 @@ export default async function Footer({ segment }: { segment?: string }) {
               ))}
             </ul>
           </nav>
+
+          <nav aria-labelledby="footer-legal" className="flex flex-col gap-1">
+            <span id="footer-legal" className={headingClass}>
+              {t("section.legal")}
+            </span>
+            <ul className="flex flex-col">
+              {LEGAL_LINKS.map((link) => (
+                <li key={link.href}>
+                  <LocalizedClientLink className={linkClass} href={link.href}>
+                    {t(link.label)}
+                  </LocalizedClientLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
 
-        <div className="border-t border-ink-200/70 py-6">
+        <div className="flex flex-col gap-1 border-t border-ink-200/70 py-6">
           <p className="text-xs text-ink-500">
             © {new Date().getFullYear()} {BRAND_NAME}. {t("footer.rights")}
+          </p>
+          {/* Trader identity on every page, as the MOCI e-commerce rules ask.
+              Only the parts that are set — see LegalIdentity. */}
+          <p className="text-xs text-ink-500">
+            {[
+              LEGAL.name,
+              LEGAL.cr && (
+                <>
+                  {t("legal.cr")} <span dir="ltr">{LEGAL.cr}</span>
+                </>
+              ),
+              LEGAL.address,
+            ]
+              .filter(Boolean)
+              .map((part, i) => (
+                <span key={i}>
+                  {i > 0 && " · "}
+                  {part}
+                </span>
+              ))}
           </p>
         </div>
       </div>

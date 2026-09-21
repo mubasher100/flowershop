@@ -48,6 +48,13 @@ jobs:
           # Turns the contact page's WhatsApp button on once there is a
           # number. Digits with country code, e.g. 97430000000.
           NEXT_PUBLIC_WHATSAPP: ${{ vars.WHATSAPP_NUMBER }}
+          # Trader identity shown in the footer and on the legal pages, as
+          # Qatar's e-commerce rules require. Rows without a value are not
+          # rendered rather than invented.
+          NEXT_PUBLIC_LEGAL_NAME: ${{ vars.LEGAL_NAME }}
+          NEXT_PUBLIC_LEGAL_CR: ${{ vars.LEGAL_CR }}
+          NEXT_PUBLIC_LEGAL_ADDRESS: ${{ vars.LEGAL_ADDRESS }}
+          NEXT_PUBLIC_LEGAL_EMAIL: ${{ vars.LEGAL_EMAIL }}
           # The store name in the header, footer and page titles. Set the
           # BRAND_NAME repo variable once the real name is decided; it falls
           # back to the "Flowershop" placeholder.
