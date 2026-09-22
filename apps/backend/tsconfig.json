@@ -17,7 +17,23 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "checkJs": false,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+
+    /**
+     * One React type identity for the whole backend.
+     *
+     * The admin dashboard's own dependency tree carries @types/react 18 while
+     * the hoisted packages it renders (@medusajs/ui and friends) resolve the
+     * root's 19 — two structurally different ReactNode types, so every Medusa
+     * UI component read as "cannot be used as a JSX component" and the CI
+     * typecheck has been red since August. `medusa build` never caught it
+     * because Vite bundles the admin without type-checking it.
+     */
+    "paths": {
+      "react": ["../../node_modules/@types/react"],
+      "react-dom": ["../../node_modules/@types/react-dom"],
+      "react/jsx-runtime": ["../../node_modules/@types/react/jsx-runtime"]
+    }
   },
   "ts-node": {
     "swc": true
@@ -27,6 +43,7 @@
     ".medusa/types/*"
   ],
   "exclude": [
+    "src/admin",
     "node_modules",
     ".medusa/server",
     ".medusa/admin",

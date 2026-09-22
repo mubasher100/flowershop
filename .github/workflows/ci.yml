@@ -41,6 +41,12 @@ jobs:
         working-directory: apps/backend
         run: npx tsc --noEmit
 
+      # The admin dashboard is bundled by Vite, which strips types without
+      # checking them, so this is the only thing standing behind it.
+      - name: Typecheck admin dashboard
+        working-directory: apps/backend
+        run: npx tsc --noEmit -p tsconfig.admin.json
+
       - name: Typecheck storefront
         working-directory: apps/storefront
         run: npx tsc --noEmit
