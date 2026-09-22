@@ -28,12 +28,13 @@ export default function LegalIdentity({ segment }: { segment?: string }) {
   const rows: [string, React.ReactNode][] = [
     [t("legal.tradingName"), LEGAL.name],
   ]
-  if (LEGAL.cr) rows.push([t("legal.cr"), <span dir="ltr">{LEGAL.cr}</span>])
+  if (LEGAL.cr) rows.push([t("legal.cr"), <span key="cr" dir="ltr">{LEGAL.cr}</span>])
   if (LEGAL.address) rows.push([t("legal.address"), LEGAL.address])
   if (LEGAL.whatsapp) {
     rows.push([
       t("legal.whatsapp"),
       <a
+        key="whatsapp"
         href={`https://wa.me/${LEGAL.whatsapp}`}
         className="inline-flex min-h-[2.75rem] items-center text-blush-700 underline-offset-4 hover:underline"
       >
@@ -45,6 +46,7 @@ export default function LegalIdentity({ segment }: { segment?: string }) {
     rows.push([
       t("legal.email"),
       <a
+        key="email"
         href={`mailto:${LEGAL.email}`}
         className="inline-flex min-h-[2.75rem] items-center text-blush-700 underline-offset-4 hover:underline"
       >
