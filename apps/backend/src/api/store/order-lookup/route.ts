@@ -1,4 +1,4 @@
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { Modules } from "@medusajs/framework/utils"
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 
 import type { OrderLookupSchema } from "./middlewares"
@@ -27,7 +27,14 @@ export async function POST(
   req: MedusaRequest<OrderLookupSchema>,
   res: MedusaResponse
 ) {
-  const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+  /**
+   * Read through the order module rather than query.graph.
+   *
+   * query.graph does not compute an order's totals — it returned a total of
+   * zero however the fields were spelled — because the totals are worked out
+   * by the order module itself, which is what the admin route goes through.
+   */
+  const orderService = req.scope.resolve(Modules.ORDER)
   const { order_number, phone } = req.validatedBody
 
   const display_id = Number(String(order_number).replace(/[^\d]/g, ""))
@@ -36,23 +43,13 @@ export async function POST(
     return
   }
 
-  const { data: orders } = await query.graph({
-    entity: "order",
-    /**
-     * Asked for broadly, returned narrowly.
-     *
-     * Naming individual leaf fields left the order's computed totals at zero
-     * and dropped item quantities — Medusa works those out from the whole
-     * order, not from the columns you happen to list. The response below is
-     * still hand-built, so nothing extra reaches the customer.
-     */
-    fields: ["*", "items.*", "shipping_methods.*", "shipping_address.*"],
-    // display_id is numeric in the database; the filter's type says string.
-    filters: { display_id } as unknown as Record<string, unknown>,
-  })
+  // Read broadly, return narrowly: the response below is hand-built, so
+  // nothing beyond what a customer needs about their own order goes out.
+  const orders = await orderService.listOrders(
+    { display_id } as unknown as Record<string, unknown>,
+    { relations: ["items", "shipping_methods", "shipping_address"], take: 1 }
+  )
 
-  // query.graph infers a narrower shape than the fields asked for, so the
-  // row is re-typed rather than fought with.
   const order = orders?.[0] as unknown as
     | {
         display_id: number
