@@ -15,6 +15,7 @@ import { useParams, usePathname, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 import ProductPrice from "../product-price"
 import MobileActions from "./mobile-actions"
+import { track } from "@modules/common/components/analytics"
 import { useRouter } from "next/navigation"
 
 type ProductActionsProps = {
@@ -155,6 +156,18 @@ export default function ProductActions({
     setAddError(null)
     bumpCartCount(1)
     setJustAdded(true)
+    track("add_to_cart", {
+      currency: "QAR",
+      value: selectedVariant.calculated_price?.calculated_amount ?? 0,
+      items: [
+        {
+          item_id: product.handle,
+          item_name: product.title,
+          item_variant: selectedVariant.title,
+          quantity: 1,
+        },
+      ],
+    })
     window.setTimeout(() => setJustAdded(false), 2500)
 
     // Cleared straight away — leaving it filled in implies it still applies

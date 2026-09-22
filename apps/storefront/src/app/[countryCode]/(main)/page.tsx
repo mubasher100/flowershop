@@ -32,10 +32,10 @@ const HERO_SLIDES = [
   // The brand slide. The photograph is cropped from the brand reference —
   // tulips in blush wrapping with the shop's own ribbon — and the title is
   // the wordmark rather than text.
-  { image: "/hero/tulips.jpg", key: "hero.1", href: "/store", wordmark: true },
-  { image: "/hero/hero-02.jpg", key: "hero.2", href: "/categories/roses" },
+  { image: "/hero/tulips.webp", key: "hero.1", href: "/store", wordmark: true },
+  { image: "/hero/hero-02.webp", key: "hero.2", href: "/categories/roses" },
   {
-    image: "/hero/hero-03.jpg",
+    image: "/hero/hero-03.webp",
     key: "hero.3",
     href: "/collections/new-this-week",
   },

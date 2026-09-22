@@ -1,4 +1,5 @@
 import { Metadata } from "next"
+import Analytics from "@modules/common/components/analytics"
 import { LocalBusinessJsonLd } from "@modules/common/components/structured-data"
 
 import { getBaseURL } from "@lib/util/env"
@@ -57,6 +58,8 @@ export default async function PageLayout(props: {
       >
         {t("a11y.skipToContent")}
       </a>
+
+      <Analytics />
 
       {/* The shop's own record: name, area served, hours, how to reach it. */}
       <LocalBusinessJsonLd segment={countryCode} />

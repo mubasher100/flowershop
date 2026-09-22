@@ -55,6 +55,9 @@ jobs:
           NEXT_PUBLIC_LEGAL_CR: ${{ vars.LEGAL_CR }}
           NEXT_PUBLIC_LEGAL_ADDRESS: ${{ vars.LEGAL_ADDRESS }}
           NEXT_PUBLIC_LEGAL_EMAIL: ${{ vars.LEGAL_EMAIL }}
+          # Google Analytics 4. Unset means no analytics script ships at all,
+          # which is also why the site needs no cookie banner today.
+          NEXT_PUBLIC_GA_ID: ${{ vars.GA_MEASUREMENT_ID }}
           # The store name in the header, footer and page titles. Set the
           # BRAND_NAME repo variable once the real name is decided; it falls
           # back to the "Flowershop" placeholder.
