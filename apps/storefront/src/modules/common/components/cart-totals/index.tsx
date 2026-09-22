@@ -4,6 +4,14 @@ import { convertToLocale } from "@lib/util/money"
 import React from "react"
 
 type CartTotalsProps = {
+  /**
+   * The delivery fee the customer has just selected, before it reaches the
+   * cart. Passed by the checkout summary so the total on screen matches the
+   * total that will be charged; the cart page leaves it undefined.
+   */
+  shippingOverride?: number | null
+  /** Shown instead of a zero fee where no choice has been made yet. */
+  shippingPlaceholder?: string
   totals: {
     total?: number | null
     subtotal?: number | null
@@ -15,7 +23,11 @@ type CartTotalsProps = {
   }
 }
 
-const CartTotals: React.FC<CartTotalsProps> = ({ totals }) => {
+const CartTotals: React.FC<CartTotalsProps> = ({
+  totals,
+  shippingOverride,
+  shippingPlaceholder,
+}) => {
   const {
     currency_code,
     total,
@@ -24,6 +36,16 @@ const CartTotals: React.FC<CartTotalsProps> = ({ totals }) => {
     shipping_subtotal,
     discount_subtotal,
   } = totals
+
+  // Qatar charges no VAT and the shop runs no shipping-specific tax, so the
+  // selected fee can simply be added; the server arrives at the same number
+  // when it prices the order.
+  const shipping = shippingOverride ?? shipping_subtotal ?? 0
+  const shownTotal =
+    shippingOverride == null
+      ? total ?? 0
+      : (total ?? 0) - (shipping_subtotal ?? 0) + shippingOverride
+  const showPlaceholder = shippingOverride == null && !shipping_subtotal && !!shippingPlaceholder
 
   return (
     <div>
@@ -36,8 +58,10 @@ const CartTotals: React.FC<CartTotalsProps> = ({ totals }) => {
         </div>
         <div className="flex items-center justify-between">
           <span>Shipping</span>
-          <span data-testid="cart-shipping" data-value={shipping_subtotal || 0}>
-            {convertToLocale({ amount: shipping_subtotal ?? 0, currency_code })}
+          <span data-testid="cart-shipping" data-value={shipping}>
+            {showPlaceholder
+              ? shippingPlaceholder
+              : convertToLocale({ amount: shipping, currency_code })}
           </span>
         </div>
         {!!discount_subtotal && (
@@ -69,9 +93,9 @@ const CartTotals: React.FC<CartTotalsProps> = ({ totals }) => {
         <span
           className="txt-xlarge-plus"
           data-testid="cart-total"
-          data-value={total || 0}
+          data-value={shownTotal}
         >
-          {convertToLocale({ amount: total ?? 0, currency_code })}
+          {convertToLocale({ amount: shownTotal, currency_code })}
         </span>
       </div>
       <div className="h-px w-full border-b border-gray-200 mt-4" />

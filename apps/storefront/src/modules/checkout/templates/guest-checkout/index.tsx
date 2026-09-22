@@ -1,18 +1,20 @@
 "use client"
 
 import { HttpTypes } from "@medusajs/types"
-import { useActionState, useState } from "react"
+import { useActionState, useEffect, useState } from "react"
 
 import DemoPayment from "@modules/checkout/components/demo-payment"
 import {
   DELIVERY_AREAS as AREAS,
-  DELIVERY_WINDOWS as WINDOWS,
   FIELD_LIMITS,
   MIDNIGHT_WINDOW,
+  earliestStandardDate,
   isMidnightOption,
   midnightAvailability,
   qatarClock,
+  windowsFor,
 } from "@lib/util/delivery"
+import { setSelectedDelivery } from "@lib/util/delivery-selection"
 
 import { convertToLocale } from "@lib/util/money"
 import { placeGuestOrder, GuestOrderState } from "@lib/data/guest-order"
@@ -73,7 +75,10 @@ export default function GuestCheckout({
   // Today, in Qatar, as a yyyy-mm-dd bound for the date picker.
   const clock = qatarClock()
   const today = clock.date
-  const [deliveryDate, setDeliveryDate] = useState(today)
+  // Starts at the first date the shop can actually deliver on, which is
+  // tomorrow once today's cut-off has passed.
+  const [deliveryDate, setDeliveryDate] = useState(() => earliestStandardDate(clock))
+  const [deliveryWindow, setDeliveryWindow] = useState("")
 
   /**
    * 11:59 is pre-order only, and tonight's list closes in the afternoon.
@@ -82,16 +87,49 @@ export default function GuestCheckout({
    * 10am is most likely planning tonight and should be told when to return
    * rather than silently pushed to tomorrow.
    */
+  /**
+   * Standard delivery keeps the shop's own promise: "order before 6pm and it
+   * arrives today". After 6pm today is gone, and before then a window has to
+   * be far enough ahead to actually make and drive the order — so at 1pm the
+   * 2pm slot is no longer offered. Without this the site sold deliveries it
+   * could not make, including windows that had already passed.
+   */
+  const windows = windowsFor(deliveryDate, clock)
+  const standardMinDate = earliestStandardDate(clock)
+  const sameDayClosed = deliveryDate === today && windows.length === 0
+
   const midnightStatus = midnight ? midnightAvailability(deliveryDate, clock) : "open"
   // Computed without reference to the current choice, because it is needed
   // in the handler that makes 11:59 the choice.
   const midnightMinDate =
     midnightAvailability(today, clock) === "closed" ? clock.tomorrow : today
-  const minDate = midnight ? midnightMinDate : today
-  const selectMidnight = (id: string) => {
-    setShippingId(id)
-    if (deliveryDate < midnightMinDate) setDeliveryDate(midnightMinDate)
+  const minDate = midnight ? midnightMinDate : standardMinDate
+  const chooseDelivery = (option: HttpTypes.StoreCartShippingOption) => {
+    setShippingId(option.id)
+    const floor = isMidnightOption(option) ? midnightMinDate : standardMinDate
+    if (deliveryDate < floor) setDeliveryDate(floor)
   }
+
+  /**
+   * Publish the chosen option so the summary beside the form can price it.
+   * The cart carries no shipping method until the order is placed, so the
+   * summary would otherwise quote a total with the delivery fee missing.
+   */
+  // Keep the chosen window inside what is still deliverable: picking a later
+  // date reopens the morning slots, and today's slots fall away as the day
+  // goes on.
+  useEffect(() => {
+    if (!windows.length) return
+    if (!windows.includes(deliveryWindow)) setDeliveryWindow(windows[0])
+  }, [windows, deliveryWindow])
+
+  useEffect(() => {
+    setSelectedDelivery(
+      selectedOption
+        ? { amount: selectedOption.amount ?? 0, name: selectedOption.name ?? "" }
+        : null
+    )
+  }, [selectedOption])
 
   return (
     <form action={formAction} className="flex flex-col gap-8">
@@ -149,6 +187,21 @@ export default function GuestCheckout({
         </div>
 
         <div className="flex flex-col gap-1.5">
+          <label className={labelClass} htmlFor="recipient_phone">
+            {t("checkout.recipientPhone")}
+          </label>
+          {/* The driver's only way to reach the door. Separate from the
+              sender's number on purpose: most orders here are gifts, and
+              ringing the buyer from outside the recipient's building helps
+              nobody. dir="ltr" for the same reason as the sender's field. */}
+          <input id="recipient_phone" name="recipient_phone" required type="tel"
+            inputMode="tel" dir="ltr" maxLength={FIELD_LIMITS.phone}
+            className={`${fieldClass} text-start`}
+            placeholder={t("checkout.phonePlaceholder")} />
+          <p className="text-xs text-ink-500">{t("checkout.recipientPhoneHelp")}</p>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="area">
             {t("checkout.area")}
           </label>
@@ -188,11 +241,7 @@ export default function GuestCheckout({
                 <input type="radio" name="shipping_option_id"
                   value={option.id} required
                   checked={shippingId === option.id}
-                  onChange={() =>
-                    isMidnightOption(option)
-                      ? selectMidnight(option.id)
-                      : setShippingId(option.id)
-                  }
+                  onChange={() => chooseDelivery(option)}
                   className="mt-1 h-4 w-4 accent-blush-600" />
                 <span className="flex flex-col">
                   <span className="text-base text-ink-900">
@@ -213,6 +262,22 @@ export default function GuestCheckout({
           ))}
         </fieldset>
 
+        <div className="flex flex-col gap-1.5">
+          <label className={labelClass} htmlFor="delivery_notes">
+            {t("checkout.instructions")}{" "}
+            <span className="font-normal text-ink-500">
+              {t("checkout.optional")}
+            </span>
+          </label>
+          {/* Floor, gate code, "call before you arrive". These used to have to
+              be squeezed into the address box, where the driver may not read
+              them. */}
+          <input id="delivery_notes" name="delivery_notes"
+            maxLength={FIELD_LIMITS.instructions}
+            className={fieldClass}
+            placeholder={t("checkout.instructionsPlaceholder")} />
+        </div>
+
         <div className="grid grid-cols-1 gap-4 xsmall:grid-cols-2">
           <div className="flex flex-col gap-1.5">
             <label className={labelClass} htmlFor="delivery_date">
@@ -221,7 +286,11 @@ export default function GuestCheckout({
             <input id="delivery_date" name="delivery_date" type="date"
               min={minDate} value={deliveryDate}
               onChange={(e) => setDeliveryDate(e.target.value)}
+              required
               className={fieldClass} />
+            {!midnight && sameDayClosed && (
+              <p className="text-xs text-ink-500">{t("checkout.sameDayClosed")}</p>
+            )}
             {midnight && (
               <p className="text-xs text-ink-500">
                 {midnightStatus === "not-yet"
@@ -254,8 +323,9 @@ export default function GuestCheckout({
               </>
             ) : (
               <select id="delivery_window" name="delivery_window"
-                defaultValue={WINDOWS[0]} className={fieldClass}>
-                {WINDOWS.map((w) => <option key={w} value={w}>{w}</option>)}
+                value={deliveryWindow} onChange={(e) => setDeliveryWindow(e.target.value)}
+                className={fieldClass}>
+                {windows.map((w) => <option key={w} value={w}>{w}</option>)}
               </select>
             )}
           </div>

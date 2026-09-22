@@ -101,7 +101,12 @@ export function labelHtml(order: PrintableOrder, shopName: string) {
     meta(order, "recipient_name") ||
     [ship?.first_name, ship?.last_name].filter((p) => p && p !== "-").join(" ") ||
     meta(order, "contact_name")
-  const phone = ship?.phone || meta(order, "contact_phone")
+  // The driver rings this from outside the building, so it is the
+  // recipient's number — falling back to the buyer's only on older orders
+  // placed before that field existed.
+  const phone =
+    meta(order, "recipient_phone") || ship?.phone || meta(order, "contact_phone")
+  const instructions = meta(order, "delivery_notes")
   const area = ship?.city || meta(order, "delivery_area")
   const address = ship?.address_1 || ""
   const date = meta(order, "delivery_date")
@@ -125,6 +130,13 @@ export function labelHtml(order: PrintableOrder, shopName: string) {
     <div style="font-size:13pt;margin-top:5mm;line-height:1.45">
       ${esc(address) || ""}${address && area ? "<br/>" : ""}${esc(area)}
     </div>
+    ${
+      instructions
+        ? `<div style="font-size:12pt;margin-top:3mm;line-height:1.4">
+             <span class="muted">Instructions</span><br/><strong>${esc(instructions)}</strong>
+           </div>`
+        : ""
+    }
 
     <hr class="rule" />
 
@@ -226,6 +238,7 @@ export function receiptHtml(order: PrintableOrder, shopName: string) {
       <div>
         <div class="muted" style="font-size:9pt;text-transform:uppercase;letter-spacing:.08em">Delivery</div>
         <div style="margin-top:1.5mm">${esc(meta(order, "recipient_name")) || "—"}</div>
+        <div dir="ltr">${esc(meta(order, "recipient_phone"))}</div>
         <div>${esc(order.shipping_address?.address_1 ?? "")}</div>
         <div>${esc(order.shipping_address?.city || meta(order, "delivery_area"))}</div>
         <div>${esc(meta(order, "delivery_date"))} ${esc(meta(order, "delivery_window"))}</div>

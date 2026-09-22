@@ -18,8 +18,11 @@ export const retrieveOrder = async (id: string) => {
     .fetch<HttpTypes.StoreOrderResponse>(`/store/orders/${id}`, {
       method: "GET",
       query: {
+        // +metadata matters: the delivery date, window, recipient and gift
+        // message all live there, and the confirmation page reads them.
+        // Without it the page silently dropped the delivery line.
         fields:
-          "*payment_collections.payments,*items,*items.metadata,*items.variant,*items.product",
+          "+metadata,*payment_collections.payments,*items,*items.metadata,*items.variant,*items.product",
       },
       headers,
       next,

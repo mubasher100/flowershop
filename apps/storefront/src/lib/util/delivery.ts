@@ -51,6 +51,7 @@ export const FIELD_LIMITS = {
   recipient: 120,
   address: 500,
   giftNote: 300,
+  instructions: 200,
 } as const
 
 export const isDeliveryArea = (value: string): boolean =>
@@ -122,3 +123,47 @@ export const midnightAvailability = (
   if (clock.hour >= MIDNIGHT_ORDER_CLOSES_HOUR) return "closed"
   return "open"
 }
+
+/**
+ * Same-day delivery, and when it stops.
+ *
+ * The site promises "order before 6pm and it arrives today", so 6pm is the
+ * hour after which today is no longer offered at all. Before then, a window
+ * still has to be far enough ahead to cut, arrange and drive the order:
+ * LEAD_HOURS is that gap, so at 1pm the 2pm-4pm slot is already gone.
+ *
+ * Both numbers live here because the checkout, the delivery page and the
+ * server-side validation all have to agree about them.
+ */
+export const SAME_DAY_CUTOFF_HOUR = 18
+export const SAME_DAY_LEAD_HOURS = 2
+
+/** The hour a window opens: "2pm - 4pm" is 14. */
+export const windowStartHour = (value: string): number => {
+  const m = value.match(/^(\d{1,2})\s*(am|pm)/i)
+  if (!m) return 0
+  const h = Number(m[1]) % 12
+  return /pm/i.test(m[2]) ? h + 12 : h
+}
+
+/**
+ * The windows that can still be promised for a given date.
+ * A future date gets all of them; today gets whatever is far enough ahead,
+ * and nothing at all once the cut-off has passed; a past date gets none.
+ */
+export const windowsFor = (
+  date: string,
+  clock = qatarClock()
+): readonly string[] => {
+  if (date > clock.date) return DELIVERY_WINDOWS
+  if (date < clock.date) return []
+  if (clock.hour >= SAME_DAY_CUTOFF_HOUR) return []
+  return DELIVERY_WINDOWS.filter(
+    (w) => windowStartHour(w) >= clock.hour + SAME_DAY_LEAD_HOURS
+  )
+}
+
+/** The earliest date standard delivery can still be promised. */
+export const earliestStandardDate = (clock = qatarClock()): string =>
+  windowsFor(clock.date, clock).length ? clock.date : clock.tomorrow
+

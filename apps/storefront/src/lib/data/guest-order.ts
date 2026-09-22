@@ -9,12 +9,12 @@ import {
 } from "./cart"
 import { listCartPaymentMethods } from "./payment"
 import {
-  DELIVERY_WINDOWS,
   FIELD_LIMITS,
   isDeliveryArea,
-  isDeliveryWindow,
   MIDNIGHT_WINDOW,
   midnightAvailability,
+  qatarClock,
+  windowsFor,
 } from "@lib/util/delivery"
 
 /**
@@ -61,6 +61,8 @@ export async function placeGuestOrder(
   const area = get("area")
   const address = get("address", FIELD_LIMITS.address)
   const recipient = get("recipient", FIELD_LIMITS.recipient)
+  const recipientPhone = get("recipient_phone", FIELD_LIMITS.phone)
+  const instructions = get("delivery_notes", FIELD_LIMITS.instructions)
   const giftNote = get("gift_note", FIELD_LIMITS.giftNote)
 
   // Only ever a DEMO- reference from the simulated gateway. Guarded so a
@@ -70,14 +72,7 @@ export async function placeGuestOrder(
     ? rawReference
     : ""
   const deliveryDate = get("delivery_date")
-  // Falls back to the first window rather than rejecting: an unrecognised
-  // value is not worth blocking an order over, but it must not reach the
-  // shopkeeper as arbitrary text either.
   const rawWindow = get("delivery_window")
-  const deliveryWindow =
-    isDeliveryWindow(rawWindow) || rawWindow === MIDNIGHT_WINDOW
-      ? rawWindow
-      : DELIVERY_WINDOWS[0]
   const shippingOptionId = get("shipping_option_id")
   // Where to send them afterwards. Checked against the shape of a locale
   // segment so a crafted value cannot turn the redirect into an open one.
@@ -98,12 +93,53 @@ export async function placeGuestOrder(
   }
   if (!address) return { error: "Please add the delivery address." }
   if (!shippingOptionId) return { error: "Please choose a delivery speed." }
+  // The driver's number. The form requires it, but a form post is just an
+  // HTTP request, and an order that reaches the door with no way to call the
+  // recipient is the most expensive kind of failed delivery.
+  if (recipientPhone.replace(/\D/g, "").length < 8) {
+    return {
+      error:
+        "Please add the recipient's phone number so our driver can reach them.",
+    }
+  }
+
+  /**
+   * Delivery date and window, checked against the clock rather than trusted.
+   *
+   * The form only offers what is deliverable, but the browser is not the
+   * boundary: nothing stopped a crafted request booking a date in the past,
+   * or a 10am window at 11pm, both of which the shop would then have to
+   * apologise for.
+   */
+  const clock = qatarClock()
+  const isMidnight = rawWindow === MIDNIGHT_WINDOW
+  if (!deliveryDate || deliveryDate < clock.date) {
+    return { error: "Please choose a delivery date that has not passed." }
+  }
+
+  let deliveryWindow = rawWindow
+  if (!isMidnight) {
+    const available = windowsFor(deliveryDate, clock)
+    if (!available.length) {
+      return {
+        error:
+          "Today's deliveries have closed. Please choose tomorrow or a later date.",
+      }
+    }
+    if (!available.includes(rawWindow)) {
+      return {
+        error:
+          "That delivery time is no longer available. Please choose another window.",
+      }
+    }
+    deliveryWindow = rawWindow
+  }
 
   // 11:59 is pre-order only: tonight's run is made up in the afternoon, so
   // an order for tonight is taken only inside the window. The form says the
   // same thing, but the form is not the boundary.
-  if (deliveryWindow === MIDNIGHT_WINDOW) {
-    const availability = midnightAvailability(deliveryDate)
+  if (isMidnight) {
+    const availability = midnightAvailability(deliveryDate, clock)
     if (availability === "closed") {
       return {
         error:
@@ -121,7 +157,11 @@ export async function placeGuestOrder(
   const cart = await retrieveCart()
   if (!cart) return { error: "Your bag is empty." }
 
-  const [firstName, ...restName] = name.split(" ")
+  // The address belongs to whoever is receiving the flowers; the buyer's own
+  // name and number stay on the order as the contact. Before this the label
+  // and the confirmation both showed the sender as the recipient.
+  const deliverTo = recipient || name
+  const [firstName, ...restName] = deliverTo.split(" ")
 
   try {
     await updateCart({
@@ -129,7 +169,7 @@ export async function placeGuestOrder(
       shipping_address: {
         first_name: firstName,
         last_name: restName.join(" ") || "-",
-        phone,
+        phone: recipientPhone,
         address_1: address,
         city: area,
         country_code: "qa",
@@ -139,6 +179,8 @@ export async function placeGuestOrder(
         contact_name: name,
         contact_phone: phone,
         recipient_name: recipient || name,
+        recipient_phone: recipientPhone,
+        delivery_notes: instructions,
         delivery_area: area,
         delivery_date: deliveryDate,
         delivery_window: deliveryWindow,

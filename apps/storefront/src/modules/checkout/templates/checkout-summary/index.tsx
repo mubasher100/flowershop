@@ -1,3 +1,5 @@
+"use client"
+
 import { Heading } from "@modules/common/components/ui"
 
 import ItemsPreviewTemplate from "@modules/cart/templates/preview"
@@ -5,8 +7,19 @@ import DiscountCode from "@modules/checkout/components/discount-code"
 import CartTotals from "@modules/common/components/cart-totals"
 import Divider from "@modules/common/components/divider"
 import { HttpTypes } from "@medusajs/types"
+import { useSelectedDelivery } from "@lib/util/delivery-selection"
+import { useTranslations } from "@lib/i18n/use-translations"
 
+/**
+ * Client-rendered so the total can follow the delivery option as it is
+ * chosen. The cart itself carries no shipping method until the order is
+ * placed, so without this the summary quoted a total that left the delivery
+ * fee out.
+ */
 const CheckoutSummary = ({ cart }: { cart: HttpTypes.StoreCart }) => {
+  const selected = useSelectedDelivery()
+  const { t } = useTranslations()
+
   return (
     <div className="sticky top-0 flex flex-col-reverse small:flex-col gap-y-8 py-8 small:py-0 ">
       <div className="w-full bg-white flex flex-col">
@@ -15,10 +28,14 @@ const CheckoutSummary = ({ cart }: { cart: HttpTypes.StoreCart }) => {
           level="h2"
           className="flex flex-row text-3xl-regular items-baseline"
         >
-          In your Cart
+          {t("checkout.summaryHeading")}
         </Heading>
         <Divider className="my-6" />
-        <CartTotals totals={cart} />
+        <CartTotals
+          totals={cart}
+          shippingOverride={selected?.amount ?? null}
+          shippingPlaceholder={t("cart.shippingAtCheckout")}
+        />
         <ItemsPreviewTemplate cart={cart} />
         <div className="my-6">
           <DiscountCode cart={cart} />

@@ -20,7 +20,7 @@ const ShippingDetails = ({ order }: ShippingDetailsProps) => {
           data-testid="shipping-address-summary"
         >
           <Text className="txt-medium-plus text-ui-fg-base mb-1">
-            Shipping Address
+            Delivering to
           </Text>
           <Text className="txt-medium text-ui-fg-subtle">
             {order.shipping_address?.first_name}{" "}
@@ -31,7 +31,6 @@ const ShippingDetails = ({ order }: ShippingDetailsProps) => {
             {order.shipping_address?.address_2}
           </Text>
           <Text className="txt-medium text-ui-fg-subtle">
-            {order.shipping_address?.postal_code},{" "}
             {order.shipping_address?.city}
           </Text>
           <Text className="txt-medium text-ui-fg-subtle">
@@ -44,10 +43,17 @@ const ShippingDetails = ({ order }: ShippingDetailsProps) => {
           data-testid="shipping-contact-summary"
         >
           <Text className="txt-medium-plus text-ui-fg-base mb-1">Contact</Text>
-          <Text className="txt-medium text-ui-fg-subtle">
+          <Text className="txt-medium text-ui-fg-subtle" dir="ltr">
             {order.shipping_address?.phone}
           </Text>
-          <Text className="txt-medium text-ui-fg-subtle">{order.email}</Text>
+          {/* order.email is a placeholder derived from the phone number
+              (97455512345@guest.flowershop.qa) because Medusa requires one.
+              It is not a real address and must never be shown. */}
+          {!!(order.metadata?.delivery_notes as string) && (
+            <Text className="txt-medium text-ui-fg-subtle">
+              {order.metadata?.delivery_notes as string}
+            </Text>
+          )}
         </div>
 
         <div

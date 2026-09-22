@@ -34,7 +34,9 @@ const Summary = ({ cart }: SummaryProps) => {
       </Heading>
       <DiscountCode cart={cart} />
       <Divider />
-      <CartTotals totals={cart} />
+      {/* No delivery option has been chosen yet, so a zero fee would read as
+          free delivery when it is 20 QAR. */}
+      <CartTotals totals={cart} shippingPlaceholder={t("cart.shippingAtCheckout")} />
       <LocalizedClientLink
         href={"/checkout?step=" + step}
         data-testid="checkout-button"

@@ -27,6 +27,7 @@ const OrderDetails = ({ order, showStatus }: OrderDetailsProps) => {
 
   const deliveryDate = order.metadata?.delivery_date as string | undefined
   const deliveryWindow = order.metadata?.delivery_window as string | undefined
+  const giftNote = order.metadata?.gift_note as string | undefined
 
   return (
     <div className="flex flex-col gap-3">
@@ -54,6 +55,15 @@ const OrderDetails = ({ order, showStatus }: OrderDetailsProps) => {
           <span className="font-semibold text-ink-900">
             {[deliveryDate, deliveryWindow].filter(Boolean).join(", ")}
           </span>
+        </p>
+      )}
+
+      {/* Read the gift message back. It is handwritten onto a card by the
+          florist, so a typo is worth catching now rather than at the door. */}
+      {!!giftNote && (
+        <p className="text-base text-ink-700">
+          Gift message:{" "}
+          <span className="font-semibold text-ink-900">&ldquo;{giftNote}&rdquo;</span>
         </p>
       )}
 

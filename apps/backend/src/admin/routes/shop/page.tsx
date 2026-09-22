@@ -413,6 +413,10 @@ const ShopPage = () => {
                       ]
                         .filter(Boolean)
                         .join(" · ")}
+                      {meta.recipient_phone
+                        ? ` · calls ${meta.recipient_phone}`
+                        : ""}
+                      {meta.delivery_notes ? ` · ${meta.delivery_notes}` : ""}
                     </Text>
 
                     {meta.gift_note && (

@@ -268,6 +268,16 @@ export const DICTIONARY = {
 
     "checkout.placing": "Sending your order…",
     "checkout.place": "Place order",
+    "checkout.recipientPhone": "Recipient's phone",
+    "checkout.recipientPhoneHelp":
+      "Our driver calls this number at the door. If the flowers are for you, use your own.",
+    "checkout.instructions": "Delivery instructions",
+    "checkout.instructionsPlaceholder":
+      "Floor, gate code, or leave with reception",
+    "checkout.sameDayClosed":
+      "Today's deliveries have closed. The earliest we can deliver is tomorrow.",
+    "checkout.summaryHeading": "In your bag",
+    "cart.shippingAtCheckout": "Chosen at checkout",
     "checkout.noCharge":
       "Nothing is charged now. We'll confirm availability and payment with you on WhatsApp.",
 
@@ -612,6 +622,16 @@ export const DICTIONARY = {
 
     "checkout.placing": "جارٍ إرسال طلبك…",
     "checkout.place": "إتمام الطلب",
+    "checkout.recipientPhone": "رقم هاتف المستلم",
+    "checkout.recipientPhoneHelp":
+      "يتصل مندوبنا بهذا الرقم عند الباب. إذا كانت الورود لك، استخدم رقمك.",
+    "checkout.instructions": "تعليمات التوصيل",
+    "checkout.instructionsPlaceholder":
+      "الطابق أو رمز البوابة أو التسليم للاستقبال",
+    "checkout.sameDayClosed":
+      "أُغلقت توصيلات اليوم. أقرب موعد للتوصيل هو الغد.",
+    "checkout.summaryHeading": "في سلتك",
+    "cart.shippingAtCheckout": "يُحدد عند إتمام الطلب",
     "checkout.noCharge":
       "لن يتم خصم أي مبلغ الآن. سنؤكد التوفر وطريقة الدفع معك على واتساب.",
 
