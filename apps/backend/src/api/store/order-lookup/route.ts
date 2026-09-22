@@ -40,19 +40,19 @@ export async function POST(
    * Read broadly, return narrowly: the response below is hand-built, so
    * nothing beyond what a customer needs about their own order goes out.
    *
-   * The relations have to be in the field list for the totals to add up —
-   * asking for "total" alone returns zero, because it is derived from the
-   * items and shipping methods rather than stored.
+   * The total and the fulfilment status are worked out here rather than
+   * asked for: both are computed by middleware on the admin routes, and
+   * query.graph returns them as zero and undefined respectively however the
+   * field list is spelled.
    */
   const { data: orders } = await query.graph({
     entity: "order",
     fields: [
       "*",
-      "total",
-      "fulfillment_status",
       "items.*",
       "shipping_methods.*",
       "shipping_address.*",
+      "fulfillments.*",
     ],
     // display_id is numeric in the database; the filter's type says string.
     filters: { display_id } as unknown as Record<string, unknown>,
@@ -63,13 +63,17 @@ export async function POST(
         display_id: number
         created_at: string
         status: string
-        fulfillment_status: string
         currency_code: string
-        total: number
         metadata?: Record<string, unknown> | null
-        items?: { title: string; quantity: number }[]
+        items?: {
+          title: string
+          quantity: number
+          total?: number
+          unit_price?: number
+        }[]
         shipping_address?: { phone?: string | null } | null
-        shipping_methods?: { name?: string | null }[]
+        shipping_methods?: { name?: string | null; amount?: number }[]
+        fulfillments?: { id: string }[]
       }
     | undefined
 
@@ -93,14 +97,30 @@ export async function POST(
     return
   }
 
+  const goods = (order.items ?? []).reduce(
+    (sum, i) => sum + Number(i.total ?? (i.unit_price ?? 0) * (i.quantity ?? 0)),
+    0
+  )
+  const delivery = (order.shipping_methods ?? []).reduce(
+    (sum, m) => sum + Number(m.amount ?? 0),
+    0
+  )
+
+  /** One word the customer actually cares about, rather than Medusa's states. */
+  const state =
+    order.status === "canceled"
+      ? "cancelled"
+      : (order.fulfillments ?? []).length
+        ? "sent"
+        : "preparing"
+
   res.json({
     order: {
       order_number: order.display_id,
       placed_at: order.created_at,
-      status: order.status,
-      fulfillment_status: order.fulfillment_status,
+      state,
       currency_code: order.currency_code,
-      total: order.total,
+      total: goods + delivery,
       delivery_date: (order.metadata?.delivery_date as string) ?? null,
       delivery_window: (order.metadata?.delivery_window as string) ?? null,
       delivery_area: (order.metadata?.delivery_area as string) ?? null,

@@ -66,9 +66,9 @@ export default function TrackOrder() {
               {t("track.order")} #{order.order_number}
             </h2>
             <span className="rounded-full bg-blush-50 px-3 py-1 text-sm font-semibold text-blush-700">
-              {order.fulfillment_status === "fulfilled"
+              {order.state === "sent"
                 ? t("track.sent")
-                : order.status === "canceled"
+                : order.state === "cancelled"
                   ? t("track.cancelled")
                   : t("track.preparing")}
             </span>

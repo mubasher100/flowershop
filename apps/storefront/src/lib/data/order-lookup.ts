@@ -16,8 +16,9 @@ import { sdk } from "@lib/config"
 export type TrackedOrder = {
   order_number: number
   placed_at: string
-  status: string
-  fulfillment_status: string
+  /** "preparing" | "sent" | "cancelled" — the backend reduces Medusa's
+      states to the one word a customer is actually asking about. */
+  state: string
   currency_code: string
   total: number
   delivery_date: string | null
