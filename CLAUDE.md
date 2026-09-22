@@ -171,7 +171,7 @@ The defining homepage rhythm is **promotional banners alternating with product r
 
 The target is [UMN's web standards](https://umarcomm.umn.edu/resources/web-standards-and-best-practices), which mandate **WCAG 2.1 level AA**, plus valid markup, a custom 404, working redirects and basic SEO hygiene. The page is behind a Cloudflare challenge — fetch it with a real browser, not `curl`.
 
-Audited with axe-core across the homepage, catalogue, product page, cart and checkout × both locales × 375px and 1280px. **Currently zero WCAG 2.1 AA violations.** Re-run it after any significant UI change; the script lives in the session scratchpad and is quick to recreate.
+Audited with axe-core across the homepage, catalogue, product page, cart, checkout and order tracking × both locales. **Currently zero WCAG 2.1 AA violations** (re-verified 22 Sep 2026 against production). The cart had three — an unnamed bin button, an unnamed quantity select and a 3.67:1 promotion link, all inherited from the Medusa starter — so re-run it against the cart and checkout specifically, not just the pages that were clean last time. Re-run it after any significant UI change; the script lives in the session scratchpad and is quick to recreate.
 
 Things that were wrong and are worth not reintroducing:
 
@@ -243,6 +243,8 @@ Seeded and verified against the live Supabase database.
 - **Region:** Qatar · country code `qa` · currency **QAR** (store default). The starter's Europe/EUR region has been removed, so `qa` is the only region.
 - **Warehouse:** Doha Warehouse · fulfillment set "Qatar delivery" · service zone covering `qa`
 - **Shipping:** Standard Delivery (20 QAR, with a time slot; today's date is same-day) and **11:59 Midnight Surprise** (50 QAR placeholder, type code `midnight`). 11:59 is pre-order only: orders for a night are taken 12pm–6pm Qatar time that day (`MIDNIGHT_ORDER_OPENS_HOUR` / `MIDNIGHT_ORDER_CLOSES_HOUR` in `apps/storefront/src/lib/util/delivery.ts`), enforced server-side in `guest-order.ts`. Same-Day as a paid tier was removed on 19 Sep 2026; `seed-qatar` deletes it if it reappears.
+- **Delivery capacity:** `deliveryCapacity` module, one row per day — closed, a limit for the day, a limit per window, and what is already booked. Counts are kept by `src/subscribers/delivery-capacity.ts` on `order.placed` and released on `order.canceled`, because the delivery date lives in order metadata, which the Admin API cannot filter or group by. Days nobody has booked have no row. Admin → **Delivery days**; defaults in `src/modules/delivery-capacity/constants.ts`.
+- **Same-day cut-off is enforced, not just advertised.** `windowsFor()` in `apps/storefront/src/lib/util/delivery.ts` drops a window that is inside `SAME_DAY_LEAD_HOURS`, and today disappears entirely after `SAME_DAY_CUTOFF_HOUR` (6pm). `guest-order.ts` re-checks the date, the window and the day's capacity — the form is never the boundary.
 - **Tax region:** `qa` at 0% — Qatar has no VAT on most goods, but the region must exist or checkout can't calculate totals
 - **Products:** 4 placeholder items from the starter, repriced in QAR. Real flower products land in phase 7.
 - **Languages:** English + Arabic, with RTL. Live at `/en-qa` and `/ar-qa`. Interface copy is translated; the catalogue is not — see the localization section below.
@@ -361,6 +363,8 @@ A wrong port does not fail at boot. It surfaces later as intermittent `prepared 
 **`medusa start` forces `NODE_ENV=production`,** even locally. Since the Redis guard in `medusa-config.ts` throws in production, running a production build on a dev machine needs `ALLOW_INMEMORY_INFRA=true`. Never set that on Railway — it disables the guard that stops a Redis-less deploy.
 
 **Don't put `?sslmode=require` in `DATABASE_URL`.** node-postgres treats it as `verify-full` and rejects Supabase's certificate chain with `SELF_SIGNED_CERT_IN_CHAIN`. TLS is already configured via `databaseDriverOptions` in `medusa-config.ts`.
+
+**The admin dashboard has its own tsconfig.** `apps/backend/tsconfig.json` excludes `src/admin` and `tsconfig.admin.json` covers it on Bundler resolution, because Vite bundles the admin as ESM (`import.meta.env`) while the server compiles to CommonJS. Both are type-checked in CI. The backend also pins one React type identity via `paths` — the admin's tree carries `@types/react` 18 while the hoisted packages it renders resolve the root's 19, and the two ReactNode types are structurally different, which made every Medusa UI component read as "cannot be used as a JSX component". That failure had CI red from August until 22 Sep 2026.
 
 **`next build` skips type and lint checks** (`ignoreBuildErrors` / `ignoreDuringBuilds` are set in `next.config.js`). A green build proves nothing about types. `npx tsc --noEmit` is what actually gates storefront type safety, and CI runs it separately.
 
