@@ -1,4 +1,5 @@
 import { Metadata } from "next"
+import WhatsAppButton from "@modules/layout/components/whatsapp-button"
 import Analytics from "@modules/common/components/analytics"
 import { LocalBusinessJsonLd } from "@modules/common/components/structured-data"
 
@@ -74,6 +75,7 @@ export default async function PageLayout(props: {
 
       <Footer segment={countryCode} />
       <BottomNav />
+      <WhatsAppButton />
     </>
   )
 }

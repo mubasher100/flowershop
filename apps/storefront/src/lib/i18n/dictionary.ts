@@ -270,6 +270,8 @@ export const DICTIONARY = {
     "checkout.place": "Place order",
     "product.substitution":
       "Flowers are seasonal. If a variety or colour is unavailable we substitute one of equal or greater value in the same style, and tell you before we change the look of an arrangement.",
+    "whatsapp.label": "Ask us on WhatsApp",
+    "whatsapp.message": "Hello! I have a question about {page}",
     "page.trackTitle": "Track your order",
     "page.trackIntro":
       "Enter your order number and the phone number on the order, and we will show you where it is.",
@@ -644,6 +646,8 @@ export const DICTIONARY = {
     "checkout.place": "إتمام الطلب",
     "product.substitution":
       "الورود موسمية. إذا لم يتوفر نوع أو لون معيّن نستبدله بآخر من القيمة نفسها أو أعلى وبالأسلوب نفسه، ونخبرك قبل تغيير شكل التنسيق.",
+    "whatsapp.label": "اسألنا على واتساب",
+    "whatsapp.message": "مرحباً! لدي سؤال بخصوص {page}",
     "page.trackTitle": "تتبع طلبك",
     "page.trackIntro":
       "أدخل رقم الطلب ورقم الهاتف المسجّل عليه، وسنعرض لك أين وصل.",
