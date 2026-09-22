@@ -297,14 +297,26 @@ export async function applyPromotions(codes: string[]) {
     ...(await getAuthHeaders()),
   }
 
+  /**
+   * Returns the codes the cart actually ended up with.
+   *
+   * Medusa does not reject an unknown promotion code — it simply does not
+   * apply it — so the caller has no way to tell a typo from a discount that
+   * worked unless it compares. Before this, an invalid code cleared the field
+   * and said nothing at all.
+   */
   return sdk.store.cart
     .update(cartId, { promo_codes: codes }, {}, headers)
-    .then(async () => {
+    .then(async ({ cart }) => {
       const cartCacheTag = await getCacheTag("carts")
       revalidateTag(cartCacheTag)
 
       const fulfillmentCacheTag = await getCacheTag("fulfillment")
       revalidateTag(fulfillmentCacheTag)
+
+      return (cart?.promotions ?? [])
+        .map((p) => p.code)
+        .filter((c): c is string => !!c)
     })
     .catch(medusaError)
 }

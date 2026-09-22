@@ -22,6 +22,9 @@ const ItemsTemplate = ({ cart, segment }: ItemsTemplateProps) => {
           {t("cart.title")}
         </Heading>
       </div>
+      {/* The table's own columns are wider than a 320px screen. It scrolls
+          inside this box so the page itself never does. */}
+      <div className="w-full overflow-x-auto">
       <Table>
         <Table.Header className="border-t-0">
           <Table.Row className="text-ui-fg-subtle txt-medium-plus">
@@ -58,6 +61,7 @@ const ItemsTemplate = ({ cart, segment }: ItemsTemplateProps) => {
               })}
         </Table.Body>
       </Table>
+      </div>
     </div>
   )
 }

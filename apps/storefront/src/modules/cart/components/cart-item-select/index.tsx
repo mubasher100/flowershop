@@ -50,6 +50,7 @@ const CartItemSelect = forwardRef<HTMLSelectElement, NativeSelectProps>(
           )}
         >
           <select
+            aria-label={props["aria-label"] ?? "Quantity"}
             ref={innerRef}
             {...props}
             className="appearance-none bg-transparent border-none px-4 transition-colors duration-150 focus:border-gray-700 outline-none w-16 h-16 items-center justify-center"

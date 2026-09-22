@@ -17,6 +17,8 @@ import Accordion from "./accordion"
 
 const listClass = "flex flex-col gap-2 text-sm leading-relaxed text-ink-600"
 
+const ABOUT_POINTS: TranslationKey[] = ["product.substitution"]
+
 const CARE_POINTS: TranslationKey[] = [
   "care.trim",
   "care.water",
@@ -56,6 +58,16 @@ const ProductTabs = () => {
       component: (
         <div className="py-3">
           <Points keys={CARE_POINTS} />
+          {/* Flowers are seasonal and stems do get swapped. Saying so here,
+              before the order, is the difference between an expected
+              substitution and "that isn't what I ordered". */}
+          <ul className={listClass}>
+            {ABOUT_POINTS.map((key) => (
+              <li key={key} className="font-medium text-ink-800">
+                {t(key)}
+              </li>
+            ))}
+          </ul>
         </div>
       ),
     },

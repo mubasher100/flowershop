@@ -43,9 +43,23 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
     codes.push(code.toString())
 
     try {
-      await applyPromotions(codes)
+      const applied = await applyPromotions(codes)
+      const entered = code.toString().trim()
+      const landed = (applied ?? []).some(
+        (c) => c.toLowerCase() === entered.toLowerCase()
+      )
+      if (!landed) {
+        // Medusa ignores an unknown code rather than refusing it, so silence
+        // here would read as "applied" to the customer.
+        setErrorMessage(
+          `“${entered}” is not a valid code, or it does not apply to this order.`
+        )
+        return
+      }
+      setErrorMessage("")
     } catch (e) {
       setErrorMessage(e instanceof Error ? e.message : String(e))
+      return
     }
 
     if (input) {
@@ -61,7 +75,7 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
             <button
               onClick={() => setIsOpen(!isOpen)}
               type="button"
-              className="txt-medium text-ui-fg-interactive hover:text-ui-fg-interactive-hover"
+              className="txt-medium font-medium text-blush-700 underline underline-offset-4 hover:text-blush-800"
               data-testid="add-discount-button"
             >
               Add Promotion Code(s)

@@ -150,6 +150,34 @@ export default function Search() {
     }
   }, [open, index, country])
 
+  /**
+   * True when one insertion, deletion or substitution turns a into b — enough
+   * for a slipped or doubled key, and cheap enough to run over the whole
+   * index on every keystroke.
+   */
+  const withinOneEdit = (a: string, b: string): boolean => {
+    if (b.startsWith(a)) return true
+    if (Math.abs(a.length - b.length) > 1) return false
+    let i = 0
+    let j = 0
+    let edits = 0
+    while (i < a.length && j < b.length) {
+      if (a[i] === b[j]) {
+        i++
+        j++
+        continue
+      }
+      if (++edits > 1) return false
+      if (a.length > b.length) i++
+      else if (a.length < b.length) j++
+      else {
+        i++
+        j++
+      }
+    }
+    return edits + (a.length - i) + (b.length - j) <= 1
+  }
+
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q || !index) return []
@@ -157,9 +185,23 @@ export default function Search() {
     // Every word must appear somewhere, so "red rose" narrows rather than
     // widening the way a plain substring match would.
     const words = q.split(/\s+/)
-    return index
-      .filter((p) => words.every((w) => p.terms.includes(w)))
-      .slice(0, MAX_RESULTS)
+    const exact = index.filter((p) => words.every((w) => p.terms.includes(w)))
+    if (exact.length) return exact.slice(0, MAX_RESULTS)
+
+    /**
+     * Nothing matched exactly, so try again allowing one typo per word.
+     * "tulps" used to return an empty shop, which reads as "we do not sell
+     * tulips" rather than "you missed a key". Only run as a fallback, so a
+     * precise search is never widened.
+     */
+    const near = index.filter((p) =>
+      words.every((w) =>
+        w.length < 4
+          ? p.terms.includes(w)
+          : p.terms.split(/\s+/).some((term) => withinOneEdit(w, term))
+      )
+    )
+    return near.slice(0, MAX_RESULTS)
   }, [query, index])
 
   const close = useCallback(() => {

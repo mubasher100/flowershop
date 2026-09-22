@@ -7,10 +7,13 @@ const DeleteButton = ({
   id,
   children,
   className,
+  label = "Remove from bag",
 }: {
   id: string
   children?: React.ReactNode
   className?: string
+  /** Read by a screen reader, since the control is usually just a bin icon. */
+  label?: string
 }) => {
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -29,7 +32,10 @@ const DeleteButton = ({
       )}
     >
       <button
-        className="flex gap-x-1 text-ui-fg-subtle hover:text-ui-fg-base cursor-pointer"
+        type="button"
+        aria-label={label}
+        title={label}
+        className="flex min-h-[2.75rem] items-center gap-x-1 text-ui-fg-subtle hover:text-ui-fg-base cursor-pointer"
         onClick={() => handleDelete(id)}
       >
         {isDeleting ? <Spinner className="animate-spin" /> : <Trash />}

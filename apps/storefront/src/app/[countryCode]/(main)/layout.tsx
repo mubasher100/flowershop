@@ -1,4 +1,5 @@
 import { Metadata } from "next"
+import { LocalBusinessJsonLd } from "@modules/common/components/structured-data"
 
 import { getBaseURL } from "@lib/util/env"
 import { getTranslations } from "@lib/i18n/dictionary"
@@ -56,6 +57,9 @@ export default async function PageLayout(props: {
       >
         {t("a11y.skipToContent")}
       </a>
+
+      {/* The shop's own record: name, area served, hours, how to reach it. */}
+      <LocalBusinessJsonLd segment={countryCode} />
 
       <Nav segment={countryCode} />
 

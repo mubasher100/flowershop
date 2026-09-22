@@ -1,4 +1,8 @@
 import { alternatesFor, segmentsFor } from "@lib/util/locale"
+import {
+  BreadcrumbJsonLd,
+  ProductJsonLd,
+} from "@modules/common/components/structured-data"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { listProducts } from "@lib/data/products"
@@ -137,11 +141,27 @@ export default async function ProductPage(props: Props) {
   const images = getImagesForVariant(pricedProduct, selectedVariantId)
 
   return (
-    <ProductTemplate
-      product={pricedProduct}
-      region={region}
-      countryCode={params.countryCode}
-      images={images ?? []}
-    />
+    <>
+      {/* So a search result can carry the price and the shop, not just a link. */}
+      <ProductJsonLd
+        product={pricedProduct}
+        segment={params.countryCode}
+        currencyCode={region.currency_code}
+      />
+      <BreadcrumbJsonLd
+        segment={params.countryCode}
+        trail={[
+          { name: "Home", path: "" },
+          { name: "All flowers", path: "/store" },
+          { name: pricedProduct.title, path: `/products/${pricedProduct.handle}` },
+        ]}
+      />
+      <ProductTemplate
+        product={pricedProduct}
+        region={region}
+        countryCode={params.countryCode}
+        images={images ?? []}
+      />
+    </>
   )
 }

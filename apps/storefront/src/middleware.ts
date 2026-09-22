@@ -128,9 +128,37 @@ function localePreference(request: NextRequest): Locale {
 /**
  * Middleware to handle region selection and onboarding status.
  */
+/**
+ * Headers every response carries.
+ *
+ * The site had none of these. HSTS is the one that matters most: without it
+ * a first visit over http:// is a plaintext round trip that can be
+ * intercepted, and Cloudflare's redirect only helps after it has happened.
+ * The rest are cheap and stop a class of embedding and sniffing attacks.
+ *
+ * No Content-Security-Policy yet: the storefront inlines Next's hydration
+ * scripts, so a useful policy needs nonces threading through the document,
+ * which is a larger change than this pass.
+ */
+const SECURITY_HEADERS: [string, string][] = [
+  ["Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload"],
+  ["X-Content-Type-Options", "nosniff"],
+  ["X-Frame-Options", "SAMEORIGIN"],
+  ["Referrer-Policy", "strict-origin-when-cross-origin"],
+  ["X-DNS-Prefetch-Control", "on"],
+  ["Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()"],
+]
+
+const withSecurityHeaders = (response: NextResponse) => {
+  for (const [name, value] of SECURITY_HEADERS) {
+    response.headers.set(name, value)
+  }
+  return response
+}
+
 export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.includes(".")) {
-    return NextResponse.next()
+    return withSecurityHeaders(NextResponse.next())
   }
 
   // One canonical host. Both www and the apex are bound to the Worker so
@@ -140,7 +168,7 @@ export async function middleware(request: NextRequest) {
   if (host.startsWith("www.")) {
     const url = request.nextUrl.clone()
     url.host = host.slice(4)
-    return NextResponse.redirect(url, 308)
+    return withSecurityHeaders(NextResponse.redirect(url, 308))
   }
 
   const cacheIdCookie = request.cookies.get("_medusa_cache_id")
@@ -173,9 +201,9 @@ export async function middleware(request: NextRequest) {
       response.cookies.set("_medusa_cache_id", cacheId, {
         maxAge: 60 * 60 * 24,
       })
-      return response
+      return withSecurityHeaders(response)
     }
-    return NextResponse.next()
+    return withSecurityHeaders(NextResponse.next())
   }
 
   // Otherwise send the visitor to a proper locale-and-country URL.
@@ -195,9 +223,11 @@ export async function middleware(request: NextRequest) {
   const redirectPath = rest.length ? `/${rest.join("/")}` : ""
   const queryString = request.nextUrl.search || ""
 
-  return NextResponse.redirect(
-    `${request.nextUrl.origin}/${target}${redirectPath}${queryString}`,
-    307
+  return withSecurityHeaders(
+    NextResponse.redirect(
+      `${request.nextUrl.origin}/${target}${redirectPath}${queryString}`,
+      307
+    )
   )
 }
 
