@@ -38,19 +38,15 @@ export async function POST(
 
   const { data: orders } = await query.graph({
     entity: "order",
-    fields: [
-      "display_id",
-      "created_at",
-      "status",
-      "fulfillment_status",
-      "currency_code",
-      "total",
-      "metadata",
-      "items.title",
-      "items.quantity",
-      "shipping_address.phone",
-      "shipping_methods.name",
-    ],
+    /**
+     * Asked for broadly, returned narrowly.
+     *
+     * Naming individual leaf fields left the order's computed totals at zero
+     * and dropped item quantities — Medusa works those out from the whole
+     * order, not from the columns you happen to list. The response below is
+     * still hand-built, so nothing extra reaches the customer.
+     */
+    fields: ["*", "items.*", "shipping_methods.*", "shipping_address.*"],
     // display_id is numeric in the database; the filter's type says string.
     filters: { display_id } as unknown as Record<string, unknown>,
   })
