@@ -8,6 +8,7 @@ import {
   updateCart,
 } from "./cart"
 import { listCartPaymentMethods } from "./payment"
+import { listDeliveryAvailability } from "@lib/data/delivery-availability"
 import {
   FIELD_LIMITS,
   isDeliveryArea,
@@ -113,6 +114,26 @@ export async function placeGuestOrder(
    */
   const clock = qatarClock()
   const isMidnight = rawWindow === MIDNIGHT_WINDOW
+
+  // Capacity, checked here as well as in the form. A closed day or a full
+  // window must refuse the order rather than take it and leave the shop to
+  // explain itself.
+  const [day] = await listDeliveryAvailability([deliveryDate])
+  if (day?.closed) {
+    return {
+      error: "We are not delivering on that date. Please choose another day.",
+    }
+  }
+  if (day?.full) {
+    return {
+      error: "That day is fully booked. Please choose another date.",
+    }
+  }
+  if (!isMidnight && day?.full_windows?.includes(rawWindow)) {
+    return {
+      error: "That delivery window is fully booked. Please choose another time.",
+    }
+  }
   if (!deliveryDate || deliveryDate < clock.date) {
     return { error: "Please choose a delivery date that has not passed." }
   }

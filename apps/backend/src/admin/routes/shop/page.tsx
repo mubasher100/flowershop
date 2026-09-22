@@ -264,6 +264,33 @@ function AddProduct({
   )
 }
 
+/** Sorts two-hour windows by when they start; 11:59 goes last. */
+function windowRank(window: string): number {
+  if (!window) return 99
+  if (/11[:.]59/.test(window)) return 98
+  const m = window.match(/^(\d{1,2})\s*(am|pm)/i)
+  if (!m) return 97
+  const h = Number(m[1]) % 12
+  return /pm/i.test(m[2]) ? h + 12 : h
+}
+
+/** "Today", "Tomorrow", or a date a person can read at a glance. */
+function dayHeading(date: string, today: string): string {
+  if (date === "unscheduled") return "No delivery date"
+  const d = new Date(`${date}T12:00:00Z`)
+  const t = new Date(`${today}T12:00:00Z`)
+  const days = Math.round((d.getTime() - t.getTime()) / 86400000)
+  const pretty = d.toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+  })
+  if (days === 0) return `Today — ${pretty}`
+  if (days === 1) return `Tomorrow — ${pretty}`
+  if (days < 0) return `Overdue — ${pretty}`
+  return pretty
+}
+
 /**
  * The "we've got your order" message, ready to send.
  *
@@ -368,6 +395,40 @@ const ShopPage = () => {
 
   const waiting = orders.filter((o) => o.fulfillment_status !== "fulfilled")
 
+  /**
+   * Grouped by the day the flowers have to go out, soonest first.
+   *
+   * A florist works tomorrow's run, not yesterday's orders, and the list was
+   * sorted by when the order was placed — so "everything going out Thursday"
+   * meant reading every card. Grouping happens here because the delivery date
+   * lives in order metadata, which the Admin API cannot sort on.
+   *
+   * Orders with no delivery date (placed before the field existed) collect at
+   * the end rather than disappearing.
+   */
+  const byDay = new Map<string, AdminOrder[]>()
+  for (const order of waiting) {
+    const meta = (order.metadata ?? {}) as Record<string, string>
+    const key = meta.delivery_date || "unscheduled"
+    if (!byDay.has(key)) byDay.set(key, [])
+    byDay.get(key)!.push(order)
+  }
+  const dayGroups = [...byDay.entries()].sort(([a], [b]) =>
+    a === "unscheduled" ? 1 : b === "unscheduled" ? -1 : a.localeCompare(b)
+  )
+  for (const [, group] of dayGroups) {
+    // Within a day, earliest window first — 11:59 last, since it leaves last.
+    group.sort((x, y) => {
+      const wx = ((x.metadata ?? {}) as Record<string, string>).delivery_window ?? ""
+      const wy = ((y.metadata ?? {}) as Record<string, string>).delivery_window ?? ""
+      return windowRank(wx) - windowRank(wy)
+    })
+  }
+
+  const todayQa = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Qatar",
+  })
+
   return (
     <div className="flex flex-col gap-4">
       {/* Orders first. Something waiting to go out is more urgent than the
@@ -397,7 +458,18 @@ const ShopPage = () => {
           </div>
         ) : (
           <div className="flex flex-col divide-y">
-            {waiting.map((order) => {
+            {dayGroups.map(([day, group]) => (
+              <div key={day} className="flex flex-col">
+                <div className="flex items-center justify-between bg-ui-bg-subtle px-6 py-2">
+                  <Text size="small" weight="plus">
+                    {dayHeading(day, todayQa)}
+                  </Text>
+                  <Text size="small" className="text-ui-fg-subtle">
+                    {group.length} order{group.length === 1 ? "" : "s"}
+                  </Text>
+                </div>
+                <div className="flex flex-col divide-y">
+            {group.map((order) => {
               const meta = (order.metadata ?? {}) as Record<string, string>
               return (
                 <div
@@ -509,6 +581,9 @@ const ShopPage = () => {
                 </div>
               )
             })}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </Container>

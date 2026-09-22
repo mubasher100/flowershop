@@ -1,5 +1,6 @@
 import { retrieveCart } from "@lib/data/cart"
 import { listCartShippingMethods } from "@lib/data/fulfillment"
+import { listDeliveryAvailability } from "@lib/data/delivery-availability"
 import CheckoutSummary from "@modules/checkout/templates/checkout-summary"
 import GuestCheckout from "@modules/checkout/templates/guest-checkout"
 import { Metadata } from "next"
@@ -32,9 +33,22 @@ export default async function Checkout() {
 
   const shippingOptions = (await listCartShippingMethods(cart.id)) ?? []
 
+  // The next four weeks, so the date picker can refuse a day the shop has
+  // closed or already filled instead of taking the order and apologising.
+  const today = new Date()
+  const dates = Array.from({ length: 28 }, (_, i) => {
+    const d = new Date(today.getTime() + i * 86400000)
+    return d.toLocaleDateString("en-CA", { timeZone: "Asia/Qatar" })
+  })
+  const availability = await listDeliveryAvailability(dates)
+
   return (
     <div className="content-container grid grid-cols-1 gap-10 py-8 small:grid-cols-[1fr_24rem] small:gap-16 small:py-12">
-      <GuestCheckout cart={cart} shippingOptions={shippingOptions} />
+      <GuestCheckout
+        cart={cart}
+        shippingOptions={shippingOptions}
+        availability={availability}
+      />
       {/* Summary sits under the form on mobile — the details are what the
           page is for, and the totals are already visible in the bag. */}
       <div className="order-first small:order-none">

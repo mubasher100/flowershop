@@ -292,6 +292,8 @@ export const DICTIONARY = {
     "checkout.instructions": "Delivery instructions",
     "checkout.instructionsPlaceholder":
       "Floor, gate code, or leave with reception",
+    "checkout.dayClosed":
+      "We are not delivering on that date. Please choose another day.",
     "checkout.sameDayClosed":
       "Today's deliveries have closed. The earliest we can deliver is tomorrow.",
     "checkout.summaryHeading": "In your bag",
@@ -664,6 +666,8 @@ export const DICTIONARY = {
     "checkout.instructions": "تعليمات التوصيل",
     "checkout.instructionsPlaceholder":
       "الطابق أو رمز البوابة أو التسليم للاستقبال",
+    "checkout.dayClosed":
+      "لا نقوم بالتوصيل في هذا التاريخ. يُرجى اختيار يوم آخر.",
     "checkout.sameDayClosed":
       "أُغلقت توصيلات اليوم. أقرب موعد للتوصيل هو الغد.",
     "checkout.summaryHeading": "في سلتك",

@@ -199,6 +199,16 @@ module.exports = defineConfig({
     { resolve: "./src/modules/homepage" },
 
     /**
+     * Delivery capacity.
+     *
+     * How many orders the shop will take for a given day and for each
+     * two-hour window, and which days are closed. Without it the checkout
+     * accepted unlimited orders into every slot and no holiday could be
+     * blocked.
+     */
+    { resolve: "./src/modules/delivery-capacity" },
+
+    /**
      * Translation module.
      *
      * Registers the locales this store serves and exposes /store/locales,

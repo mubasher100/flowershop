@@ -15,6 +15,7 @@ import {
   windowsFor,
 } from "@lib/util/delivery"
 import { setSelectedDelivery } from "@lib/util/delivery-selection"
+import type { DayAvailability } from "@lib/data/delivery-availability"
 
 import { convertToLocale } from "@lib/util/money"
 import { placeGuestOrder, GuestOrderState } from "@lib/data/guest-order"
@@ -48,9 +49,12 @@ const fieldClass =
 export default function GuestCheckout({
   cart,
   shippingOptions,
+  availability = [],
 }: {
   cart: HttpTypes.StoreCart
   shippingOptions: HttpTypes.StoreCartShippingOption[]
+  /** What the shop can still take, per day, for the coming weeks. */
+  availability?: DayAvailability[]
 }) {
   const [state, formAction, pending] = useActionState<
     GuestOrderState,
@@ -77,7 +81,11 @@ export default function GuestCheckout({
   const today = clock.date
   // Starts at the first date the shop can actually deliver on, which is
   // tomorrow once today's cut-off has passed.
-  const [deliveryDate, setDeliveryDate] = useState(() => earliestStandardDate(clock))
+  const [deliveryDate, setDeliveryDate] = useState(() => {
+    const earliest = earliestStandardDate(clock)
+    const open = availability.find((d) => d.date >= earliest && !d.closed && !d.full)
+    return open?.date ?? earliest
+  })
   const [deliveryWindow, setDeliveryWindow] = useState("")
 
   /**
@@ -94,9 +102,27 @@ export default function GuestCheckout({
    * 2pm slot is no longer offered. Without this the site sold deliveries it
    * could not make, including windows that had already passed.
    */
-  const windows = windowsFor(deliveryDate, clock)
-  const standardMinDate = earliestStandardDate(clock)
+  /**
+   * A day the shop has closed or already filled cannot be chosen, and a
+   * window with no room left is not offered. The server re-checks both when
+   * the order is placed — this is so the customer never picks one.
+   */
+  const dayState = new Map(availability.map((d) => [d.date, d]))
+  const unavailable = (date: string) => {
+    const day = dayState.get(date)
+    return !!day && (day.closed || day.full)
+  }
+  const firstOpen = (from: string) => {
+    const candidates = availability.map((d) => d.date).filter((d) => d >= from)
+    return candidates.find((d) => !unavailable(d)) ?? from
+  }
+
+  const clockWindows = windowsFor(deliveryDate, clock)
+  const fullWindows = dayState.get(deliveryDate)?.full_windows ?? []
+  const windows = clockWindows.filter((w) => !fullWindows.includes(w))
+  const standardMinDate = firstOpen(earliestStandardDate(clock))
   const sameDayClosed = deliveryDate === today && windows.length === 0
+  const dayClosed = unavailable(deliveryDate)
 
   const midnightStatus = midnight ? midnightAvailability(deliveryDate, clock) : "open"
   // Computed without reference to the current choice, because it is needed
@@ -288,7 +314,12 @@ export default function GuestCheckout({
               onChange={(e) => setDeliveryDate(e.target.value)}
               required
               className={fieldClass} />
-            {!midnight && sameDayClosed && (
+            {dayClosed && (
+              <p className="text-xs font-medium text-blush-700">
+                {t("checkout.dayClosed")}
+              </p>
+            )}
+            {!midnight && !dayClosed && sameDayClosed && (
               <p className="text-xs text-ink-500">{t("checkout.sameDayClosed")}</p>
             )}
             {midnight && (
@@ -425,7 +456,10 @@ export default function GuestCheckout({
           // before the order can go in, which is the sequence a real gateway
           // enforces too.
           disabled={
-            pending || (DEMO_PAYMENT_ENABLED && payMethod === "card" && !paymentRef)
+            pending ||
+            dayClosed ||
+            (!midnight && !windows.length) ||
+            (DEMO_PAYMENT_ENABLED && payMethod === "card" && !paymentRef)
           }
           className="inline-flex min-h-[3.25rem] items-center justify-center rounded-full bg-blush-600 px-8 text-base font-semibold text-white transition-colors hover:bg-blush-700 disabled:opacity-60">
           {pending ? t("checkout.placing") : t("checkout.place")}
