@@ -290,10 +290,12 @@ export type DocKind = "label" | "receipt"
  * Returns false when the browser blocked the popup, so the caller can say so
  * rather than leaving the florist tapping a button that appears to do nothing.
  */
+export const SHOP_NAME = "Tulips and Truffles"
+
 export function printOrderDocument(
   order: PrintableOrder,
   kind: DocKind,
-  shopName = "Flowershop"
+  shopName = SHOP_NAME
 ): boolean {
   const isLabel = kind === "label"
   const title = `${isLabel ? "Label" : "Receipt"} — Order #${order.display_id}`

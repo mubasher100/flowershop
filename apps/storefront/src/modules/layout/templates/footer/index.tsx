@@ -23,6 +23,7 @@ import { LEGAL } from "@modules/content/components/legal-identity"
 const HELP_LINKS: { label: TranslationKey; href: string }[] = [
   { label: "footer.deliveryAreas", href: "/delivery" },
   { label: "footer.flowerCare", href: "/flower-care" },
+  { label: "footer.track", href: "/track" },
   { label: "footer.contact", href: "/contact" },
   { label: "footer.yourBag", href: "/cart" },
 ]

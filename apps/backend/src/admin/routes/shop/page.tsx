@@ -17,7 +17,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 
-import { printOrderDocument } from "../../lib/print"
+import { printOrderDocument, SHOP_NAME } from "../../lib/print"
 import { sdk } from "../../lib/sdk"
 
 /**
@@ -264,6 +264,44 @@ function AddProduct({
   )
 }
 
+/**
+ * The "we've got your order" message, ready to send.
+ *
+ * The shop promises at checkout that it will confirm on WhatsApp, and there
+ * is no notification provider to do it automatically — so this writes the
+ * message and opens the chat. One tap instead of copying six fields out of
+ * the order by hand, which is where mistakes were going to come from.
+ */
+function whatsappConfirmation(order: AdminOrder, shopName: string) {
+  const meta = (order.metadata ?? {}) as Record<string, string>
+  const to = (meta.contact_phone || order.shipping_address?.phone || "").replace(
+    /\D/g,
+    ""
+  )
+  const items = (order.items ?? [])
+    .map((i) => `• ${i.quantity} × ${i.title}`)
+    .join("\n")
+  const when = [meta.delivery_date, meta.delivery_window]
+    .filter(Boolean)
+    .join(", ")
+
+  const lines = [
+    `Hello${meta.contact_name ? " " + meta.contact_name : ""}, this is ${shopName}.`,
+    "",
+    `Your order #${order.display_id} is confirmed:`,
+    items,
+    when ? `Delivery: ${when}` : "",
+    meta.delivery_area ? `Area: ${meta.delivery_area}` : "",
+    meta.recipient_name ? `For: ${meta.recipient_name}` : "",
+    "",
+    "We will message you again when it is on its way. Thank you!",
+  ].filter((l) => l !== "")
+
+  return to
+    ? `https://wa.me/${to}?text=${encodeURIComponent(lines.join("\n"))}`
+    : null
+}
+
 const ShopPage = () => {
   const queryClient = useQueryClient()
 
@@ -447,6 +485,17 @@ const ShopPage = () => {
                       onClick={() => printOrderDocument(order, "receipt")}
                     >
                       Receipt
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="transparent"
+                      onClick={() => {
+                        const href = whatsappConfirmation(order, SHOP_NAME)
+                        if (href) window.open(href, "_blank", "noopener")
+                        else toast.error("No phone number on this order.")
+                      }}
+                    >
+                      WhatsApp
                     </Button>
                     <Button
                       size="small"
