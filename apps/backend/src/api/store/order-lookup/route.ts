@@ -1,4 +1,4 @@
-import { Modules } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 
 import type { OrderLookupSchema } from "./middlewares"
@@ -27,14 +27,7 @@ export async function POST(
   req: MedusaRequest<OrderLookupSchema>,
   res: MedusaResponse
 ) {
-  /**
-   * Read through the order module rather than query.graph.
-   *
-   * query.graph does not compute an order's totals — it returned a total of
-   * zero however the fields were spelled — because the totals are worked out
-   * by the order module itself, which is what the admin route goes through.
-   */
-  const orderService = req.scope.resolve(Modules.ORDER)
+  const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
   const { order_number, phone } = req.validatedBody
 
   const display_id = Number(String(order_number).replace(/[^\d]/g, ""))
@@ -43,12 +36,27 @@ export async function POST(
     return
   }
 
-  // Read broadly, return narrowly: the response below is hand-built, so
-  // nothing beyond what a customer needs about their own order goes out.
-  const orders = await orderService.listOrders(
-    { display_id } as unknown as Record<string, unknown>,
-    { relations: ["items", "shipping_methods", "shipping_address"], take: 1 }
-  )
+  /**
+   * Read broadly, return narrowly: the response below is hand-built, so
+   * nothing beyond what a customer needs about their own order goes out.
+   *
+   * The relations have to be in the field list for the totals to add up —
+   * asking for "total" alone returns zero, because it is derived from the
+   * items and shipping methods rather than stored.
+   */
+  const { data: orders } = await query.graph({
+    entity: "order",
+    fields: [
+      "*",
+      "total",
+      "fulfillment_status",
+      "items.*",
+      "shipping_methods.*",
+      "shipping_address.*",
+    ],
+    // display_id is numeric in the database; the filter's type says string.
+    filters: { display_id } as unknown as Record<string, unknown>,
+  })
 
   const order = orders?.[0] as unknown as
     | {
