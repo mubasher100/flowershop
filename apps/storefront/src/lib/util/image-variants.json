@@ -1,0 +1,384 @@
+{
+  "/brand/logo-sm.png": {
+    "320": "/brand/logo-sm-320.webp",
+    "480": "/brand/logo-sm-480.webp"
+  },
+  "/brand/logo-sm.webp": {
+    "320": "/brand/logo-sm-320.webp",
+    "480": "/brand/logo-sm.webp"
+  },
+  "/brand/logo.png": {
+    "320": "/brand/logo-320.webp",
+    "640": "/brand/logo-640.webp",
+    "960": "/brand/logo-960.webp",
+    "1280": "/brand/logo-1280.webp"
+  },
+  "/brand/logo.webp": {
+    "320": "/brand/logo-320.webp",
+    "640": "/brand/logo-640.webp",
+    "900": "/brand/logo.webp"
+  },
+  "/hero/tulips.jpg": {
+    "320": "/hero/tulips-320.webp",
+    "640": "/hero/tulips-640.webp",
+    "960": "/hero/tulips-960.webp",
+    "1280": "/hero/tulips-1280.webp"
+  },
+  "/hero/tulips.webp": {
+    "320": "/hero/tulips-320.webp",
+    "640": "/hero/tulips-640.webp",
+    "960": "/hero/tulips-960.webp",
+    "1280": "/hero/tulips-1280.webp",
+    "1400": "/hero/tulips.webp"
+  },
+  "/products/100-red-rose-black-vase.jpg": {
+    "320": "/products/100-red-rose-black-vase-320.webp",
+    "640": "/products/100-red-rose-black-vase-640.webp",
+    "900": "/products/100-red-rose-black-vase-900.webp"
+  },
+  "/products/200-white-roses.jpg": {
+    "320": "/products/200-white-roses-320.webp",
+    "640": "/products/200-white-roses-640.webp",
+    "900": "/products/200-white-roses-900.webp"
+  },
+  "/products/48-piccadilly-black-vase.jpg": {
+    "320": "/products/48-piccadilly-black-vase-320.webp",
+    "640": "/products/48-piccadilly-black-vase-640.webp",
+    "900": "/products/48-piccadilly-black-vase-900.webp"
+  },
+  "/products/50-pink-rose-vase.jpg": {
+    "320": "/products/50-pink-rose-vase-320.webp",
+    "640": "/products/50-pink-rose-vase-640.webp",
+    "900": "/products/50-pink-rose-vase-900.webp"
+  },
+  "/products/50-red-rose-vase.jpg": {
+    "320": "/products/50-red-rose-vase-320.webp",
+    "640": "/products/50-red-rose-vase-640.webp",
+    "900": "/products/50-red-rose-vase-900.webp"
+  },
+  "/products/50-red-rose-wrap.jpg": {
+    "320": "/products/50-red-rose-wrap-320.webp",
+    "640": "/products/50-red-rose-wrap-640.webp",
+    "900": "/products/50-red-rose-wrap-900.webp"
+  },
+  "/products/50-white-rose-vase.jpg": {
+    "320": "/products/50-white-rose-vase-320.webp",
+    "640": "/products/50-white-rose-vase-640.webp",
+    "900": "/products/50-white-rose-vase-900.webp"
+  },
+  "/products/9-pink-hydrangea-black-vase.jpg": {
+    "320": "/products/9-pink-hydrangea-black-vase-320.webp",
+    "640": "/products/9-pink-hydrangea-black-vase-640.webp",
+    "900": "/products/9-pink-hydrangea-black-vase-900.webp"
+  },
+  "/products/9-white-hydrangea-black-vase.jpg": {
+    "320": "/products/9-white-hydrangea-black-vase-320.webp",
+    "640": "/products/9-white-hydrangea-black-vase-640.webp",
+    "900": "/products/9-white-hydrangea-black-vase-900.webp"
+  },
+  "/products/adliswil-black-vase.jpg": {
+    "320": "/products/adliswil-black-vase-320.webp",
+    "640": "/products/adliswil-black-vase-640.webp",
+    "900": "/products/adliswil-black-vase-900.webp"
+  },
+  "/products/ashford.jpg": {
+    "320": "/products/ashford-320.webp",
+    "640": "/products/ashford-640.webp",
+    "900": "/products/ashford-900.webp"
+  },
+  "/products/astoria-vase.jpg": {
+    "320": "/products/astoria-vase-320.webp",
+    "640": "/products/astoria-vase-640.webp",
+    "900": "/products/astoria-vase-900.webp"
+  },
+  "/products/aveline.jpg": {
+    "320": "/products/aveline-320.webp",
+    "640": "/products/aveline-640.webp",
+    "900": "/products/aveline-900.webp"
+  },
+  "/products/bloomsbury.jpg": {
+    "320": "/products/bloomsbury-320.webp",
+    "640": "/products/bloomsbury-640.webp",
+    "900": "/products/bloomsbury-900.webp"
+  },
+  "/products/bridge-crystal-sphere.jpg": {
+    "320": "/products/bridge-crystal-sphere-320.webp",
+    "640": "/products/bridge-crystal-sphere-640.webp",
+    "900": "/products/bridge-crystal-sphere-900.webp"
+  },
+  "/products/calshot-treat.jpg": {
+    "320": "/products/calshot-treat-320.webp",
+    "640": "/products/calshot-treat-640.webp",
+    "900": "/products/calshot-treat-900.webp"
+  },
+  "/products/chadstone-crystal-sphere.jpg": {
+    "320": "/products/chadstone-crystal-sphere-320.webp",
+    "640": "/products/chadstone-crystal-sphere-640.webp",
+    "900": "/products/chadstone-crystal-sphere-900.webp"
+  },
+  "/products/chadstone-lisle.jpg": {
+    "320": "/products/chadstone-lisle-320.webp",
+    "640": "/products/chadstone-lisle-640.webp",
+    "900": "/products/chadstone-lisle-900.webp"
+  },
+  "/products/chadstone-vase.jpg": {
+    "320": "/products/chadstone-vase-320.webp",
+    "640": "/products/chadstone-vase-640.webp",
+    "900": "/products/chadstone-vase-900.webp"
+  },
+  "/products/cherish.jpg": {
+    "320": "/products/cherish-320.webp",
+    "640": "/products/cherish-640.webp",
+    "900": "/products/cherish-900.webp"
+  },
+  "/products/coraline.jpg": {
+    "320": "/products/coraline-320.webp",
+    "640": "/products/coraline-640.webp",
+    "900": "/products/coraline-900.webp"
+  },
+  "/products/daphne.jpg": {
+    "320": "/products/daphne-320.webp",
+    "640": "/products/daphne-640.webp",
+    "900": "/products/daphne-900.webp"
+  },
+  "/products/devonshire-treat.jpg": {
+    "320": "/products/devonshire-treat-320.webp",
+    "640": "/products/devonshire-treat-640.webp",
+    "900": "/products/devonshire-treat-900.webp"
+  },
+  "/products/elara.jpg": {
+    "320": "/products/elara-320.webp",
+    "640": "/products/elara-640.webp",
+    "900": "/products/elara-900.webp"
+  },
+  "/products/endless-love.jpg": {
+    "320": "/products/endless-love-320.webp",
+    "640": "/products/endless-love-640.webp",
+    "900": "/products/endless-love-900.webp"
+  },
+  "/products/gladstone.jpg": {
+    "320": "/products/gladstone-320.webp",
+    "640": "/products/gladstone-640.webp",
+    "900": "/products/gladstone-900.webp"
+  },
+  "/products/goulburn-treat.jpg": {
+    "320": "/products/goulburn-treat-320.webp",
+    "640": "/products/goulburn-treat-640.webp",
+    "900": "/products/goulburn-treat-900.webp"
+  },
+  "/products/hearts-crystal-sphere.jpg": {
+    "320": "/products/hearts-crystal-sphere-320.webp",
+    "640": "/products/hearts-crystal-sphere-640.webp",
+    "900": "/products/hearts-crystal-sphere-900.webp"
+  },
+  "/products/hearts-parkhome.jpg": {
+    "320": "/products/hearts-parkhome-320.webp",
+    "640": "/products/hearts-parkhome-640.webp",
+    "900": "/products/hearts-parkhome-900.webp"
+  },
+  "/products/james.jpg": {
+    "320": "/products/james-320.webp",
+    "640": "/products/james-640.webp",
+    "900": "/products/james-900.webp"
+  },
+  "/products/la-vie-en-rose.jpg": {
+    "320": "/products/la-vie-en-rose-320.webp",
+    "640": "/products/la-vie-en-rose-640.webp",
+    "900": "/products/la-vie-en-rose-900.webp"
+  },
+  "/products/leukerbad.jpg": {
+    "320": "/products/leukerbad-320.webp",
+    "640": "/products/leukerbad-640.webp",
+    "900": "/products/leukerbad-900.webp"
+  },
+  "/products/long-acre-black-vase.jpg": {
+    "320": "/products/long-acre-black-vase-320.webp",
+    "640": "/products/long-acre-black-vase-640.webp",
+    "900": "/products/long-acre-black-vase-900.webp"
+  },
+  "/products/lucerne-treat.jpg": {
+    "320": "/products/lucerne-treat-320.webp",
+    "640": "/products/lucerne-treat-640.webp",
+    "900": "/products/lucerne-treat-900.webp"
+  },
+  "/products/maison-black-vase.jpg": {
+    "320": "/products/maison-black-vase-320.webp",
+    "640": "/products/maison-black-vase-640.webp",
+    "900": "/products/maison-black-vase-900.webp"
+  },
+  "/products/montreux-crystal-sphere.jpg": {
+    "320": "/products/montreux-crystal-sphere-320.webp",
+    "640": "/products/montreux-crystal-sphere-640.webp",
+    "900": "/products/montreux-crystal-sphere-900.webp"
+  },
+  "/products/mornington-crystal.jpg": {
+    "320": "/products/mornington-crystal-320.webp",
+    "640": "/products/mornington-crystal-640.webp",
+    "900": "/products/mornington-crystal-900.webp"
+  },
+  "/products/muse.jpg": {
+    "320": "/products/muse-320.webp",
+    "640": "/products/muse-640.webp",
+    "900": "/products/muse-900.webp"
+  },
+  "/products/piccadilly-charm.jpg": {
+    "320": "/products/piccadilly-charm-320.webp",
+    "640": "/products/piccadilly-charm-640.webp",
+    "900": "/products/piccadilly-charm-900.webp"
+  },
+  "/products/pink-parkhome.jpg": {
+    "320": "/products/pink-parkhome-320.webp",
+    "640": "/products/pink-parkhome-640.webp",
+    "900": "/products/pink-parkhome-900.webp"
+  },
+  "/products/primrose-crystal.jpg": {
+    "320": "/products/primrose-crystal-320.webp",
+    "640": "/products/primrose-crystal-640.webp",
+    "900": "/products/primrose-crystal-900.webp"
+  },
+  "/products/royal-peal-crystal-sphere.jpg": {
+    "320": "/products/royal-peal-crystal-sphere-320.webp",
+    "640": "/products/royal-peal-crystal-sphere-640.webp",
+    "900": "/products/royal-peal-crystal-sphere-900.webp"
+  },
+  "/products/springvale-vase.jpg": {
+    "320": "/products/springvale-vase-320.webp",
+    "640": "/products/springvale-vase-640.webp",
+    "900": "/products/springvale-vase-900.webp"
+  },
+  "/products/vere.jpg": {
+    "320": "/products/vere-320.webp",
+    "640": "/products/vere-640.webp",
+    "900": "/products/vere-900.webp"
+  },
+  "/products/victoria-crystal-sphere.jpg": {
+    "320": "/products/victoria-crystal-sphere-320.webp",
+    "640": "/products/victoria-crystal-sphere-640.webp",
+    "900": "/products/victoria-crystal-sphere-900.webp"
+  },
+  "/products/wellington-vase.jpg": {
+    "320": "/products/wellington-vase-320.webp",
+    "640": "/products/wellington-vase-640.webp",
+    "900": "/products/wellington-vase-900.webp"
+  },
+  "/products/westfield-charm.jpg": {
+    "320": "/products/westfield-charm-320.webp",
+    "640": "/products/westfield-charm-640.webp",
+    "900": "/products/westfield-charm-900.webp"
+  },
+  "/products/white-parkhome.jpg": {
+    "320": "/products/white-parkhome-320.webp",
+    "640": "/products/white-parkhome-640.webp",
+    "900": "/products/white-parkhome-900.webp"
+  },
+  "/products/woburn.jpg": {
+    "320": "/products/woburn-320.webp",
+    "640": "/products/woburn-640.webp",
+    "900": "/products/woburn-900.webp"
+  },
+  "/products/zofingen.jpg": {
+    "320": "/products/zofingen-320.webp",
+    "640": "/products/zofingen-640.webp",
+    "900": "/products/zofingen-900.webp"
+  },
+  "https://media.tulipsandtruffle.com/adliswil-black-vase-01M343CWTBQ2WGFQBXT3NN2SYF.webp": {
+    "320": "https://media.tulipsandtruffle.com/adliswil-black-vase-320-01M36PNCJDS0WQPK4Z6SE29J0H.webp",
+    "640": "https://media.tulipsandtruffle.com/adliswil-black-vase-640-01M36PNDBZ4FR1SBXQMKVE221Y.webp",
+    "900": "https://media.tulipsandtruffle.com/adliswil-black-vase-01M343CWTBQ2WGFQBXT3NN2SYF.webp"
+  },
+  "https://media.tulipsandtruffle.com/ashford-01M343D04Y7QJNZ1MVEV2A947T.webp": {
+    "320": "https://media.tulipsandtruffle.com/ashford-320-01M36PNE64CNHKWVAG9E0JW58C.webp",
+    "640": "https://media.tulipsandtruffle.com/ashford-640-01M36PNEZNAENCZ3YCMCGZXVAA.webp",
+    "900": "https://media.tulipsandtruffle.com/ashford-01M343D04Y7QJNZ1MVEV2A947T.webp"
+  },
+  "https://media.tulipsandtruffle.com/piccadilly-charm-01M343D233E6C4T2FQ9J1MHVHY.webp": {
+    "320": "https://media.tulipsandtruffle.com/piccadilly-charm-320-01M36PNFSZW9B1NDFJQAVR1SK7.webp",
+    "640": "https://media.tulipsandtruffle.com/piccadilly-charm-640-01M36PNGJPG1WEQTZHNP1P8XHC.webp",
+    "900": "https://media.tulipsandtruffle.com/piccadilly-charm-01M343D233E6C4T2FQ9J1MHVHY.webp"
+  },
+  "https://media.tulipsandtruffle.com/cherish-01M343D45YCV7Y0225S1GXHEZ2.webp": {
+    "320": "https://media.tulipsandtruffle.com/cherish-320-01M36PNHGDS7F4VEEYKV9268T8.webp",
+    "640": "https://media.tulipsandtruffle.com/cherish-640-01M36PNJ7WDXQAG2RB3CQGZES5.webp",
+    "900": "https://media.tulipsandtruffle.com/cherish-01M343D45YCV7Y0225S1GXHEZ2.webp"
+  },
+  "https://media.tulipsandtruffle.com/goulburn-treat-01M343D689HWYBJACTYM5TN7JM.webp": {
+    "320": "https://media.tulipsandtruffle.com/goulburn-treat-320-01M36PNK3KEWMC5TAH7NVRF40K.webp",
+    "640": "https://media.tulipsandtruffle.com/goulburn-treat-640-01M36PNKVEY2CGXJXDTB4EPE55.webp",
+    "900": "https://media.tulipsandtruffle.com/goulburn-treat-01M343D689HWYBJACTYM5TN7JM.webp"
+  },
+  "https://media.tulipsandtruffle.com/astoria-vase-01M343D86MNVKSA0V30T2QBR2V.webp": {
+    "320": "https://media.tulipsandtruffle.com/astoria-vase-320-01M36PNMZ6P5XNSB08AYGVG433.webp",
+    "640": "https://media.tulipsandtruffle.com/astoria-vase-640-01M36PNNP5Y6V8Q9EGSZJ6W0D0.webp",
+    "900": "https://media.tulipsandtruffle.com/astoria-vase-01M343D86MNVKSA0V30T2QBR2V.webp"
+  },
+  "https://media.tulipsandtruffle.com/springvale-vase-01M343DA58F3N8AXD2CRH2EE1Y.webp": {
+    "320": "https://media.tulipsandtruffle.com/springvale-vase-320-01M36PNPMY23QEH5B3RF3EN01K.webp",
+    "640": "https://media.tulipsandtruffle.com/springvale-vase-640-01M36PNQFY70PVW2Z9D8PP5NG3.webp",
+    "900": "https://media.tulipsandtruffle.com/springvale-vase-01M343DA58F3N8AXD2CRH2EE1Y.webp"
+  },
+  "https://media.tulipsandtruffle.com/james-01M343DC2FK67Q1WKKM3PCX35G.webp": {
+    "320": "https://media.tulipsandtruffle.com/james-320-01M36PNRBGZ9BC9R9HXT4GXPKX.webp",
+    "640": "https://media.tulipsandtruffle.com/james-640-01M36PNS2V954EM3BW40WFD2NZ.webp",
+    "900": "https://media.tulipsandtruffle.com/james-01M343DC2FK67Q1WKKM3PCX35G.webp"
+  },
+  "https://media.tulipsandtruffle.com/bloomsbury-01M343DEBYDNNGAS51MF93Y55G.webp": {
+    "320": "https://media.tulipsandtruffle.com/bloomsbury-320-01M36PNSWN1AMW0HA44ZXEB5DA.webp",
+    "640": "https://media.tulipsandtruffle.com/bloomsbury-640-01M36PNTMQPVYB649JZT2EC40Y.webp",
+    "900": "https://media.tulipsandtruffle.com/bloomsbury-01M343DEBYDNNGAS51MF93Y55G.webp"
+  },
+  "https://media.tulipsandtruffle.com/50-red-rose-wrap-01M343DGCZHXDYME4E0TJC122Y.webp": {
+    "320": "https://media.tulipsandtruffle.com/50-red-rose-wrap-320-01M36PNVG0EV6KN7T0AZTPR1NH.webp",
+    "640": "https://media.tulipsandtruffle.com/50-red-rose-wrap-640-01M36PNW6SY1TFVFVW34E0W9W0.webp",
+    "900": "https://media.tulipsandtruffle.com/50-red-rose-wrap-01M343DGCZHXDYME4E0TJC122Y.webp"
+  },
+  "https://media.tulipsandtruffle.com/9-pink-hydrangea-black-vase-01M343DJAY835XTK74QX9Z0ZMW.webp": {
+    "320": "https://media.tulipsandtruffle.com/9-pink-hydrangea-black-vase-320-01M36PNX1P9K8NNY6WR6RDAMSZ.webp",
+    "640": "https://media.tulipsandtruffle.com/9-pink-hydrangea-black-vase-640-01M36PNY51ZSZTCVAHPCRCRGPT.webp",
+    "900": "https://media.tulipsandtruffle.com/9-pink-hydrangea-black-vase-01M343DJAY835XTK74QX9Z0ZMW.webp"
+  },
+  "https://media.tulipsandtruffle.com/chadstone-lisle-01M343DMAFKY1M8AT32WGY213D.webp": {
+    "320": "https://media.tulipsandtruffle.com/chadstone-lisle-320-01M36PNZ07DK65V51DQSKE2TWC.webp",
+    "640": "https://media.tulipsandtruffle.com/chadstone-lisle-640-01M36PNZW39MFS5CM409G32EBN.webp",
+    "900": "https://media.tulipsandtruffle.com/chadstone-lisle-01M343DMAFKY1M8AT32WGY213D.webp"
+  },
+  "https://media.tulipsandtruffle.com/westfield-charm-01M343DPCEW0EC7HQ078KCMXW9.webp": {
+    "320": "https://media.tulipsandtruffle.com/westfield-charm-320-01M36PP0NQPFVSG29J0TXEW6M8.webp",
+    "640": "https://media.tulipsandtruffle.com/westfield-charm-640-01M36PP1E2D9XSBR41AQ9MM57D.webp",
+    "900": "https://media.tulipsandtruffle.com/westfield-charm-01M343DPCEW0EC7HQ078KCMXW9.webp"
+  },
+  "https://media.tulipsandtruffle.com/50-red-rose-vase-01M343DR9KWS0YBSS3N9NQ6RC9.webp": {
+    "320": "https://media.tulipsandtruffle.com/50-red-rose-vase-320-01M36PP2M2CKF9M462P7TEPD10.webp",
+    "640": "https://media.tulipsandtruffle.com/50-red-rose-vase-640-01M36PP3AKVG6H33JK6CYS4PQ5.webp",
+    "900": "https://media.tulipsandtruffle.com/50-red-rose-vase-01M343DR9KWS0YBSS3N9NQ6RC9.webp"
+  },
+  "https://media.tulipsandtruffle.com/daphne-01M343DT7GPYYSBYM1CBGEYXNM.webp": {
+    "320": "https://media.tulipsandtruffle.com/daphne-320-01M36PP493HVHX8K1M63EA1SME.webp",
+    "640": "https://media.tulipsandtruffle.com/daphne-640-01M36PP52J9RNPXV0K7P86VG26.webp",
+    "900": "https://media.tulipsandtruffle.com/daphne-01M343DT7GPYYSBYM1CBGEYXNM.webp"
+  },
+  "https://media.tulipsandtruffle.com/lucerne-treat-01M343DWPEYS8W0SX5SHEFT4TF.webp": {
+    "320": "https://media.tulipsandtruffle.com/lucerne-treat-320-01M36PP5W3S3H8X6NHBS27954X.webp",
+    "640": "https://media.tulipsandtruffle.com/lucerne-treat-640-01M36PP6K88R4MBK698ECQXZG5.webp",
+    "900": "https://media.tulipsandtruffle.com/lucerne-treat-01M343DWPEYS8W0SX5SHEFT4TF.webp"
+  },
+  "https://media.tulipsandtruffle.com/wellington-vase-01M343DYQZGV4R23D8MXD4MVX3.webp": {
+    "320": "https://media.tulipsandtruffle.com/wellington-vase-320-01M36PP7EBXDWETG8YJ8KMWXTD.webp",
+    "640": "https://media.tulipsandtruffle.com/wellington-vase-640-01M36PP85VB1V3NA4712NSFX5Q.webp",
+    "900": "https://media.tulipsandtruffle.com/wellington-vase-01M343DYQZGV4R23D8MXD4MVX3.webp"
+  },
+  "https://media.tulipsandtruffle.com/la-vie-en-rose-01M343E0PETVZ9HAJ4C29RZGKH.webp": {
+    "320": "https://media.tulipsandtruffle.com/la-vie-en-rose-320-01M36PP90VFCJQNAXPP7A0ME11.webp",
+    "640": "https://media.tulipsandtruffle.com/la-vie-en-rose-640-01M36PP9XB5N5YGQV43TCY5WPY.webp",
+    "900": "https://media.tulipsandtruffle.com/la-vie-en-rose-01M343E0PETVZ9HAJ4C29RZGKH.webp"
+  },
+  "https://media.tulipsandtruffle.com/9-white-hydrangea-black-vase-01M343E2NMQG2RN9C5J12ANBTH.webp": {
+    "320": "https://media.tulipsandtruffle.com/9-white-hydrangea-black-vase-320-01M36PPASM4BQGN4BDYTR83PXT.webp",
+    "640": "https://media.tulipsandtruffle.com/9-white-hydrangea-black-vase-640-01M36PPBKMP2W1SY0ERRBZT20J.webp",
+    "900": "https://media.tulipsandtruffle.com/9-white-hydrangea-black-vase-01M343E2NMQG2RN9C5J12ANBTH.webp"
+  },
+  "https://media.tulipsandtruffle.com/200-white-roses-01M343E4J8VZNPAP086WRVXNGS.webp": {
+    "320": "https://media.tulipsandtruffle.com/200-white-roses-320-01M36PPCFA1PHM5HQP9NKY9JCQ.webp",
+    "640": "https://media.tulipsandtruffle.com/200-white-roses-640-01M36PPD5XBWQ54VSC4Y3FN26X.webp",
+    "900": "https://media.tulipsandtruffle.com/200-white-roses-01M343E4J8VZNPAP086WRVXNGS.webp"
+  }
+}

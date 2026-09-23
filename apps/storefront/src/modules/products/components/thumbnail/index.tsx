@@ -64,7 +64,13 @@ const ImageOrPlaceholder = ({
       className="absolute inset-0 object-cover object-center"
       draggable={false}
       quality={50}
-      sizes="(max-width: 576px) 280px, (max-width: 768px) 360px, (max-width: 992px) 480px, 800px"
+      /**
+       * Describes the slot the card actually occupies. It used to claim
+       * 280px on a phone where the card is nearer 168px, so the browser
+       * fetched the next variant up and paid twice the bytes for pixels it
+       * then threw away.
+       */
+      sizes="(max-width: 576px) 45vw, (max-width: 768px) 30vw, (max-width: 992px) 25vw, 300px"
       fill
     />
   ) : (

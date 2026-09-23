@@ -33,7 +33,15 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true,
+    /**
+     * Next's optimiser does not run on Cloudflare Workers, so images used to
+     * be served at full size — a 900px photograph for a 165px card. A custom
+     * loader picks from variants generated ahead of time by
+     * scripts/build-image-variants.mjs; anything not in that manifest falls
+     * back to its original URL.
+     */
+    loader: "custom",
+    loaderFile: "./src/lib/util/image-loader.js",
     remotePatterns: [
       {
         protocol: "http",
@@ -47,12 +55,14 @@ const nextConfig = {
         protocol: "https",
         hostname: "*.s3.amazonaws.com",
       },
-      ...(MEDIA_HOSTNAME && MEDIA_PATHNAME
+      // MEDIA_PATHNAME is optional: the bucket serves images from its root,
+      // and requiring it meant the media host was silently never allowed.
+      ...(MEDIA_HOSTNAME
         ? [
             {
               protocol: "https",
               hostname: MEDIA_HOSTNAME,
-              pathname: MEDIA_PATHNAME,
+              pathname: MEDIA_PATHNAME || "/**",
             },
           ]
         : []),
