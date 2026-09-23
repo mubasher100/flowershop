@@ -218,7 +218,7 @@ The storefront renders almost nothing per-visitor, so nearly everything is cache
 | `enableCacheInterception` | Serves a prerendered page without booting the full Next.js server. Safe only because the site does not use PPR |
 | `doShardedTagCache` | Sharded Durable Objects, SQLite-backed. This is what makes `revalidateTag` do anything |
 
-Measured, warm, repeat visitor: homepage ~850ms → **245ms**, catalogue ~530ms → **64ms**, product pages ~590ms → **66ms**.
+Measured, warm, repeat visitor: HTML arrives in **43–80ms** on a reused connection. Page weight on a phone at 2×: homepage **564 KB**, catalogue **213 KB**, product **139 KB** (23 Sep 2026).
 
 **The tag cache is not optional and it is not free.** OpenNext's `tagCache` defaults to `"dummy"`, which silently discards every tag — the backend had been posting to `/api/revalidate` on every product, price and inventory change since it was written, and none of it invalidated anything. But adding a real one put a round trip on every request and took the catalogue straight back to 315ms.
 
@@ -228,11 +228,17 @@ Two settings that look harmless and are not:
 - `regionalCacheTtlSec` on the tag cache defaults to 5s. At this shop's traffic most requests arrive further apart than that, so the lookup expires before it is ever reused and every request pays the round trip anyway.
 - `bypassTagCacheOnCacheHit` must stay `false` on Next 16+, where `revalidateTag` is stale-while-revalidate by default. It is only safe here because the storefront is on Next 15.
 
+> **Never wrap `sdk.client.fetch` with anything that reads cookies.** It was wrapped to attach an `x-medusa-locale` header read from a cookie, and because the wrapper sat on the client itself it applied to *every* data call in the app — including the catalogue paths written specifically to avoid cookies. Reading a cookie during render opts the route out of static rendering, so nothing reached the prerender manifest, no HTML was emitted, cache interception had nothing to intercept, the R2 incremental cache never served a page, and every visit re-rendered in the Worker and waited on Railway in Singapore. Every response went out `private, no-cache, no-store`, so browsers could not reuse pages either. The read sat inside a try/catch and the build still printed the routes as static, so nothing ever warned. Fixed 23 Sep 2026: warm HTML went from ~400–1400ms to **43–80ms**. If a route needs to tell the backend a locale, pass the header on that call.
+>
+> **Check `prerender-manifest.json` after any change to a layout or the data layer.** It is the fastest way to catch this class of bug: if `routes` is nearly empty, something made the app dynamic. `curl -sI` a page and look for `x-opennext-cache: HIT` and an `s-maxage` — `no-store` means the cache is doing nothing.
+
 > **Never cache the cart.** `retrieveCart` and `listCartShippingMethods` are `no-store`, deliberately. They used `force-cache` with a per-visitor tag and relied on `revalidateTag` after each mutation — which silently stopped working once `bypassTagCacheOnCacheHit` was set, because a regional hit no longer consults the tag cache. The symptom was an item taking up to a minute to appear in the bag. A cart belongs to one visitor, changes on every interaction and returns in ~0.5s; there is nothing to win and correctness to lose.
 
 **Adding to the bag is optimistic, and cart mutations are serialised.** The Store API's add-to-cart is ~2.8s — it validates the variant, checks inventory, reprices and refreshes the cart — so the button confirms immediately and the request settles behind it. Because the button no longer blocks, concurrent adds became possible, and they are not safe: the first add has no cart cookie yet so it creates one, and anything fired before it returns creates another. `lib/util/cart-queue.ts` runs them one at a time.
 
 **Don't read cookies in catalogue code paths.** Reading them during render forces the route out of static rendering, which stops the incremental cache serving the page at all — this is why `getPublicCacheOptions` exists alongside `getCacheOptions`. Cart, customer and order data keep the per-visitor tag; the catalogue must not.
+
+**Images are resized ahead of time, because Next's optimiser does not run on Cloudflare Workers.** `images.loader` is custom: `scripts/build-image-variants.mjs` generates a ladder of widths (320/640/960/1280) for `/public` images and for the R2 catalogue, records them in `src/lib/util/image-variants.json`, and `image-loader.js` picks the nearest rung. Anything missing from the manifest falls back to its original URL, so a product uploaded from the admin since the script last ran is heavier than it needs to be but never broken — **re-run the script after adding products**. The variants are committed deliberately: generating them at deploy would leave the manifest pointing at missing files whenever that step failed. Before this, a 900px photograph was served into a 168px card and the homepage shipped 1.5 MB of images; it is now 564 KB.
 
 **Search does not touch the network.** `/api/search-index` serves a ~12KB index of the whole catalogue; the overlay fetches it once on idle and every query after that is a synchronous filter over an array (12–15ms end to end). Revisit at a few hundred products, where it wants a real search index rather than a bigger download.
 
