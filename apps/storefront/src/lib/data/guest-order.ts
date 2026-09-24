@@ -65,6 +65,7 @@ export async function placeGuestOrder(
   const recipientPhone = get("recipient_phone", FIELD_LIMITS.phone)
   const email = get("email", FIELD_LIMITS.email).toLowerCase()
   const instructions = get("delivery_notes", FIELD_LIMITS.instructions)
+  const anonymous = String(formData.get("anonymous") ?? "") === "true"
   const giftNote = get("gift_note", FIELD_LIMITS.giftNote)
 
   // Only ever a DEMO- reference from the simulated gateway. Guarded so a
@@ -211,6 +212,10 @@ export async function placeGuestOrder(
         recipient_name: recipient || name,
         recipient_phone: recipientPhone,
         delivery_notes: instructions,
+        // Keeps the buyer's name off the card and the delivery label. The
+        // order still records who placed it — the shop has to be able to
+        // reach them.
+        anonymous_gift: anonymous ? "true" : "",
         delivery_area: area,
         delivery_date: deliveryDate,
         delivery_window: deliveryWindow,

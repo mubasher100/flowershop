@@ -112,6 +112,8 @@ export function labelHtml(order: PrintableOrder, shopName: string) {
   const date = meta(order, "delivery_date")
   const window = meta(order, "delivery_window")
   const note = meta(order, "gift_note")
+  // The buyer asked not to be named on the card or the label.
+  const anonymous = meta(order, "anonymous_gift") === "true"
 
   return `
     <div style="display:flex;justify-content:space-between;align-items:baseline">
@@ -149,7 +151,7 @@ export function labelHtml(order: PrintableOrder, shopName: string) {
       note
         ? `<div class="card">
              <div class="muted" style="font-size:9pt;letter-spacing:.08em;text-transform:uppercase">
-               Gift message — cut out and enclose
+               Gift message — cut out and enclose${anonymous ? " · send anonymously" : ""}
              </div>
              <div style="font-size:15pt;line-height:1.5;margin-top:3mm;font-style:italic">
                “${esc(note)}”

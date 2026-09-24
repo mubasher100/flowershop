@@ -392,6 +392,18 @@ export default function GuestCheckout({
             className={`${fieldClass} py-3`}
             placeholder={t("checkout.giftNotePlaceholder")} />
         </div>
+
+        {/* Sending without a name is a normal thing to want from a flower
+            shop. The florist still sees who ordered — this only keeps the
+            name off the card and the delivery label. */}
+        <label className="flex min-h-[3.25rem] cursor-pointer items-start gap-3 rounded-xl border border-ink-200 bg-white px-4 py-3 has-[:checked]:border-blush-500 has-[:checked]:ring-2 has-[:checked]:ring-blush-200">
+          <input type="checkbox" name="anonymous" value="true"
+            className="mt-1 h-4 w-4 accent-blush-600" />
+          <span className="flex flex-col">
+            <span className="text-base text-ink-900">{t("checkout.anonymous")}</span>
+            <span className="text-sm text-ink-600">{t("checkout.anonymousHint")}</span>
+          </span>
+        </label>
       </section>
 
       {state.error && (

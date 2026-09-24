@@ -73,6 +73,21 @@ export default function Personalisation({
         <p className="text-xs text-ink-500" aria-live="polite">
           {t("personalise.noteRemaining", { count: NOTE_MAX - note.length })}
         </p>
+
+        {/* What the florist will hand-write onto the card. Shown only once
+            something has been typed, so an empty product page stays quiet —
+            and it catches the line breaks and typos that are otherwise only
+            discovered by the person receiving the flowers. */}
+        {note.trim() && (
+          <figure className="mt-1 rounded-xl border border-blush-200 bg-blush-50 px-4 py-3">
+            <figcaption className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-blush-700">
+              {t("personalise.preview")}
+            </figcaption>
+            <p className="mt-1.5 whitespace-pre-wrap font-display text-base leading-relaxed text-ink-900">
+              {note}
+            </p>
+          </figure>
+        )}
       </div>
 
       <fieldset className="flex flex-col gap-2.5">

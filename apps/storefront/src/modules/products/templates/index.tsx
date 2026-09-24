@@ -50,7 +50,7 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
         data-testid="product-container"
       >
         <div className="small:sticky small:top-40">
-          <ImageGallery images={images} />
+          <ImageGallery images={images} title={product.title} />
         </div>
 
         <div className="flex flex-col gap-8">
