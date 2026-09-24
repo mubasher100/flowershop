@@ -1,4 +1,5 @@
 import { getTranslations } from "@lib/i18n/dictionary"
+import ContactForm from "@modules/content/components/contact-form"
 import { alternatesFor, segmentsFor } from "@lib/util/locale"
 import ContentPage, {
   ContentBlock,
@@ -50,6 +51,12 @@ export default async function ContactPage(props: Props) {
       intro={t("page.contactIntro")}
       backLabel={t("page.backToShop")}
     >
+      {WHATSAPP && (
+        <ContentBlock heading={t("contact.askHeading")}>
+          <ContactForm whatsapp={WHATSAPP} />
+        </ContentBlock>
+      )}
+
       {WHATSAPP && (
         <ContentBlock heading="WhatsApp">
           <a
