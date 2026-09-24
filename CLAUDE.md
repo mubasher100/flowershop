@@ -401,6 +401,12 @@ Run `npm run build` in `apps/storefront`, not just `tsc`, before pushing anythin
 | 11 | Accessibility — WCAG 2.1 AA / UMN standards | ✅ Done — zero axe violations |
 | 12 | Email notifications, analytics | 🔒 Later |
 
+### Email
+
+Order confirmations go out through a small Resend provider at `apps/backend/src/modules/resend/`, with the email itself written in `apps/backend/src/lib/order-email.ts` — in this repo rather than a provider's dashboard, so it is reviewable in code and translated next to the rest of the copy. Medusa's SendGrid provider was not used for exactly that reason: its bodies live in SendGrid's UI.
+
+Gated on `RESEND_API_KEY` and `RESEND_FROM` (an address on a domain verified with Resend). Without them the notification module still registers the local provider, which logs the notification, and nothing is sent. Checkout asks for an email **optionally** — the shop reaches people on WhatsApp and a required address would cost orders — so when none is given Medusa's required email is still a placeholder derived from the phone number, and the subscriber skips those rather than mailing a dead domain.
+
 ### Demo payment gateway
 
 A simulated card payment exists in checkout so the flow can be shown before SkipCash is live. It is deliberately built so it cannot be misused as real payment: the card number is a fixed, read-only test value, so there is nowhere to type a real one. Nothing is transmitted, the outcome is chosen explicitly, and the reference is prefixed `DEMO-` and stored with `payment_status: simulated_demo_no_funds_taken` so a demo order is never mistaken for a paid one.
