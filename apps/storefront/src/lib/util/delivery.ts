@@ -52,6 +52,7 @@ export const FIELD_LIMITS = {
   address: 500,
   giftNote: 300,
   instructions: 200,
+  email: 254,
 } as const
 
 export const isDeliveryArea = (value: string): boolean =>

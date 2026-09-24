@@ -145,6 +145,46 @@ const redisModules = REDIS_URL
     ]
   : []
 
+/**
+ * Email notifications, gated on a Resend API key.
+ *
+ * RESEND_FROM must be an address on a domain verified with Resend, or every
+ * send is refused. Without the key the module still registers the local
+ * provider, which writes the notification to the logs — useful in
+ * development and harmless in production.
+ */
+const RESEND_API_KEY = process.env.RESEND_API_KEY
+const RESEND_FROM = process.env.RESEND_FROM
+
+const notificationModule = [
+  {
+    resolve: "@medusajs/medusa/notification",
+    options: {
+      providers: [
+        {
+          resolve: "@medusajs/medusa/notification-local",
+          id: "local",
+          options: { name: "Local notification", channels: ["feed"] },
+        },
+        ...(RESEND_API_KEY && RESEND_FROM
+          ? [
+              {
+                resolve: "./src/modules/resend",
+                id: "resend",
+                options: {
+                  channels: ["email"],
+                  api_key: RESEND_API_KEY,
+                  from: RESEND_FROM,
+                  reply_to: process.env.RESEND_REPLY_TO,
+                },
+              },
+            ]
+          : []),
+      ],
+    },
+  },
+]
+
 module.exports = defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
@@ -207,6 +247,16 @@ module.exports = defineConfig({
      * blocked.
      */
     { resolve: "./src/modules/delivery-capacity" },
+
+    /**
+     * Email.
+     *
+     * The shop sent the customer nothing at all — the browser tab was their
+     * only record of an order. Registered only when a Resend key is present,
+     * so a deploy without one behaves exactly as before rather than failing
+     * to boot; the local provider keeps a record in the logs either way.
+     */
+    ...notificationModule,
 
     /**
      * Translation module.

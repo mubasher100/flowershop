@@ -63,6 +63,7 @@ export async function placeGuestOrder(
   const address = get("address", FIELD_LIMITS.address)
   const recipient = get("recipient", FIELD_LIMITS.recipient)
   const recipientPhone = get("recipient_phone", FIELD_LIMITS.phone)
+  const email = get("email", FIELD_LIMITS.email).toLowerCase()
   const instructions = get("delivery_notes", FIELD_LIMITS.instructions)
   const giftNote = get("gift_note", FIELD_LIMITS.giftNote)
 
@@ -93,6 +94,11 @@ export async function placeGuestOrder(
     return { error: "Please choose a delivery area from the list." }
   }
   if (!address) return { error: "Please add the delivery address." }
+  // Optional, but if given it has to be usable — a typo means the
+  // confirmation goes nowhere and the customer never learns it did not.
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    return { error: "That email address does not look right." }
+  }
   if (!shippingOptionId) return { error: "Please choose a delivery speed." }
   // The driver's number. The form requires it, but a form post is just an
   // HTTP request, and an order that reaches the door with no way to call the
@@ -186,7 +192,10 @@ export async function placeGuestOrder(
 
   try {
     await updateCart({
-      email: emailForPhone(phone),
+      // A real address when one was given; otherwise the derived placeholder,
+      // because Medusa requires an email on every order. The confirmation
+      // subscriber skips the placeholders rather than mailing a dead domain.
+      email: email || emailForPhone(phone),
       shipping_address: {
         first_name: firstName,
         last_name: restName.join(" ") || "-",
@@ -207,6 +216,8 @@ export async function placeGuestOrder(
         delivery_window: deliveryWindow,
         gift_note: giftNote,
         fulfilment_channel: "whatsapp",
+        // Which language to write the confirmation email in.
+        locale: segment?.startsWith("ar") ? "ar" : "en",
         /**
          * Present only when the demo card gateway was used, and prefixed
          * DEMO- by the component that issues it. No money moved; this exists

@@ -288,6 +288,9 @@ export const DICTIONARY = {
     "track.cancelled": "Cancelled",
     "track.help": "Something not right? Message us on WhatsApp and we will sort it out.",
     "footer.track": "Track your order",
+    "checkout.email": "Email",
+    "checkout.emailPlaceholder": "you@example.com",
+    "checkout.emailHelp": "We will send your order confirmation here. Leave it blank and we will confirm on WhatsApp only.",
     "checkout.recipientPhone": "Recipient's phone",
     "checkout.recipientPhoneHelp":
       "Our driver calls this number at the door. If the flowers are for you, use your own.",
@@ -664,6 +667,9 @@ export const DICTIONARY = {
     "track.cancelled": "ملغى",
     "track.help": "هل هناك ما يحتاج إلى مراجعة؟ راسلنا على واتساب وسنتكفل بالأمر.",
     "footer.track": "تتبع طلبك",
+    "checkout.email": "البريد الإلكتروني",
+    "checkout.emailPlaceholder": "you@example.com",
+    "checkout.emailHelp": "سنرسل تأكيد الطلب إلى هذا البريد. اتركه فارغاً وسنؤكد عبر واتساب فقط.",
     "checkout.recipientPhone": "رقم هاتف المستلم",
     "checkout.recipientPhoneHelp":
       "يتصل مندوبنا بهذا الرقم عند الباب. إذا كانت الورود لك، استخدم رقمك.",

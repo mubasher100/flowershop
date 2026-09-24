@@ -193,6 +193,23 @@ export default function GuestCheckout({
             placeholder={t("checkout.phonePlaceholder")} />
           <p className="text-xs text-ink-500">{t("checkout.phoneHelp")}</p>
         </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className={labelClass} htmlFor="email">
+            {t("checkout.email")}{" "}
+            <span className="font-normal text-ink-500">
+              {t("checkout.optional")}
+            </span>
+          </label>
+          {/* Optional on purpose: the shop reaches people on WhatsApp, and a
+              required address would cost orders. Given one, we send a written
+              confirmation — the only record a guest checkout can leave. */}
+          <input id="email" name="email" type="email" inputMode="email"
+            autoComplete="email" dir="ltr" maxLength={FIELD_LIMITS.email}
+            className={`${fieldClass} text-start`}
+            placeholder={t("checkout.emailPlaceholder")} />
+          <p className="text-xs text-ink-500">{t("checkout.emailHelp")}</p>
+        </div>
       </section>
 
       <section className="flex flex-col gap-4">
