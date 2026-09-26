@@ -1,6 +1,7 @@
 import { defineCloudflareConfig } from "@opennextjs/cloudflare"
 import r2IncrementalCache from "@opennextjs/cloudflare/overrides/incremental-cache/r2-incremental-cache"
 import { withRegionalCache } from "@opennextjs/cloudflare/overrides/incremental-cache/regional-cache"
+import doQueue from "@opennextjs/cloudflare/overrides/queue/do-queue"
 import doShardedTagCache from "@opennextjs/cloudflare/overrides/tag-cache/do-sharded-tag-cache"
 
 /**
@@ -88,5 +89,21 @@ export default defineCloudflareConfig({
    * Serves a prerendered page straight from the cache without booting the
    * full Next.js server. Safe here because the site does not use PPR.
    */
+  /**
+   * Background revalidation.
+   *
+   * Without a queue, OpenNext falls back to a "dummy" one that throws
+   * `Dummy queue is not implemented` the moment a page goes stale — and
+   * because that happens inside the cache interceptor, the request 500s
+   * instead of serving the stale copy while it refreshes. It took the
+   * homepage down 24 hours after a deploy, that page being the only one
+   * with a `revalidate` window; everything else was either permanently
+   * static or fully dynamic, so nothing else ever went stale.
+   *
+   * A Durable Object queue, matching the tag cache, so a stale page is
+   * served immediately and rebuilt behind the request.
+   */
+  queue: doQueue,
+
   enableCacheInterception: true,
 })

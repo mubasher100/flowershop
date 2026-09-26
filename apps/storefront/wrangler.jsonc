@@ -28,6 +28,12 @@
       {
         "name": "NEXT_TAG_CACHE_DO_SHARDED",
         "class_name": "DOShardedTagCache"
+      },
+      // Background ISR revalidation. Without it a stale page throws rather
+      // than being served while it refreshes.
+      {
+        "name": "NEXT_CACHE_DO_QUEUE",
+        "class_name": "DOQueueHandler"
       }
     ]
   },
@@ -37,6 +43,10 @@
     {
       "tag": "v1",
       "new_sqlite_classes": ["DOShardedTagCache"]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": ["DOQueueHandler"]
     }
   ],
   // The shop's own domain. Custom domains, not routes: Cloudflare creates the
