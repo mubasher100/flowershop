@@ -8,7 +8,7 @@
  * URI is part of the document and always there.
  *
  * This is the fallback. A shop that uploads its own logo on Admin → Shop gets
- * that instead; see CARD_LOGO_METADATA_KEY below.
+ * that instead; see LOGO_METADATA_KEY below.
  *
  * Source: apps/storefront/src/app/icon.svg — keep the two in step if the mark
  * changes.
@@ -20,10 +20,10 @@ const MARK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
  * base64 rather than percent-encoding: the mark contains `#` in every fill,
  * which terminates a data URI early and prints a broken-image icon.
  */
-export const DEFAULT_CARD_LOGO = `data:image/svg+xml;base64,${btoa(MARK_SVG)}`
+export const DEFAULT_LOGO = `data:image/svg+xml;base64,${btoa(MARK_SVG)}`
 
 /**
  * Where an uploaded logo is remembered — the store's own metadata, so it
  * survives a deploy and needs no module of its own.
  */
-export const CARD_LOGO_METADATA_KEY = "gift_card_logo_url"
+export const LOGO_METADATA_KEY = "delivery_label_logo_url"

@@ -1,35 +1,23 @@
 import { defineWidgetConfig } from "@medusajs/admin-sdk"
-import { DocumentText, Envelope, Tag } from "@medusajs/icons"
+import { DocumentText, Tag } from "@medusajs/icons"
 import { Button, Container, Heading, Text, toast } from "@medusajs/ui"
 
-import {
-  printOrderDocument,
-  type DocKind,
-  type PrintableOrder,
-} from "../lib/print"
-import { useCardLogo } from "../lib/use-card-logo"
+import { printOrderDocument, type PrintableOrder } from "../lib/print"
+import { useLabelLogo } from "../lib/use-label-logo"
 
 /**
- * Paperwork for an order: the label that goes on the box, the gift card that
- * goes in with the flowers, and the receipt for the person who paid.
+ * Paperwork for an order: the label that goes on the box, and the receipt
+ * that goes to the person who paid.
  *
- * All three open in their own window with the print dialog already up, so it is
+ * Both open in their own window with the print dialog already up, so it is
  * one click from the order to a printed page.
  */
 const OrderPrint = ({ data }: { data: PrintableOrder }) => {
-  const { logo } = useCardLogo()
+  // The shop's logo, printed at the top of the label. Always resolves to
+  // something — the bundled mark until a logo is uploaded.
+  const { logo } = useLabelLogo()
 
-  // Nothing to print a card from if the customer did not write a message. The
-  // note lives on the line items (each bouquet in an order can carry its own),
-  // and on the order for a single-item order placed through checkout.
-  const noteOnOrder =
-    typeof data.metadata?.gift_note === "string" && data.metadata.gift_note
-  const noteOnItem = (data.items ?? []).some(
-    (item) => typeof item.metadata?.gift_note === "string" && item.metadata.gift_note
-  )
-  const hasNote = !!noteOnOrder || noteOnItem
-
-  const print = (kind: DocKind) => {
+  const print = (kind: "label" | "receipt") => {
     const opened = printOrderDocument(data, kind, undefined, logo)
     if (!opened) {
       // A blocked popup fails silently otherwise, and the florist is left
@@ -54,22 +42,6 @@ const OrderPrint = ({ data }: { data: PrintableOrder }) => {
           <Tag />
           Delivery label
         </Button>
-
-        <Button
-          size="small"
-          variant="secondary"
-          disabled={!hasNote}
-          onClick={() => print("gift-card")}
-        >
-          <Envelope />
-          Gift card
-        </Button>
-        {!hasNote && (
-          <Text size="xsmall" className="text-ui-fg-muted">
-            No gift message on this order.
-          </Text>
-        )}
-
         <Button
           size="small"
           variant="secondary"

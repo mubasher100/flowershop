@@ -297,13 +297,16 @@ Updating an existing product replaces its price, description, categories and pho
 
 ### Printed paperwork
 
-Three documents, from Admin → an order, or Admin → Shop. All open in their own window with the print dialog up; see [`apps/backend/src/admin/lib/print.ts`](apps/backend/src/admin/lib/print.ts).
+Two documents, from Admin → an order, or Admin → Shop. Both open in their own window with the print dialog up; see [`apps/backend/src/admin/lib/print.ts`](apps/backend/src/admin/lib/print.ts).
 
-- **Delivery label** — recipient, phone and address at arm's length, for the courier.
-- **Gift card** — the customer's message on an A6 card with the shop's mark above it, cut from A4. **One card per message, not per order:** the gift note belongs to the line item on purpose, since two bouquets in one order can go to two different people, so an order can need several. The message's font size is set from how many lines it will take — 200 characters of prose is four lines and fits, but the same 200 characters as ten short lines is a poem, and a fixed size pushed the last line past the cut edge with nothing to warn the florist.
+- **Delivery label** — recipient, phone and address at arm's length, for the courier, with the gift message as a dashed cut-out box to enclose. Carries the shop's logo at the top.
 - **Receipt** — itemised, for whoever paid.
 
-The logo is uploaded at **Admin → Shop → Gift card logo** and kept in the store's own metadata (`gift_card_logo_url`) — one string that belongs to the store, where a module would mean a data model, a service, a migration and an API route. With nothing uploaded it falls back to the mark inlined in `admin/lib/brand-mark.ts`, so a card is never unbranded. That mark is a base64 data URI, not a path: the print window is an `about:blank` document with no origin, so a relative path resolves to nothing, and `#` in every SVG fill terminates a percent-encoded data URI early.
+The logo is uploaded at **Admin → Shop → Delivery label logo** and kept in the store's own metadata (`delivery_label_logo_url`) — one string that belongs to the store, where a module would mean a data model, a service, a migration and an API route. With nothing uploaded it falls back to the mark inlined in `admin/lib/brand-mark.ts`, so a label is never unbranded. That mark is a base64 data URI, not a path: the print window is an `about:blank` document with no origin, so a relative path resolves to nothing, and `#` in every SVG fill terminates a percent-encoded data URI early.
+
+**Keep the logo small on the label.** It is 11mm beside the shop name. That sheet is read by a courier at arm's length looking for a name and a phone number, and branding that competes with those makes the label worse at its actual job.
+
+A separate A6 gift card document was built on 28 Sep 2026 and removed the same day at the shop's request — the message stays on the label as the cut-out box. Worth knowing before building it again: the gift note belongs to the **line item**, not the order, since two bouquets in one order can go to two different people, so that document needed one card per message rather than one per order.
 
 ### Homepage sections
 

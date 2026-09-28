@@ -1,18 +1,18 @@
-import { ArrowUpTray, Envelope } from "@medusajs/icons"
+import { ArrowUpTray, Tag } from "@medusajs/icons"
 import { Button, Container, Heading, Text, toast } from "@medusajs/ui"
 import { useRef } from "react"
 
 import { printOrderDocument, SHOP_NAME } from "../lib/print"
-import { useCardLogo } from "../lib/use-card-logo"
+import { useLabelLogo } from "../lib/use-label-logo"
 
-/** Roughly what a logo needs to print at 16mm without being a photograph. */
+/** Roughly what a logo needs to print at 11mm without being a photograph. */
 const MAX_BYTES = 2 * 1024 * 1024
 
 /**
  * A sample order, so the logo can be checked on real paper before a real
- * customer's card depends on it. The message is the longest a customer can
- * write (200 characters) — a logo that fits a two-word message and pushes a
- * full one off the card is the failure worth catching here.
+ * delivery depends on it. A long recipient name and a full set of delivery
+ * instructions, because a label that fits a short address and pushes a long
+ * one off the page is the failure worth catching here.
  */
 const SAMPLE = {
   display_id: 0,
@@ -20,21 +20,29 @@ const SAMPLE = {
   currency_code: "qar",
   metadata: {
     recipient_name: "Noor Al-Thani",
-    contact_name: "Ahmed",
-    gift_note:
-      "Happy birthday, Noor.\n\nThirty years and you have not changed a bit — which everyone says, but in your case it is meant as the compliment it sounds like. See you tonight.",
+    recipient_phone: "+974 5151 4161",
+    delivery_date: new Date().toLocaleDateString("en-CA", {
+      timeZone: "Asia/Qatar",
+    }),
+    delivery_window: "6pm - 9pm",
+    delivery_notes: "Villa gate is on the side street. Please call on arrival.",
+    gift_note: "Happy birthday, Noor. See you tonight.",
+  },
+  shipping_address: {
+    address_1: "Building 10, Al Abhariya Street",
+    city: "Doha",
   },
 }
 
 /**
- * The logo printed on gift cards.
+ * The logo printed at the top of the delivery label.
  *
- * The card is the one piece of paperwork the customer's recipient actually
- * keeps, and it was printing unbranded — cut from the same sheet as the
- * courier label. This is where the shop puts its own mark on it.
+ * Kept small on the label itself: that sheet is read by a courier at arm's
+ * length looking for a name and a phone number, and branding that competes
+ * with those makes the label worse at its job.
  */
-export default function CardLogoSettings() {
-  const { logo, isCustom, upload, reset, isSaving } = useCardLogo()
+export default function LabelLogoSettings() {
+  const { logo, isCustom, upload, reset, isSaving } = useLabelLogo()
   const fileInput = useRef<HTMLInputElement>(null)
 
   const onPick = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,7 +63,7 @@ export default function CardLogoSettings() {
 
     try {
       await upload.mutateAsync(file)
-      toast.success("Logo saved. It will print on every gift card from now on.")
+      toast.success("Logo saved. It will print on every delivery label from now on.")
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "The upload did not go through."
@@ -73,7 +81,7 @@ export default function CardLogoSettings() {
   }
 
   const printSample = () => {
-    const opened = printOrderDocument(SAMPLE, "gift-card", SHOP_NAME, logo)
+    const opened = printOrderDocument(SAMPLE, "label", SHOP_NAME, logo)
     if (!opened) {
       toast.error(
         "Your browser blocked the print window. Allow pop-ups for this site and try again."
@@ -84,18 +92,14 @@ export default function CardLogoSettings() {
   return (
     <Container className="divide-y p-0">
       <div className="px-6 py-4">
-        <Heading level="h2">Gift card logo</Heading>
+        <Heading level="h2">Delivery label logo</Heading>
         <Text size="small" className="text-ui-fg-subtle">
-          Printed at the top of the card that goes in with the flowers, above
-          the customer&rsquo;s message.
+          Printed at the top of the label that goes on the box.
         </Text>
       </div>
 
       <div className="flex flex-col gap-4 px-6 py-4 md:flex-row md:items-center">
-        {/* A checkered-free plain surface: a logo with a transparent background
-            looks fine here and prints onto the card's blush paper, so the
-            preview shows it on that same colour rather than on white. */}
-        <div className="flex h-24 w-32 flex-none items-center justify-center rounded-lg border border-ui-border-base bg-[#fff7f9]">
+        <div className="flex h-24 w-32 flex-none items-center justify-center rounded-lg border border-ui-border-base bg-white">
           <img
             src={logo}
             alt="The logo as it will print"
@@ -111,8 +115,7 @@ export default function CardLogoSettings() {
           </Text>
           <Text size="xsmall" className="text-ui-fg-muted">
             PNG, JPG, SVG or WebP, under 2 MB. A square mark works best — it
-            prints about 16mm across. A logo on a transparent background sits
-            best on the card&rsquo;s paper colour.
+            prints about 11mm across, beside the shop name.
           </Text>
 
           <div className="mt-1 flex flex-wrap gap-2">
@@ -140,8 +143,8 @@ export default function CardLogoSettings() {
             {/* Checking it on paper is the whole point — a mark that looks
                 right on screen can print as a grey smudge. */}
             <Button size="small" variant="transparent" onClick={printSample}>
-              <Envelope />
-              Print a sample card
+              <Tag />
+              Print a sample label
             </Button>
           </div>
 
