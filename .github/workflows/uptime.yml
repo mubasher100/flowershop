@@ -1,0 +1,68 @@
+name: Uptime
+
+# The homepage has gone down twice without anyone noticing until a customer
+# would have. Both times it was the same shape of bug: fine at deploy time,
+# broken a day later when the page's revalidate window expired. A check that
+# only runs on deploy cannot catch that, so this runs on a schedule.
+#
+# GitHub emails the repository owner when a scheduled workflow fails, which
+# is the alert.
+on:
+  schedule:
+    # Every 30 minutes. Scheduled runs can be delayed when GitHub is busy;
+    # that is fine here, it only ever means a slightly later alert.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: The pages a customer actually walks through
+        run: |
+          set -u
+          FAILED=0
+
+          check() {
+            local url="$1"
+            local want="${2:-200}"
+            # Cache-buster on purpose: a plain request can be served from the
+            # edge cache and hide a broken origin. It is precisely the
+            # uncached path that broke both times.
+            local got
+            got=$(curl -s -o /dev/null -w "%{http_code}" --max-time 45 "${url}?uptime=$(date +%s)$RANDOM")
+            if [ "$got" != "$want" ]; then
+              echo "::error::$url returned $got, expected $want"
+              FAILED=1
+            else
+              echo "ok   $got  $url"
+            fi
+          }
+
+          SITE=https://tulipsandtruffle.com
+          check "$SITE/en-qa"
+          check "$SITE/ar-qa"
+          check "$SITE/en-qa/store"
+          check "$SITE/ar-qa/store"
+          check "$SITE/en-qa/products/la-vie-en-rose"
+          check "$SITE/en-qa/cart"
+          check "$SITE/en-qa/track"
+          check "$SITE/en-qa/contact"
+
+          # The storefront renders from this; if it is down the shop cannot
+          # take an order even while the pages look fine.
+          check "https://medusa-backend-sg-production.up.railway.app/health"
+
+          exit $FAILED
+
+      - name: Product images are still being served
+        run: |
+          # A broken media host leaves every page looking empty, and it is on
+          # a different domain to everything above.
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 45 \
+            "https://media.tulipsandtruffle.com/la-vie-en-rose-01M343E0PETVZ9HAJ4C29RZGKH.webp")
+          if [ "$code" != "200" ]; then
+            echo "::error::media.tulipsandtruffle.com returned $code"
+            exit 1
+          fi
+          echo "ok   $code  media host"
