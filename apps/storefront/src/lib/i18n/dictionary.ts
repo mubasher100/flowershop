@@ -59,13 +59,6 @@ export const DICTIONARY = {
     "personalise.notePlaceholder":
       "Handwritten on a card and sealed with the flowers.",
     "personalise.noteRemaining": "{count} characters left",
-    "personalise.ribbon": "Ribbon",
-    "personalise.ribbonNone": "No ribbon",
-    "ribbon.blush": "Blush",
-    "ribbon.ivory": "Ivory",
-    "ribbon.sage": "Sage",
-    "ribbon.gold": "Gold",
-    "ribbon.burgundy": "Burgundy",
 
     "product.flowerCare": "Flower care",
     "product.delivery": "Delivery",
@@ -334,6 +327,7 @@ export const DICTIONARY = {
     "filter.clearAll": "Clear all filters",
     "filter.emptyTitle": "Nothing matches those filters",
     "filter.emptyBody": "Try widening the price range or clearing a colour.",
+    "filter.emptyAll": "See everything",
 
     // Sort
     "sort.by": "Sort by",
@@ -467,13 +461,6 @@ export const DICTIONARY = {
     "personalise.note": "بطاقة إهداء",
     "personalise.notePlaceholder": "تُكتب بخط اليد على بطاقة وتُرفق مع الورود.",
     "personalise.noteRemaining": "بقي {count} حرفاً",
-    "personalise.ribbon": "الشريطة",
-    "personalise.ribbonNone": "بدون شريطة",
-    "ribbon.blush": "وردي فاتح",
-    "ribbon.ivory": "عاجي",
-    "ribbon.sage": "أخضر فاتح",
-    "ribbon.gold": "ذهبي",
-    "ribbon.burgundy": "عنابي",
 
     "product.flowerCare": "العناية بالورود",
     "product.delivery": "التوصيل",
@@ -727,6 +714,7 @@ export const DICTIONARY = {
     "filter.clearAll": "مسح كل الفلاتر",
     "filter.emptyTitle": "لا توجد نتائج مطابقة",
     "filter.emptyBody": "جرّب توسيع نطاق السعر أو إزالة أحد الألوان.",
+    "filter.emptyAll": "تصفّح كل المنتجات",
 
     "sort.by": "ترتيب حسب",
     "sort.latest": "أحدث المنتجات",

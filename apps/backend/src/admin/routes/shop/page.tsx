@@ -17,6 +17,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 
+import CardLogoSettings from "../../components/card-logo-settings"
 import { printOrderDocument, SHOP_NAME } from "../../lib/print"
 import { sdk } from "../../lib/sdk"
 
@@ -676,6 +677,10 @@ const ShopPage = () => {
           </div>
         )}
       </Container>
+
+      {/* Last, because it is set once and then forgotten — unlike everything
+          above it, which is the daily work. */}
+      <CardLogoSettings />
     </div>
   )
 }

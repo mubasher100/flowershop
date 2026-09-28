@@ -53,7 +53,7 @@ export default async function OccasionTiles({
   /** A single category to show. Blank means every occasion. */
   handle?: string | null
 }) {
-  const categories = await listCategories({ limit: 20 })
+  const categories = await listCategories({ limit: 50 })
   const { t } = getTranslations(segment)
 
   // A handle from the admin narrows this to one tile; the shadowed parameter

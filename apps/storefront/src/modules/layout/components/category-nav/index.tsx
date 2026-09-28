@@ -1,6 +1,7 @@
 import { listCategories } from "@lib/data/categories"
 import { getTranslations } from "@lib/i18n/dictionary"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import { TYPE_HANDLES } from "@lib/util/categories"
 
 /**
  * Category strip under the header.
@@ -12,11 +13,10 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
  * Scrolls horizontally on phones rather than collapsing — a visible, swipeable
  * row of categories advertises the range in a way a closed menu cannot.
  */
-const TYPE_HANDLES = ["bouquets", "vases", "roses", "luxury", "everyday"]
 
 export default async function CategoryNav({ segment }: { segment?: string }) {
   const { t } = getTranslations(segment)
-  const categories = await listCategories({ limit: 20 })
+  const categories = await listCategories({ limit: 50 })
 
   const ordered = TYPE_HANDLES.map((h) =>
     categories?.find((c) => c.handle === h)

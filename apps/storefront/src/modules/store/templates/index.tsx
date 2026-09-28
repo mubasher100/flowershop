@@ -11,9 +11,8 @@ import FilterPanel, {
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 
 import PaginatedProducts, { CatalogueFilters } from "./paginated-products"
+import { TYPE_HANDLES } from "@lib/util/categories"
 
-/** Type categories only — occasions have their own homepage section. */
-const TYPE_HANDLES = ["bouquets", "vases", "roses", "luxury", "everyday"]
 
 /**
  * Builds the colour and price facets from the catalogue itself rather than a
@@ -86,7 +85,7 @@ const StoreTemplate = async ({
   const { t } = getTranslations(countryCode)
 
   const [{ colours, tagIdByValue, maxPrice }, allCategories] =
-    await Promise.all([getFacets(countryCode), listCategories({ limit: 20 })])
+    await Promise.all([getFacets(countryCode), listCategories({ limit: 50 })])
 
   const categoryOptions: FilterOption[] = TYPE_HANDLES.map((h) =>
     allCategories?.find((c) => c.handle === h)

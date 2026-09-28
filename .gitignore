@@ -70,3 +70,9 @@ Thumbs.db
 **/.env.*.bak
 **/.env.bak
 *.bak
+
+# Filled-in product spreadsheets. The blank template is committed; a sheet a
+# florist has filled in carries product photography and is regenerated from
+# the template anyway.
+/product-import-*.xlsx
+!/product-import-template.xlsx

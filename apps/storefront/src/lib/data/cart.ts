@@ -145,7 +145,7 @@ export async function addToCart({
   quantity: number
   countryCode: string
   /**
-   * Per-item personalisation — the gift message and ribbon chosen on the
+   * Per-item personalisation — the gift message chosen on the
    * product page. It rides on the line item rather than the cart because two
    * bouquets in one order can go to different people with different notes.
    */

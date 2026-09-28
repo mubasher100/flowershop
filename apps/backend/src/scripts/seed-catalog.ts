@@ -13,6 +13,11 @@ import {
   updateProductsWorkflow,
 } from "@medusajs/medusa/core-flows"
 
+import {
+  FALLBACK_CATEGORY,
+  TYPE_CATEGORIES,
+} from "../lib/catalogue-taxonomy"
+
 /**
  * Seeds the flower catalogue.
  *
@@ -48,13 +53,29 @@ type Seed = {
   sizes?: number
 }
 
-const CATEGORIES = [
-  { name: "Hand-Tied Bouquets", handle: "bouquets" },
-  { name: "Flowers in Vases", handle: "vases" },
-  { name: "Signature Roses", handle: "roses" },
-  { name: "Luxury Arrangements", handle: "luxury" },
-  { name: "Everyday Blooms", handle: "everyday" },
-]
+/**
+ * The type categories come from lib/catalogue-taxonomy.ts so the spreadsheet
+ * importer and its template cannot drift from what exists in Medusa.
+ *
+ * A seed's `category` field is the old five-way grouping. It still drives the
+ * occasion matchers and the collection rebalance below; the categories a
+ * product is actually filed under are now decided by the taxonomy's own
+ * rules, which can put one product in several.
+ */
+const CATEGORIES = TYPE_CATEGORIES.map((c) => ({
+  name: c.name,
+  handle: c.handle,
+  description: c.description,
+}))
+
+/** Which of the new categories a placeholder product belongs in. */
+const typeHandlesFor = (seed: Seed): string[] => {
+  const matched = TYPE_CATEGORIES.filter((c) =>
+    c.match({ name: seed.name, price: seed.price, group: seed.category })
+  ).map((c) => c.handle)
+
+  return matched.length ? matched : [FALLBACK_CATEGORY]
+}
 
 /**
  * Occasion categories.
@@ -240,7 +261,11 @@ export default async function seedCatalog({
 
   const allCategories = [
     ...CATEGORIES,
-    ...OCCASIONS.map((o) => ({ name: o.name, handle: o.handle })),
+    ...OCCASIONS.map((o) => ({
+      name: o.name,
+      handle: o.handle,
+      description: undefined as string | undefined,
+    })),
   ]
   const missingCats = allCategories.filter((c) => !catByHandle.has(c.handle))
   if (missingCats.length) {
@@ -249,6 +274,7 @@ export default async function seedCatalog({
         product_categories: missingCats.map((c) => ({
           name: c.name,
           handle: c.handle,
+          ...(c.description ? { description: c.description } : {}),
           is_active: true,
         })),
       },
@@ -387,12 +413,20 @@ async function assignOccasions(
       .map((o) => o.handle)
 
     const alreadyTagged = current.filter((h) => occasionHandles.has(h))
-    if (wanted.every((w) => alreadyTagged.includes(w)) && alreadyTagged.length) {
+    const alreadyTyped = current.filter((h) => !occasionHandles.has(h))
+    const wantedTypes = typeHandlesFor(seed)
+    if (
+      wanted.every((w) => alreadyTagged.includes(w)) &&
+      alreadyTagged.length &&
+      wantedTypes.every((w) => alreadyTyped.includes(w))
+    ) {
       continue
     }
 
-    const typeCategories = current.filter((h) => !occasionHandles.has(h))
-    const finalHandles = [...new Set([...typeCategories, ...wanted])]
+    // Not `current.filter(...)` any more: the products in a database seeded
+    // before 28 Sep 2026 are filed under the old handles, which no longer
+    // exist, so keeping what is there would leave them uncategorised.
+    const finalHandles = [...new Set([...typeHandlesFor(seed), ...wanted])]
     const ids = finalHandles
       .map((h) => catByHandle.get(h))
       .filter(Boolean) as string[]
@@ -440,9 +474,9 @@ async function createProducts(
       handle: handleize(seed.name),
       description: seed.blurb,
       status: ProductStatus.PUBLISHED,
-      category_ids: catByHandle.has(seed.category)
-        ? [catByHandle.get(seed.category)!]
-        : [],
+      category_ids: typeHandlesFor(seed)
+        .map((h) => catByHandle.get(h))
+        .filter(Boolean) as string[],
       // A product belongs to at most one collection in Medusa; the first
       // listed wins and the rest are expressed through categories.
       collection_id: seed.collections.length

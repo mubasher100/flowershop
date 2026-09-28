@@ -71,7 +71,7 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
           {item.product_title}
         </Text>
         <LineItemOptions variant={item.variant} data-testid="product-variant" />
-        {/* The gift message and ribbon chosen on the product page. Shown here
+        {/* The gift message chosen on the product page. Shown here
             because it is the last chance to notice a message meant for
             someone else before the order goes in. */}
         <LineItemPersonalisation metadata={item.metadata} />

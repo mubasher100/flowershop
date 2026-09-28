@@ -2,6 +2,7 @@ import { listProductsWithSort } from "@lib/data/products"
 import { getRegion } from "@lib/data/regions"
 import { getTranslations } from "@lib/i18n/dictionary"
 import { OptionValueIds } from "@lib/util/product-option-filters"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import ProductPreview from "@modules/products/components/product-preview"
 import { Pagination } from "@modules/store/components/pagination"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
@@ -127,12 +128,21 @@ export default async function PaginatedProducts({
   }
 
   if (!products.length) {
+    // The link out is the point. Without it this is a dead end — which is
+    // exactly what a category with nothing in it yet is, and the shop has two
+    // of those (Hot Deal is curated by hand, Baby Roses is waiting on stock).
     return (
       <div className="py-16 text-center">
         <p className="font-display text-2xl text-ink-900">
           {t("filter.emptyTitle")}
         </p>
         <p className="mt-2 text-base text-ink-600">{t("filter.emptyBody")}</p>
+        <LocalizedClientLink
+          href="/store"
+          className="mt-6 inline-flex min-h-[3rem] items-center justify-center rounded-full bg-blush-600 px-7 text-base font-semibold text-white transition-colors hover:bg-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700"
+        >
+          {t("filter.emptyAll")}
+        </LocalizedClientLink>
       </div>
     )
   }

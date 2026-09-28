@@ -258,15 +258,52 @@ Seeded and verified against the live Supabase database.
 - **Delivery capacity:** `deliveryCapacity` module, one row per day — closed, a limit for the day, a limit per window, and what is already booked. Counts are kept by `src/subscribers/delivery-capacity.ts` on `order.placed` and released on `order.canceled`, because the delivery date lives in order metadata, which the Admin API cannot filter or group by. Days nobody has booked have no row. Admin → **Delivery days**; defaults in `src/modules/delivery-capacity/constants.ts`.
 - **Same-day cut-off is enforced, not just advertised.** `windowsFor()` in `apps/storefront/src/lib/util/delivery.ts` drops a window that is inside `SAME_DAY_LEAD_HOURS`, and today disappears entirely after `SAME_DAY_CUTOFF_HOUR` (6pm). `guest-order.ts` re-checks the date, the window and the day's capacity — the form is never the boundary.
 - **Tax region:** `qa` at 0% — Qatar has no VAT on most goods, but the region must exist or checkout can't calculate totals
-- **Products:** 4 placeholder items from the starter, repriced in QAR. Real flower products land in phase 7.
+- **Products:** 37 placeholder items, repriced in QAR. Real flower products arrive through the spreadsheet importer below.
+- **Categories** live in [`apps/backend/src/lib/catalogue-taxonomy.ts`](apps/backend/src/lib/catalogue-taxonomy.ts) — one source of truth, because the seed, the spreadsheet importer and the spreadsheet's own dropdowns all read it, and a category the florist can pick but that does not exist in Medusa imports to nowhere. The storefront mirrors the handles in `src/lib/util/categories.ts`; they were duplicated in three components, which is how the nav and the catalogue filter came to be edited separately.
+
+  Ten type categories, replacing the starter's Bouquets/Vases/Roses/Luxury/Everyday on 28 Sep 2026: Hot Deal, Hand-Tied Bouquets, Big Bouquets, Flowers in Vases, 50 Roses, 100 Roses, 200 Roses, Mix Flowers, Big Flowers, Baby Roses. The six **occasion** categories are deliberately kept alongside them — they answer "what is it for" rather than "what is it", a product belongs to both, and the homepage occasion tiles render from them.
+
+  A product may sit in several: a vased fifty-rose arrangement genuinely belongs under both 50 Roses and Flowers in Vases, and a customer will look under either. **Hot Deal is rule-free on purpose** — what is on offer is a weekly decision made in the admin, not something derivable from a price.
+
+  The **flower varieties** the shop stocks (33 of them — rose cultivars, BB roses, hydrangea, gerbera, hot eskimo, carnation) live in the same file. They are stock knowledge, not categories: a free-text variety column comes back with "Vendala", "vendela" and "white rose" meaning one flower, and nothing can group them afterwards.
 - **Languages:** English + Arabic, with RTL. Live at `/en-qa` and `/ar-qa`. Interface copy is translated; the catalogue is not — see the localization section below.
 - **Payment:** SkipCash (pending). `pp_system_default` is the manual stand-in until then.
+- **Personalisation is the gift message only.** The ribbon-colour picker was removed on 28 Sep 2026 on the shop's instruction — the florist ties whatever suits the arrangement, so five named colours promised a choice nobody was tracking.
 
 Re-run the Qatar configuration at any time — it is idempotent:
 
 ```bash
 cd apps/backend && npx medusa exec ./src/scripts/seed-qatar.ts
 ```
+
+### Adding products from a spreadsheet
+
+The florist fills in a spreadsheet and it is imported. The admin dashboard adds one product at a time through six screens, which is fine for an edit and hopeless for a hundred new arrangements — and Medusa's own CSV import takes image *URLs*, while a florist photographing bouquets on a phone has files.
+
+```bash
+node scripts/make-product-template.mjs                    # -> product-import-template.xlsx
+node scripts/import-products.mjs sheet.xlsx               # dry run: reports what it would do
+node scripts/import-products.mjs sheet.xlsx --apply       # writes to the live catalogue
+```
+
+- **Photos are pulled out of the workbook.** A picture pasted into a cell is stored as a floating drawing anchored to a row, not as a cell value, so it comes from `getImages()` rather than from the row. A `Photo file name` column naming a file beside the spreadsheet works too. Each one is EXIF-rotated, resized to 1600px, converted to WebP and uploaded through `/admin/uploads` to R2.
+- **Rows sharing a product name become sizes of one product**, each with its own price.
+- **Dry run by default.** This writes to the live catalogue; a mistyped heading should surface as a printed report, not as ninety draft products to delete by hand. The target URL is printed before anything happens.
+- **It lives in `scripts/`, not the backend**, for the same reason `build-image-variants.mjs` does — it needs exceljs and sharp, and neither belongs in the bundle that deploys to Railway. `exceljs` is a root devDependency.
+- **Do not let it read `MEDUSA_BACKEND_URL` from `apps/backend/.env`.** That variable is the *local* backend (`http://localhost:9000`), and picking it up sent the whole import at a backend that was not running. Only the admin credentials come from `.env`; the target is `IMPORT_BACKEND_URL`, or `--local`.
+- **Re-run `node scripts/build-image-variants.mjs` after importing**, or the new photos are served at full size.
+
+Updating an existing product replaces its price, description, categories and photo but **not its variants** — Medusa treats those as their own resources. So the sheet doubles as the master copy for a bulk price change on single-size products; a product that already has sizes is repriced in the admin.
+
+### Printed paperwork
+
+Three documents, from Admin → an order, or Admin → Shop. All open in their own window with the print dialog up; see [`apps/backend/src/admin/lib/print.ts`](apps/backend/src/admin/lib/print.ts).
+
+- **Delivery label** — recipient, phone and address at arm's length, for the courier.
+- **Gift card** — the customer's message on an A6 card with the shop's mark above it, cut from A4. **One card per message, not per order:** the gift note belongs to the line item on purpose, since two bouquets in one order can go to two different people, so an order can need several. The message's font size is set from how many lines it will take — 200 characters of prose is four lines and fits, but the same 200 characters as ten short lines is a poem, and a fixed size pushed the last line past the cut edge with nothing to warn the florist.
+- **Receipt** — itemised, for whoever paid.
+
+The logo is uploaded at **Admin → Shop → Gift card logo** and kept in the store's own metadata (`gift_card_logo_url`) — one string that belongs to the store, where a module would mean a data model, a service, a migration and an API route. With nothing uploaded it falls back to the mark inlined in `admin/lib/brand-mark.ts`, so a card is never unbranded. That mark is a base64 data URI, not a path: the print window is an `about:blank` document with no origin, so a relative path resolves to nothing, and `#` in every SVG fill terminates a percent-encoded data URI early.
 
 ### Homepage sections
 

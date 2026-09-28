@@ -45,7 +45,6 @@ export default function ProductActions({
   const [justAdded, setJustAdded] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const [giftNote, setGiftNote] = useState("")
-  const [ribbon, setRibbon] = useState("")
   const countryCode = useParams().countryCode as string
   const { t } = useTranslations()
 
@@ -146,7 +145,6 @@ export default function ProductActions({
 
     const metadata = {
       ...(giftNote.trim() ? { gift_note: giftNote.trim() } : {}),
-      ...(ribbon ? { ribbon } : {}),
     }
 
     // Confirm before the request, not after. The button is deliberately not
@@ -173,7 +171,6 @@ export default function ProductActions({
     // Cleared straight away — leaving it filled in implies it still applies
     // to the page, and the next bouquet is usually for someone else.
     setGiftNote("")
-    setRibbon("")
 
     // Queued, not fired directly: concurrent adds each create their own cart
     // when none has the cookie yet. See lib/util/cart-queue.ts.
@@ -260,9 +257,7 @@ export default function ProductActions({
             not an afterthought once the order is placed. */}
         <Personalisation
           note={giftNote}
-          ribbon={ribbon}
           onNoteChange={setGiftNote}
-          onRibbonChange={setRibbon}
           disabled={!!disabled}
         />
 

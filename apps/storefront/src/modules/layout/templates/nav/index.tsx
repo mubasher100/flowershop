@@ -9,16 +9,8 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import CartButton from "@modules/layout/components/cart-button"
 import CategoryNav from "@modules/layout/components/category-nav"
 import SideMenu, { MenuLink } from "@modules/layout/components/side-menu"
+import { TYPE_HANDLES, OCCASION_HANDLES } from "@lib/util/categories"
 
-const TYPE_HANDLES = ["bouquets", "vases", "roses", "luxury", "everyday"]
-const OCCASION_HANDLES = [
-  "birthday",
-  "anniversary",
-  "congratulations",
-  "get-well-soon",
-  "new-baby",
-  "thank-you",
-]
 
 const pick = (
   all: { name?: string; handle?: string }[] | null,
@@ -30,7 +22,7 @@ const pick = (
     .map((c) => ({ name: c!.name ?? "", handle: c!.handle ?? "" }))
 
 export default async function Nav({ segment }: { segment?: string }) {
-  const categories = await listCategories({ limit: 20 })
+  const categories = await listCategories({ limit: 50 })
   const { t } = getTranslations(segment)
 
   return (
