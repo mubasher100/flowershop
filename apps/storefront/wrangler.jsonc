@@ -59,6 +59,20 @@
   // Keep the workers.dev address too — wrangler switches it off once routes
   // exist. It is the test address; the domain is the real one.
   "workers_dev": true,
+  /**
+   * The revalidation queue calls the Worker back to re-render a stale page,
+   * so the Worker needs a binding to itself. Without it the queue's Durable
+   * Object throws on construction — "No service binding for cache
+   * revalidation worker" — and the request that triggered the refresh 500s
+   * instead of being served the stale copy.
+   */
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "flowershop-storefront"
+    }
+  ],
+
   "observability": {
     "enabled": true
   }
