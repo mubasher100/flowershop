@@ -20,6 +20,7 @@
  * ninety draft products to delete by hand.
  */
 import ExcelJS from "exceljs"
+import JSZip from "jszip"
 import sharp from "sharp"
 import { existsSync, readFileSync } from "node:fs"
 import path from "node:path"
@@ -181,9 +182,50 @@ const handleize = (s) =>
 
 /* --------------------------------------------------------------- the sheet */
 
-async function readSheet() {
+/**
+ * Load the workbook, surviving the cell comments the template ships with.
+ *
+ * The template puts its guidance in cell notes. Some editors re-save those
+ * with an absolute relationship target (`/xl/comments/comment1.xml`) where
+ * exceljs expects a relative one, and exceljs then dies on load with
+ * "Cannot read properties of undefined (reading 'comments')" — before the
+ * importer sees a single row.
+ *
+ * That is exactly the round trip every filled-in sheet makes, so the comment
+ * relationships are stripped from an in-memory copy first. Nothing is read
+ * from them, and the file on disk is not touched.
+ */
+async function loadWorkbook(file) {
   const wb = new ExcelJS.Workbook()
-  await wb.xlsx.readFile(SHEET)
+  try {
+    await wb.xlsx.readFile(file)
+    return wb
+  } catch (err) {
+    if (!/reading 'comments'/.test(err.message)) throw err
+  }
+
+  const zip = await JSZip.loadAsync(readFileSync(file))
+  for (const name of Object.keys(zip.files)) {
+    if (/^xl\/worksheets\/_rels\/.*\.rels$/.test(name)) {
+      const xml = await zip.file(name).async("string")
+      zip.file(
+        name,
+        xml.replace(
+          /<Relationship\b[^>]*\/(?:comments|vmlDrawing)"[^>]*\/>/g,
+          ""
+        )
+      )
+    }
+  }
+
+  const clean = new ExcelJS.Workbook()
+  await clean.xlsx.load(await zip.generateAsync({ type: "nodebuffer" }))
+  console.log("Note: stripped cell comments to read this workbook.\n")
+  return clean
+}
+
+async function readSheet() {
+  const wb = await loadWorkbook(SHEET)
 
   const ws =
     wb.getWorksheet("Products") ??
@@ -424,13 +466,9 @@ async function main() {
       problems.push(`${where} "${lead.name}": no photo`)
     }
 
-    if (lead.image && APPLY) {
-      try {
-        imageUrl = await uploadImage(await prepareImage(lead.image, handle))
-      } catch (err) {
-        problems.push(`${where} "${lead.name}": ${err.message}`)
-      }
-    }
+    // The photo is uploaded only once the product call has succeeded — see
+    // below. Uploading first left an orphaned file in R2 for every product
+    // the API then rejected.
 
     /* ---- body --------------------------------------------------------- */
     const hasSizes = variantRows.some((r) => r.size)
@@ -453,9 +491,10 @@ async function main() {
       handle,
       description,
       status: lead.publish ? "published" : "draft",
-      category_ids: catIds,
+      // The HTTP API takes objects. `category_ids` is the shape the internal
+      // workflows use, and the route rejects it outright.
+      categories: catIds.map((id) => ({ id })),
       ...(colourTag && APPLY ? { tags: [{ id: colourTag }] } : {}),
-      ...(imageUrl ? { images: [{ url: imageUrl }], thumbnail: imageUrl } : {}),
       shipping_profile_id: shippingProfileId,
       sales_channels: [{ id: salesChannelId }],
       options,
@@ -489,6 +528,7 @@ async function main() {
     }
 
     try {
+      let productId = existingId
       if (existingId) {
         // Variants and options cannot be replaced wholesale on an update —
         // Medusa treats them as their own resources — so an existing product
@@ -496,13 +536,30 @@ async function main() {
         // already has sizes are changed in the admin, or by deleting it first.
         const { options: _o, variants: _v, ...rest } = body
         await admin("POST", `/admin/products/${existingId}`, rest)
-        console.log(`updated  ${lead.name}`)
         updated++
       } else {
-        await admin("POST", "/admin/products", body)
-        console.log(`created  ${lead.name}`)
+        const res = await admin("POST", "/admin/products", body)
+        productId = res.product.id
         created++
       }
+
+      // Now that the product exists, the photo has somewhere to go. A failure
+      // here leaves a product without a photo, which is reported and fixable
+      // in the admin — never a file in R2 that nothing points at.
+      let photoNote = ""
+      if (lead.image) {
+        try {
+          imageUrl = await uploadImage(await prepareImage(lead.image, handle))
+          await admin("POST", `/admin/products/${productId}`, {
+            images: [{ url: imageUrl }],
+            thumbnail: imageUrl,
+          })
+          photoNote = " + photo"
+        } catch (err) {
+          problems.push(`${where} "${lead.name}": saved without a photo — ${err.message}`)
+        }
+      }
+      console.log(`${existingId ? "updated" : "created"}  ${lead.name}${photoNote}`)
     } catch (err) {
       problems.push(`${where} "${lead.name}": ${err.message}`)
     }

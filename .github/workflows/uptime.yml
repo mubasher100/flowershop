@@ -44,7 +44,9 @@ jobs:
           check "$SITE/ar-qa"
           check "$SITE/en-qa/store"
           check "$SITE/ar-qa/store"
-          check "$SITE/en-qa/products/la-vie-en-rose"
+          # A real product, not a placeholder. If this one is ever retired,
+          # point it at another — a 404 here fails the check on purpose.
+          check "$SITE/en-qa/products/twenty-five-red-roses-black-wrap"
           check "$SITE/en-qa/cart"
           check "$SITE/en-qa/track"
           check "$SITE/en-qa/contact"
@@ -60,7 +62,7 @@ jobs:
           # A broken media host leaves every page looking empty, and it is on
           # a different domain to everything above.
           code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 45 \
-            "https://media.tulipsandtruffle.com/la-vie-en-rose-01M343E0PETVZ9HAJ4C29RZGKH.webp")
+            "https://media.tulipsandtruffle.com/twenty-five-red-roses-black-wrap-01M4GDAC4FKS77VABSVNQRAXMT.webp")
           if [ "$code" != "200" ]; then
             echo "::error::media.tulipsandtruffle.com returned $code"
             exit 1

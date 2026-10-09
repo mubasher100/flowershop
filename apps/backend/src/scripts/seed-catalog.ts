@@ -299,6 +299,30 @@ export default async function seedCatalog({
     logger.info(`Created ${missingCols.length} collections.`)
   }
 
+  // Structure only from here on, unless asked. Stale categories (the
+  // starter's apparel, the pre-28-Sep type categories) are still pruned.
+  await removeStarterDemoProducts(container, logger)
+
+  /*
+   * The placeholder catalogue is opt-in.
+   *
+   * The shop's real products were imported from the florist's spreadsheet on
+   * 9 Oct 2026 and the placeholders deleted. Running the passes below against
+   * that catalogue would undo it: product creation brings all fifty
+   * placeholders back (they no longer exist, so every one counts as missing),
+   * and the image refresh repoints every product's photo at
+   * /products/<handle>.jpg — a file that does not exist for any real
+   * product, so every photo on the site would break.
+   *
+   * A fresh dev database still wants something to look at, hence the flag.
+   */
+  if (process.env.SEED_PLACEHOLDER_PRODUCTS !== "true") {
+    logger.info(
+      "Categories and collections are in place. Skipping placeholder products — the catalogue comes from scripts/import-products.mjs. Set SEED_PLACEHOLDER_PRODUCTS=true to seed them into an empty dev database."
+    )
+    return
+  }
+
   // --- Products ----------------------------------------------------------
   const { data: existingProducts } = await query.graph({
     entity: "product",
@@ -325,7 +349,6 @@ export default async function seedCatalog({
     logger.info("Catalogue already seeded, skipping product creation.")
   }
 
-  await removeStarterDemoProducts(container, logger)
   await refreshProductImages(container, logger)
   await rebalanceCollections(container, logger)
   await assignOccasions(container, logger, catByHandle)
@@ -351,9 +374,12 @@ async function refreshProductImages(
     fields: ["id", "handle", "thumbnail"],
   })
 
-  const ordered = [...products].sort((a, b) =>
-    (a.handle ?? "").localeCompare(b.handle ?? "")
-  )
+  // Only the seed's own placeholders. Every other product has a real photo
+  // that this would otherwise replace with a path that does not exist.
+  const seeded = new Set(PRODUCTS.map((p) => handleize(p.name)))
+  const ordered = products
+    .filter((p) => seeded.has(p.handle ?? ""))
+    .sort((a, b) => (a.handle ?? "").localeCompare(b.handle ?? ""))
 
   let updated = 0
   for (const [i, product] of ordered.entries()) {
