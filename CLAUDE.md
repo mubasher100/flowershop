@@ -299,6 +299,16 @@ node scripts/import-products.mjs sheet.xlsx --apply       # writes to the live c
 
 Updating an existing product replaces its price, description, categories and photo but **not its variants** — Medusa treats those as their own resources. So the sheet doubles as the master copy for a bulk price change on single-size products; a product that already has sizes is repriced in the admin.
 
+### The Shop screen (Admin → Shop)
+
+The florist's everyday screen, rebuilt 9 Oct 2026 around a written guide for them: the *Running the Shop — Florist's Guide* doc (Claude Docs, private until the owner shares it). Components live in `apps/backend/src/admin/components/shop/`; the page only composes them. **Everything goes through Medusa's own admin routes and workflows** — an order cancelled here is cancelled exactly as in the full admin.
+
+- **Orders move New → Confirmed → Sent.** Medusa has no notion of the shop *accepting* an order, which is how this shop works (every order is confirmed on WhatsApp first), so *Confirmed* is `shop_confirmed_at` in the order's metadata. An order update **replaces** metadata, so the whole object is sent back with the key added — sending the key alone would wipe the delivery date, recipient and gift message.
+- **Cancel before it is sent, refund after.** Medusa's `cancelOrderWorkflow` voids an unpaid payment and **refunds a captured one by itself**, so the screen has no refund-then-cancel step (it would double-refund). It also refuses to cancel once a fulfilment exists — so after *Mark sent*, only *Refund* is offered.
+- **Payments are manual until SkipCash.** `pp_system_default` authorises and never captures, so no money moves through Medusa. *Mark as paid* captures (the customer paid by transfer or cash); *Refund* records money the shop returns itself. The same buttons will move real card payments once SkipCash is in.
+- **Card messages live on line items** (`item.metadata.gift_note`, one per bouquet), with an order-level one from checkout too. The order card and the delivery label read both. The label used to read only the order's, so a message written on the product page never got printed.
+- **Adding a flower takes a photo upload** (shrunk to 1600px WebP in the browser), **no stock count** (made to order, `manage_inventory: false` — the same choice as the importer), and several categories. **Hide/Show is the everyday removal**; delete is at the bottom of Edit and turns Medusa's reservation refusal into "hide it instead".
+
 ### Printed paperwork
 
 Two documents, from Admin → an order, or Admin → Shop. Both open in their own window with the print dialog up; see [`apps/backend/src/admin/lib/print.ts`](apps/backend/src/admin/lib/print.ts).
