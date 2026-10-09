@@ -54,6 +54,9 @@ export default function PhotoPicker({
 }) {
   const input = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
+  // The URL whose image failed to load, so a missing photo shows the empty
+  // tile rather than a broken-image icon — and a new upload clears it.
+  const [failedUrl, setFailedUrl] = useState<string | null>(null)
 
   const setBusyBoth = (b: boolean) => {
     setBusy(b)
@@ -94,8 +97,13 @@ export default function PhotoPicker({
   return (
     <div className="flex items-center gap-4">
       <div className="bg-ui-bg-component flex size-24 flex-none items-center justify-center overflow-hidden rounded-lg border border-ui-border-base">
-        {value ? (
-          <img src={value} alt="" className="size-full object-cover" />
+        {value && failedUrl !== value ? (
+          <img
+            src={value}
+            alt=""
+            onError={() => setFailedUrl(value)}
+            className="size-full object-cover"
+          />
         ) : (
           <Photo className="text-ui-fg-muted" />
         )}
