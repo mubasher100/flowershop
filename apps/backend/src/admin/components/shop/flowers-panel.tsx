@@ -81,7 +81,7 @@ function AddFlower({ categories }: { categories: ShopCategory[] }) {
     onSuccess: () => {
       toast.success(
         draft.publish
-          ? `"${draft.title.trim()}" is on the shop. Customers see it within a minute.`
+          ? `"${draft.title.trim()}" is on the shop. It can take up to 30 minutes to appear on the website.`
           : `"${draft.title.trim()}" is saved, hidden. Show it when you are ready.`,
       );
       setDraft(blank);
@@ -331,7 +331,9 @@ function EditFlower({
       }
     },
     onSuccess: () => {
-      toast.success("Saved. Customers see the change within a minute.");
+      toast.success(
+        "Saved. Stock updates on the website straight away; other changes can take up to 30 minutes."
+      );
       refresh();
       onOpenChange(false);
     },
@@ -624,8 +626,8 @@ export default function FlowersPanel() {
     onSuccess: (_d, p) => {
       toast.success(
         p.status === "published"
-          ? `"${p.title}" is hidden from customers.`
-          : `"${p.title}" is back on the shop.`,
+          ? `"${p.title}" is hidden. It can take up to 30 minutes to leave the website.`
+          : `"${p.title}" is back on the shop. It can take up to 30 minutes to reappear.`,
       );
       queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY });
     },
