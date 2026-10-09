@@ -1,4 +1,4 @@
-import { Eye, EyeSlash, PencilSquare, Plus, Trash } from "@medusajs/icons"
+import { Eye, EyeSlash, PencilSquare, Plus, Trash } from "@medusajs/icons";
 import {
   Badge,
   Button,
@@ -13,13 +13,13 @@ import {
   Text,
   Textarea,
   toast,
-} from "@medusajs/ui"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useState } from "react"
+} from "@medusajs/ui";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
-import { sdk } from "../../lib/sdk"
-import CategoryPicker from "./category-picker"
-import PhotoPicker from "./photo-picker"
+import { sdk } from "../../lib/sdk";
+import CategoryPicker from "./category-picker";
+import PhotoPicker from "./photo-picker";
 import {
   CATEGORIES_KEY,
   money,
@@ -29,22 +29,22 @@ import {
   stockOf,
   type ShopCategory,
   type ShopProduct,
-} from "./shared"
+} from "./shared";
 
 const errorText = (e: unknown, fallback: string) =>
-  e instanceof Error && e.message ? e.message : fallback
+  e instanceof Error && e.message ? e.message : fallback;
 
 /* ------------------------------------------------------------------ Add */
 
 type NewFlower = {
-  title: string
-  price: string
-  stock: string
-  image: string | null
-  description: string
-  categoryIds: string[]
-  publish: boolean
-}
+  title: string;
+  price: string;
+  stock: string;
+  image: string | null;
+  description: string;
+  categoryIds: string[];
+  publish: boolean;
+};
 
 const blank: NewFlower = {
   title: "",
@@ -54,15 +54,15 @@ const blank: NewFlower = {
   description: "",
   categoryIds: [],
   publish: true,
-}
+};
 
 function AddFlower({ categories }: { categories: ShopCategory[] }) {
-  const queryClient = useQueryClient()
-  const [open, setOpen] = useState(false)
-  const [draft, setDraft] = useState<NewFlower>(blank)
-  const [uploading, setUploading] = useState(false)
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<NewFlower>(blank);
+  const [uploading, setUploading] = useState(false);
   const set = <K extends keyof NewFlower>(k: K, v: NewFlower[K]) =>
-    setDraft((d) => ({ ...d, [k]: v }))
+    setDraft((d) => ({ ...d, [k]: v }));
 
   const create = useMutation({
     mutationFn: () =>
@@ -82,14 +82,14 @@ function AddFlower({ categories }: { categories: ShopCategory[] }) {
       toast.success(
         draft.publish
           ? `"${draft.title.trim()}" is on the shop. Customers see it within a minute.`
-          : `"${draft.title.trim()}" is saved, hidden. Show it when you are ready.`
-      )
-      setDraft(blank)
-      setOpen(false)
-      queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY })
+          : `"${draft.title.trim()}" is saved, hidden. Show it when you are ready.`,
+      );
+      setDraft(blank);
+      setOpen(false);
+      queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY });
     },
     onError: (e) => toast.error(errorText(e, "Could not add that flower.")),
-  })
+  });
 
   // What is missing, in words — a disabled button with no reason is the
   // single most confusing thing on a form.
@@ -100,7 +100,7 @@ function AddFlower({ categories }: { categories: ShopCategory[] }) {
       "how many are in stock",
     !draft.image && "a photo",
     !draft.categoryIds.length && "at least one category",
-  ].filter(Boolean) as string[]
+  ].filter(Boolean) as string[];
 
   return (
     <>
@@ -133,8 +133,8 @@ function AddFlower({ categories }: { categories: ShopCategory[] }) {
               <div>
                 <Heading level="h2">Add a flower</Heading>
                 <Text size="small" className="text-ui-fg-subtle">
-                  A photo, a name, a price and where it belongs. Everything
-                  else is filled in for you.
+                  A photo, a name, a price and where it belongs. Everything else
+                  is filled in for you.
                 </Text>
               </div>
 
@@ -193,8 +193,8 @@ function AddFlower({ categories }: { categories: ShopCategory[] }) {
                   </div>
                 </div>
                 <Text size="xsmall" className="text-ui-fg-muted">
-                  Just numbers — 350 means QAR 350. Each order takes one off
-                  the stock; at 0 the website shows it as sold out.
+                  Just numbers — 350 means QAR 350. Each order takes one off the
+                  stock; at 0 the website shows it as sold out.
                 </Text>
               </div>
 
@@ -212,7 +212,9 @@ function AddFlower({ categories }: { categories: ShopCategory[] }) {
               <div className="flex flex-col gap-2">
                 <Label size="small" weight="plus" htmlFor="new-desc">
                   Description{" "}
-                  <span className="text-ui-fg-muted font-normal">(optional)</span>
+                  <span className="text-ui-fg-muted font-normal">
+                    (optional)
+                  </span>
                 </Label>
                 <Textarea
                   id="new-desc"
@@ -248,7 +250,7 @@ function AddFlower({ categories }: { categories: ShopCategory[] }) {
         </FocusModal.Content>
       </FocusModal>
     </>
-  )
+  );
 }
 
 /* ----------------------------------------------------------------- Edit */
@@ -259,31 +261,32 @@ function EditFlower({
   open,
   onOpenChange,
 }: {
-  product: ShopProduct
-  categories: ShopCategory[]
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  product: ShopProduct;
+  categories: ShopCategory[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
-  const queryClient = useQueryClient()
-  const variants = product.variants ?? []
+  const queryClient = useQueryClient();
+  const variants = product.variants ?? [];
 
-  const [title, setTitle] = useState(product.title)
-  const [description, setDescription] = useState(product.description ?? "")
-  const [image, setImage] = useState<string | null>(product.thumbnail)
+  const [title, setTitle] = useState(product.title);
+  const [description, setDescription] = useState(product.description ?? "");
+  const [image, setImage] = useState<string | null>(product.thumbnail);
   const [categoryIds, setCategoryIds] = useState(
-    (product.categories ?? []).map((c) => c.id)
-  )
-  const [visible, setVisible] = useState(product.status === "published")
+    (product.categories ?? []).map((c) => c.id),
+  );
+  const [visible, setVisible] = useState(product.status === "published");
   const [prices, setPrices] = useState<Record<string, string>>(
-    Object.fromEntries(variants.map((v) => [v.id, String(priceOf(v))]))
-  )
+    Object.fromEntries(variants.map((v) => [v.id, String(priceOf(v))])),
+  );
   const [stocks, setStocks] = useState<Record<string, string>>(
-    Object.fromEntries(variants.map((v) => [v.id, String(stockOf(v).stocked)]))
-  )
-  const [uploading, setUploading] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState(false)
+    Object.fromEntries(variants.map((v) => [v.id, String(stockOf(v).stocked)])),
+  );
+  const [uploading, setUploading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const refresh = () => queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY })
+  const refresh = () =>
+    queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY });
 
   const save = useMutation({
     mutationFn: async () => {
@@ -295,67 +298,72 @@ function EditFlower({
         ...(image !== product.thumbnail && image
           ? { thumbnail: image, images: [{ url: image }] }
           : {}),
-      })
+      });
 
       // Only the sizes whose price actually changed. The existing price's id
       // is passed so it is updated in place — without it Medusa treats the
       // list as a replacement set.
       for (const v of variants) {
-        const next = Number(prices[v.id])
-        if (!(next > 0) || next === priceOf(v)) continue
-        const current = v.prices?.find((p) => p.currency_code === "qar")
+        const next = Number(prices[v.id]);
+        if (!(next > 0) || next === priceOf(v)) continue;
+        const current = v.prices?.find((p) => p.currency_code === "qar");
         await sdk.admin.product.updateVariant(product.id, v.id, {
           prices: [
-            { ...(current?.id ? { id: current.id } : {}), amount: next, currency_code: "qar" },
+            {
+              ...(current?.id ? { id: current.id } : {}),
+              amount: next,
+              currency_code: "qar",
+            },
           ],
-        })
+        });
       }
 
       // Stock is the shelf count at the shop's one warehouse. Orders not yet
       // sent are held against it separately, so this is never "available".
       for (const v of variants) {
-        const s = stockOf(v)
-        const next = Number(stocks[v.id])
-        if (!s.tracked || !s.itemId || !s.locationId) continue
-        if (!Number.isInteger(next) || next < 0 || next === s.stocked) continue
+        const s = stockOf(v);
+        const next = Number(stocks[v.id]);
+        if (!s.tracked || !s.itemId || !s.locationId) continue;
+        if (!Number.isInteger(next) || next < 0 || next === s.stocked) continue;
         await sdk.admin.inventoryItem.updateLevel(s.itemId, s.locationId, {
           stocked_quantity: next,
-        })
+        });
       }
     },
     onSuccess: () => {
-      toast.success("Saved. Customers see the change within a minute.")
-      refresh()
-      onOpenChange(false)
+      toast.success("Saved. Customers see the change within a minute.");
+      refresh();
+      onOpenChange(false);
     },
     onError: (e) => toast.error(errorText(e, "Could not save that.")),
-  })
+  });
 
   const remove = useMutation({
     mutationFn: () => sdk.admin.product.delete(product.id),
     onSuccess: () => {
-      toast.success(`"${product.title}" is deleted.`)
-      refresh()
-      onOpenChange(false)
+      toast.success(`"${product.title}" is deleted.`);
+      refresh();
+      onOpenChange(false);
     },
     onError: (e) => {
-      const msg = errorText(e, "")
+      const msg = errorText(e, "");
       // Medusa refuses while an unfinished order still holds one. Say what
       // to do instead rather than showing an inventory-item id.
       toast.error(
         /reservation/i.test(msg)
           ? "It is on an order that is not finished yet, so it cannot be deleted. Hide it instead — it disappears from the shop straight away."
-          : msg || "Could not delete that."
-      )
+          : msg || "Could not delete that.",
+      );
     },
-  })
+  });
 
-  const pricesValid = variants.every((v) => Number(prices[v.id]) > 0)
+  const pricesValid = variants.every((v) => Number(prices[v.id]) > 0);
   const stocksValid = variants.every((v) => {
-    const n = Number(stocks[v.id])
-    return !stockOf(v).tracked || (Number.isInteger(n) && n >= 0)
-  })
-  const ready = title.trim().length > 1 && pricesValid && stocksValid && !uploading
+    const n = Number(stocks[v.id]);
+    return !stockOf(v).tracked || (Number.isInteger(n) && n >= 0);
+  });
+  const ready =
+    title.trim().length > 1 && pricesValid && stocksValid && !uploading;
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -380,14 +388,22 @@ function EditFlower({
             <Label size="small" weight="plus">
               Photo
             </Label>
-            <PhotoPicker value={image} onChange={setImage} onBusyChange={setUploading} />
+            <PhotoPicker
+              value={image}
+              onChange={setImage}
+              onBusyChange={setUploading}
+            />
           </div>
 
           <div className="flex flex-col gap-2">
             <Label size="small" weight="plus" htmlFor="edit-title">
               Name
             </Label>
-            <Input id="edit-title" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <Input
+              id="edit-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
           </div>
 
           <div className="flex flex-col gap-2">
@@ -402,36 +418,52 @@ function EditFlower({
               </Label>
             </div>
             {variants.map((v) => {
-              const s = stockOf(v)
+              const s = stockOf(v);
               return (
                 <div key={v.id} className="flex flex-col gap-1">
                   <div className="flex items-center gap-3">
                     {variants.length > 1 && (
-                      <Text size="small" className="w-24 flex-none text-ui-fg-subtle">
+                      <Text
+                        size="small"
+                        className="w-24 flex-none text-ui-fg-subtle"
+                      >
                         {v.title}
                       </Text>
                     )}
-                    <Input
-                      className="flex-1"
-                      type="number"
-                      inputMode="decimal"
-                      min={1}
-                      value={prices[v.id] ?? ""}
-                      onChange={(e) => setPrices((p) => ({ ...p, [v.id]: e.target.value }))}
-                      aria-label={variants.length > 1 ? `Price for ${v.title}` : "Price"}
-                    />
-                    <Input
-                      className="flex-1"
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      step={1}
-                      disabled={!s.tracked}
-                      value={s.tracked ? stocks[v.id] ?? "" : ""}
-                      placeholder={s.tracked ? "" : "not counted"}
-                      onChange={(e) => setStocks((p) => ({ ...p, [v.id]: e.target.value }))}
-                      aria-label={variants.length > 1 ? `Stock for ${v.title}` : "Stock"}
-                    />
+                    {/* Wrapped, because Input puts className on the inner <input>,
+                        not its wrapper: flex-1 there never stretched the box, so
+                        the boxes and their column labels did not line up. */}
+                    <div className="min-w-0 flex-1">
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        min={1}
+                        value={prices[v.id] ?? ""}
+                        onChange={(e) =>
+                          setPrices((p) => ({ ...p, [v.id]: e.target.value }))
+                        }
+                        aria-label={
+                          variants.length > 1 ? `Price for ${v.title}` : "Price"
+                        }
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        step={1}
+                        disabled={!s.tracked}
+                        value={s.tracked ? (stocks[v.id] ?? "") : ""}
+                        placeholder={s.tracked ? "" : "not counted"}
+                        onChange={(e) =>
+                          setStocks((p) => ({ ...p, [v.id]: e.target.value }))
+                        }
+                        aria-label={
+                          variants.length > 1 ? `Stock for ${v.title}` : "Stock"
+                        }
+                      />
+                    </div>
                   </div>
                   {/* Without this, a florist who counts 10 on the shelf and sees
                       "8 left" in the list would assume two went missing. */}
@@ -442,7 +474,7 @@ function EditFlower({
                     </Text>
                   )}
                 </div>
-              )
+              );
             })}
           </div>
 
@@ -450,7 +482,11 @@ function EditFlower({
             <Label size="small" weight="plus">
               Where it shows
             </Label>
-            <CategoryPicker categories={categories} value={categoryIds} onChange={setCategoryIds} />
+            <CategoryPicker
+              categories={categories}
+              value={categoryIds}
+              onChange={setCategoryIds}
+            />
           </div>
 
           <div className="flex flex-col gap-2">
@@ -469,8 +505,8 @@ function EditFlower({
               what is wanted; deleting is for a mistake. */}
           <div className="flex flex-col gap-2 border-t border-ui-border-base pt-4">
             <Text size="xsmall" className="text-ui-fg-muted">
-              Not selling it any more? Turn off “Show on the shop” above
-              instead — you can bring it back any time. Delete is permanent.
+              Not selling it any more? Turn off “Show on the shop” above instead
+              — you can bring it back any time. Delete is permanent.
             </Text>
             <div>
               <Button
@@ -516,12 +552,14 @@ function EditFlower({
           </Prompt.Header>
           <Prompt.Footer>
             <Prompt.Cancel>Keep it</Prompt.Cancel>
-            <Prompt.Action onClick={() => remove.mutate()}>Delete</Prompt.Action>
+            <Prompt.Action onClick={() => remove.mutate()}>
+              Delete
+            </Prompt.Action>
           </Prompt.Footer>
         </Prompt.Content>
       </Prompt>
     </Drawer>
-  )
+  );
 }
 
 /* ---------------------------------------------------------------- Panel */
@@ -535,7 +573,7 @@ function EditFlower({
  * the florist reads every day looks like the screen itself is broken.
  */
 function Thumb({ src }: { src: string | null }) {
-  const [failed, setFailed] = useState(false)
+  const [failed, setFailed] = useState(false);
   return src && !failed ? (
     <img
       src={src}
@@ -545,38 +583,38 @@ function Thumb({ src }: { src: string | null }) {
     />
   ) : (
     <div className="bg-ui-bg-component size-12 flex-none rounded-md" />
-  )
+  );
 }
 
 export default function FlowersPanel() {
-  const queryClient = useQueryClient()
-  const [editing, setEditing] = useState<ShopProduct | null>(null)
+  const queryClient = useQueryClient();
+  const [editing, setEditing] = useState<ShopProduct | null>(null);
 
   const { data: productData, isLoading } = useQuery({
     queryKey: PRODUCTS_KEY,
     queryFn: () =>
       sdk.client.fetch<{ products: ShopProduct[] }>(
-        `/admin/products?limit=200&order=title&fields=id,title,handle,description,thumbnail,status,categories.id,variants.id,variants.title,*variants.prices,${STOCK_FIELDS}`
+        `/admin/products?limit=200&order=title&fields=id,title,handle,description,thumbnail,status,categories.id,variants.id,variants.title,*variants.prices,${STOCK_FIELDS}`,
       ),
-  })
+  });
 
   const { data: categoryData } = useQuery({
     queryKey: CATEGORIES_KEY,
     queryFn: () =>
       sdk.client.fetch<{ product_categories: ShopCategory[] }>(
-        "/admin/product-categories?limit=100&fields=id,name,handle"
+        "/admin/product-categories?limit=100&fields=id,name,handle",
       ),
-  })
+  });
 
   // What is on sale first, alphabetically; hidden flowers after. Sorted by
   // title alone, the hidden leftovers led the list above everything for sale.
   const products = [...(productData?.products ?? [])].sort(
     (a, b) =>
       Number(a.status !== "published") - Number(b.status !== "published") ||
-      a.title.localeCompare(b.title)
-  )
-  const categories = categoryData?.product_categories ?? []
-  const shown = products.filter((p) => p.status === "published").length
+      a.title.localeCompare(b.title),
+  );
+  const categories = categoryData?.product_categories ?? [];
+  const shown = products.filter((p) => p.status === "published").length;
 
   const toggle = useMutation({
     mutationFn: (p: ShopProduct) =>
@@ -587,12 +625,12 @@ export default function FlowersPanel() {
       toast.success(
         p.status === "published"
           ? `"${p.title}" is hidden from customers.`
-          : `"${p.title}" is back on the shop.`
-      )
-      queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY })
+          : `"${p.title}" is back on the shop.`,
+      );
+      queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY });
     },
     onError: (e) => toast.error(errorText(e, "Could not change that.")),
-  })
+  });
 
   return (
     <Container className="divide-y p-0">
@@ -601,7 +639,9 @@ export default function FlowersPanel() {
           <Heading level="h2">Your flowers</Heading>
           <Text size="small" className="text-ui-fg-subtle">
             {shown} on the shop
-            {products.length > shown ? ` · ${products.length - shown} hidden` : ""}
+            {products.length > shown
+              ? ` · ${products.length - shown} hidden`
+              : ""}
           </Text>
         </div>
         <AddFlower categories={categories} />
@@ -622,11 +662,13 @@ export default function FlowersPanel() {
       ) : (
         <div className="flex flex-col divide-y">
           {products.map((p) => {
-            const hidden = p.status !== "published"
-            const variants = p.variants ?? []
-            const lowest = Math.min(...variants.map(priceOf).filter((n) => n > 0))
-            const tracked = variants.filter((v) => stockOf(v).tracked)
-            const left = tracked.reduce((n, v) => n + stockOf(v).available, 0)
+            const hidden = p.status !== "published";
+            const variants = p.variants ?? [];
+            const lowest = Math.min(
+              ...variants.map(priceOf).filter((n) => n > 0),
+            );
+            const tracked = variants.filter((v) => stockOf(v).tracked);
+            const left = tracked.reduce((n, v) => n + stockOf(v).available, 0);
             return (
               <div
                 key={p.id}
@@ -638,11 +680,20 @@ export default function FlowersPanel() {
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <Thumb src={p.thumbnail} />
                   <div className="flex min-w-0 flex-col gap-0.5">
-                    <Text size="small" leading="compact" weight="plus" className="truncate">
+                    <Text
+                      size="small"
+                      leading="compact"
+                      weight="plus"
+                      className="truncate"
+                    >
                       {p.title}
                     </Text>
                     <div className="flex items-center gap-2">
-                      <Text size="small" leading="compact" className="text-ui-fg-subtle">
+                      <Text
+                        size="small"
+                        leading="compact"
+                        className="text-ui-fg-subtle"
+                      >
                         {Number.isFinite(lowest)
                           ? `${variants.length > 1 ? "from " : ""}${money(lowest)}`
                           : "no price"}
@@ -672,13 +723,17 @@ export default function FlowersPanel() {
                     {hidden ? <Eye /> : <EyeSlash />}
                     {hidden ? "Show" : "Hide"}
                   </Button>
-                  <Button size="small" variant="secondary" onClick={() => setEditing(p)}>
+                  <Button
+                    size="small"
+                    variant="secondary"
+                    onClick={() => setEditing(p)}
+                  >
                     <PencilSquare />
                     Edit
                   </Button>
                 </div>
               </div>
-            )
+            );
           })}
         </div>
       )}
@@ -695,5 +750,5 @@ export default function FlowersPanel() {
         />
       )}
     </Container>
-  )
+  );
 }
