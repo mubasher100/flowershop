@@ -133,7 +133,7 @@ function AddFlower({ categories }: { categories: ShopCategory[] }) {
               <div>
                 <Heading level="h2">Add a flower</Heading>
                 <Text size="small" className="text-ui-fg-subtle">
-                  A photo, a name, a price and where it belongs. Everything else
+                  A photo, a name, a price, how many you have, and where it belongs. Everything else
                   is filled in for you.
                 </Text>
               </div>
