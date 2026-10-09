@@ -448,6 +448,28 @@ function EditFlower({
 
 /* ---------------------------------------------------------------- Panel */
 
+/**
+ * A product photo that degrades to a plain tile.
+ *
+ * A photo can go missing from under a product — the four placeholders left
+ * after the 9 Oct import still point at the bucket in the Cloudflare account
+ * the shop moved away from — and the browser's broken-image icon in a list
+ * the florist reads every day looks like the screen itself is broken.
+ */
+function Thumb({ src }: { src: string | null }) {
+  const [failed, setFailed] = useState(false)
+  return src && !failed ? (
+    <img
+      src={src}
+      alt=""
+      onError={() => setFailed(true)}
+      className="size-12 flex-none rounded-md object-cover"
+    />
+  ) : (
+    <div className="bg-ui-bg-component size-12 flex-none rounded-md" />
+  )
+}
+
 export default function FlowersPanel() {
   const queryClient = useQueryClient()
   const [editing, setEditing] = useState<ShopProduct | null>(null)
@@ -468,7 +490,13 @@ export default function FlowersPanel() {
       ),
   })
 
-  const products = productData?.products ?? []
+  // What is on sale first, alphabetically; hidden flowers after. Sorted by
+  // title alone, the hidden leftovers led the list above everything for sale.
+  const products = [...(productData?.products ?? [])].sort(
+    (a, b) =>
+      Number(a.status !== "published") - Number(b.status !== "published") ||
+      a.title.localeCompare(b.title)
+  )
   const categories = categoryData?.product_categories ?? []
   const shown = products.filter((p) => p.status === "published").length
 
@@ -528,11 +556,7 @@ export default function FlowersPanel() {
                 }
               >
                 <div className="flex min-w-0 flex-1 items-center gap-3">
-                  {p.thumbnail ? (
-                    <img src={p.thumbnail} alt="" className="size-12 flex-none rounded-md object-cover" />
-                  ) : (
-                    <div className="bg-ui-bg-component size-12 flex-none rounded-md" />
-                  )}
+                  <Thumb src={p.thumbnail} />
                   <div className="flex min-w-0 flex-col gap-0.5">
                     <Text size="small" leading="compact" weight="plus" className="truncate">
                       {p.title}
