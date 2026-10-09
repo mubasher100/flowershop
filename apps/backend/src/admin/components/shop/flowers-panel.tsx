@@ -25,6 +25,8 @@ import {
   money,
   priceOf,
   PRODUCTS_KEY,
+  STOCK_FIELDS,
+  stockOf,
   type ShopCategory,
   type ShopProduct,
 } from "./shared"
@@ -37,6 +39,7 @@ const errorText = (e: unknown, fallback: string) =>
 type NewFlower = {
   title: string
   price: string
+  stock: string
   image: string | null
   description: string
   categoryIds: string[]
@@ -46,6 +49,7 @@ type NewFlower = {
 const blank: NewFlower = {
   title: "",
   price: "",
+  stock: "10",
   image: null,
   description: "",
   categoryIds: [],
@@ -67,6 +71,7 @@ function AddFlower({ categories }: { categories: ShopCategory[] }) {
         body: {
           title: draft.title.trim(),
           price: Number(draft.price),
+          stock: Number(draft.stock),
           image: draft.image,
           description: draft.description.trim() || null,
           categoryIds: draft.categoryIds,
@@ -91,6 +96,8 @@ function AddFlower({ categories }: { categories: ShopCategory[] }) {
   const missing = [
     draft.title.trim().length < 2 && "a name",
     !(Number(draft.price) > 0) && "a price",
+    !(Number.isInteger(Number(draft.stock)) && Number(draft.stock) >= 0) &&
+      "how many are in stock",
     !draft.image && "a photo",
     !draft.categoryIds.length && "at least one category",
   ].filter(Boolean) as string[]
@@ -155,20 +162,39 @@ function AddFlower({ categories }: { categories: ShopCategory[] }) {
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label size="small" weight="plus" htmlFor="new-price">
-                  Price (QAR)
-                </Label>
-                <Input
-                  id="new-price"
-                  type="number"
-                  inputMode="decimal"
-                  min={1}
-                  value={draft.price}
-                  onChange={(e) => set("price", e.target.value)}
-                  placeholder="350"
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <Label size="small" weight="plus" htmlFor="new-price">
+                      Price (QAR)
+                    </Label>
+                    <Input
+                      id="new-price"
+                      type="number"
+                      inputMode="decimal"
+                      min={1}
+                      value={draft.price}
+                      onChange={(e) => set("price", e.target.value)}
+                      placeholder="350"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label size="small" weight="plus" htmlFor="new-stock">
+                      How many in stock
+                    </Label>
+                    <Input
+                      id="new-stock"
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      step={1}
+                      value={draft.stock}
+                      onChange={(e) => set("stock", e.target.value)}
+                    />
+                  </div>
+                </div>
                 <Text size="xsmall" className="text-ui-fg-muted">
-                  Just the number — 350 means QAR 350.
+                  Just numbers — 350 means QAR 350. Each order takes one off
+                  the stock; at 0 the website shows it as sold out.
                 </Text>
               </div>
 
@@ -251,6 +277,9 @@ function EditFlower({
   const [prices, setPrices] = useState<Record<string, string>>(
     Object.fromEntries(variants.map((v) => [v.id, String(priceOf(v))]))
   )
+  const [stocks, setStocks] = useState<Record<string, string>>(
+    Object.fromEntries(variants.map((v) => [v.id, String(stockOf(v).stocked)]))
+  )
   const [uploading, setUploading] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
@@ -279,6 +308,18 @@ function EditFlower({
           prices: [
             { ...(current?.id ? { id: current.id } : {}), amount: next, currency_code: "qar" },
           ],
+        })
+      }
+
+      // Stock is the shelf count at the shop's one warehouse. Orders not yet
+      // sent are held against it separately, so this is never "available".
+      for (const v of variants) {
+        const s = stockOf(v)
+        const next = Number(stocks[v.id])
+        if (!s.tracked || !s.itemId || !s.locationId) continue
+        if (!Number.isInteger(next) || next < 0 || next === s.stocked) continue
+        await sdk.admin.inventoryItem.updateLevel(s.itemId, s.locationId, {
+          stocked_quantity: next,
         })
       }
     },
@@ -310,7 +351,11 @@ function EditFlower({
   })
 
   const pricesValid = variants.every((v) => Number(prices[v.id]) > 0)
-  const ready = title.trim().length > 1 && pricesValid && !uploading
+  const stocksValid = variants.every((v) => {
+    const n = Number(stocks[v.id])
+    return !stockOf(v).tracked || (Number.isInteger(n) && n >= 0)
+  })
+  const ready = title.trim().length > 1 && pricesValid && stocksValid && !uploading
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -346,26 +391,59 @@ function EditFlower({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label size="small" weight="plus">
-              {variants.length > 1 ? "Prices (QAR)" : "Price (QAR)"}
-            </Label>
-            {variants.map((v) => (
-              <div key={v.id} className="flex items-center gap-3">
-                {variants.length > 1 && (
-                  <Text size="small" className="w-28 flex-none text-ui-fg-subtle">
-                    {v.title}
-                  </Text>
-                )}
-                <Input
-                  type="number"
-                  inputMode="decimal"
-                  min={1}
-                  value={prices[v.id] ?? ""}
-                  onChange={(e) => setPrices((p) => ({ ...p, [v.id]: e.target.value }))}
-                  aria-label={variants.length > 1 ? `Price for ${v.title}` : "Price"}
-                />
-              </div>
-            ))}
+            {/* One row per size: its price and how many are in stock. */}
+            <div className="flex items-center gap-3">
+              {variants.length > 1 && <span className="w-24 flex-none" />}
+              <Label size="small" weight="plus" className="flex-1">
+                Price (QAR)
+              </Label>
+              <Label size="small" weight="plus" className="flex-1">
+                In stock
+              </Label>
+            </div>
+            {variants.map((v) => {
+              const s = stockOf(v)
+              return (
+                <div key={v.id} className="flex flex-col gap-1">
+                  <div className="flex items-center gap-3">
+                    {variants.length > 1 && (
+                      <Text size="small" className="w-24 flex-none text-ui-fg-subtle">
+                        {v.title}
+                      </Text>
+                    )}
+                    <Input
+                      className="flex-1"
+                      type="number"
+                      inputMode="decimal"
+                      min={1}
+                      value={prices[v.id] ?? ""}
+                      onChange={(e) => setPrices((p) => ({ ...p, [v.id]: e.target.value }))}
+                      aria-label={variants.length > 1 ? `Price for ${v.title}` : "Price"}
+                    />
+                    <Input
+                      className="flex-1"
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      step={1}
+                      disabled={!s.tracked}
+                      value={s.tracked ? stocks[v.id] ?? "" : ""}
+                      placeholder={s.tracked ? "" : "not counted"}
+                      onChange={(e) => setStocks((p) => ({ ...p, [v.id]: e.target.value }))}
+                      aria-label={variants.length > 1 ? `Stock for ${v.title}` : "Stock"}
+                    />
+                  </div>
+                  {/* Without this, a florist who counts 10 on the shelf and sees
+                      "8 left" in the list would assume two went missing. */}
+                  {s.held > 0 && (
+                    <Text size="xsmall" className="text-ui-fg-muted">
+                      {s.held} held by orders not sent yet, so customers can buy{" "}
+                      {Math.max(0, Number(stocks[v.id]) - s.held)}.
+                    </Text>
+                  )}
+                </div>
+              )
+            })}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -478,7 +556,7 @@ export default function FlowersPanel() {
     queryKey: PRODUCTS_KEY,
     queryFn: () =>
       sdk.client.fetch<{ products: ShopProduct[] }>(
-        "/admin/products?limit=200&order=title&fields=id,title,handle,description,thumbnail,status,categories.id,variants.id,variants.title,*variants.prices"
+        `/admin/products?limit=200&order=title&fields=id,title,handle,description,thumbnail,status,categories.id,variants.id,variants.title,*variants.prices,${STOCK_FIELDS}`
       ),
   })
 
@@ -547,6 +625,8 @@ export default function FlowersPanel() {
             const hidden = p.status !== "published"
             const variants = p.variants ?? []
             const lowest = Math.min(...variants.map(priceOf).filter((n) => n > 0))
+            const tracked = variants.filter((v) => stockOf(v).tracked)
+            const left = tracked.reduce((n, v) => n + stockOf(v).available, 0)
             return (
               <div
                 key={p.id}
@@ -567,6 +647,12 @@ export default function FlowersPanel() {
                           ? `${variants.length > 1 ? "from " : ""}${money(lowest)}`
                           : "no price"}
                       </Text>
+                      {/* What a customer can still buy — the storefront's number. */}
+                      {tracked.length > 0 && (
+                        <Badge size="2xsmall" color={left > 0 ? "grey" : "red"}>
+                          {left > 0 ? `${left} left` : "sold out"}
+                        </Badge>
+                      )}
                       {hidden && (
                         <Badge size="2xsmall" color="orange">
                           hidden

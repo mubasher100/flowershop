@@ -12,7 +12,16 @@ export type Money = { id?: string; amount: number; currency_code: string }
 export type ShopVariant = {
   id: string
   title: string
+  manage_inventory?: boolean
   prices?: Money[]
+  inventory_items?: {
+    inventory_item_id: string
+    inventory?: {
+      stocked_quantity?: number
+      reserved_quantity?: number
+      location_levels?: { location_id: string; stocked_quantity: number }[]
+    }
+  }[]
 }
 
 export type ShopProduct = {
@@ -70,6 +79,40 @@ export const priceOf = (variant?: ShopVariant) =>
   variant?.prices?.find((p) => p.currency_code === "qar")?.amount ??
   variant?.prices?.[0]?.amount ??
   0
+
+/**
+ * One size's stock, as the florist thinks of it.
+ *
+ * `stocked` is what is on the shelf; `held` is what orders not yet sent have
+ * claimed (Medusa reserves on purchase and only takes it off the shelf when the
+ * order is marked sent); `available` is what a customer can still buy, and is
+ * the number the storefront shows. The shop has one warehouse, so the first
+ * location level is the one to edit.
+ */
+export const stockOf = (variant?: ShopVariant) => {
+  const link = variant?.inventory_items?.[0]
+  const inv = link?.inventory
+  const stocked = inv?.stocked_quantity ?? 0
+  const held = inv?.reserved_quantity ?? 0
+  return {
+    tracked: !!variant?.manage_inventory && !!link,
+    stocked,
+    held,
+    available: Math.max(0, stocked - held),
+    itemId: link?.inventory_item_id,
+    locationId: inv?.location_levels?.[0]?.location_id,
+  }
+}
+
+/** Fields that bring each size's stock back with a product. */
+export const STOCK_FIELDS = [
+  "variants.manage_inventory",
+  "variants.inventory_items.inventory_item_id",
+  "variants.inventory_items.inventory.stocked_quantity",
+  "variants.inventory_items.inventory.reserved_quantity",
+  "variants.inventory_items.inventory.location_levels.location_id",
+  "variants.inventory_items.inventory.location_levels.stocked_quantity",
+].join(",")
 
 export const meta = (order: ShopOrder, key: string) => {
   const value = (order.metadata ?? {})[key]

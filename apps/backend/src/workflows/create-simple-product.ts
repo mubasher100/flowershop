@@ -6,12 +6,17 @@ import {
   WorkflowResponse,
 } from "@medusajs/framework/workflows-sdk"
 
-import { resolveStoreDefaultsStep } from "./steps/simple-product"
+import {
+  resolveStoreDefaultsStep,
+  stockVariantsStep,
+} from "./steps/simple-product"
 
 export type SimpleProductInput = {
   title: string
   /** QAR, stored as-is: 260 means 260.00. */
   price: number
+  /** How many can be sold before the shop shows it as sold out. */
+  stock: number
   image?: string | null
   description?: string | null
   /** What it is (Hand-Tied Bouquets…) and what it is for (Birthday…). */
@@ -30,17 +35,19 @@ const handleize = (value: string) =>
 
 /**
  * Creates a sellable product from what a florist actually knows: what it is
- * called, what it costs, a photograph, and where it belongs on the shop.
+ * called, what it costs, how many there are, a photograph, and where it
+ * belongs on the shop.
  *
  * Everything else a product needs to be purchasable — a sales channel so the
  * storefront can see it, a shipping profile so it can be checked out, a
- * variant to carry the price — is filled in from the store's configuration. Those are the fields that make
+ * variant to carry the price, and an inventory level at the warehouse — is
+ * filled in from the store's configuration. Those are the fields that make
  * Medusa's own product form long, and none of them vary here.
  *
- * No stock count. Bouquets are made to order, so a number the shop does not
- * keep would only ever reach zero and take a flower off sale for no reason —
- * the spreadsheet importer makes the same choice. It asked for one until
- * 9 Oct 2026.
+ * Stock is tracked. For a few hours on 9 Oct 2026 it was not — bouquets are
+ * made to order — but the shop chose to count them, so each order takes one
+ * off and the storefront shows "sold out" at zero. The spreadsheet importer
+ * does the same.
  *
  * A single "One size" variant, deliberately. The seeded catalogue has a
  * Petite/Classic/Grandeur ladder, but a size ladder is a decision worth making
@@ -72,7 +79,7 @@ export const createSimpleProductWorkflow = createWorkflow(
             {
               title: "One size",
               sku: handleize(data.input.title),
-              manage_inventory: false,
+              manage_inventory: true,
               options: { Size: "One size" },
               // Prices are stored as-is. 260 is 260.00 QAR, never 26000.
               prices: [{ currency_code: "qar", amount: data.input.price }],
@@ -83,6 +90,14 @@ export const createSimpleProductWorkflow = createWorkflow(
     }))
 
     const created = createProductsWorkflow.runAsStep({ input: productsInput })
+
+    const stockInput = transform({ created, input, defaults }, (data) => ({
+      productIds: data.created.map((p: { id: string }) => p.id),
+      locationId: data.defaults.stockLocationId,
+      quantity: data.input.stock,
+    }))
+
+    stockVariantsStep(stockInput)
 
     return new WorkflowResponse(created)
   }

@@ -49,6 +49,9 @@ function loadCredentials() {
 loadCredentials()
 
 const PRODUCTION = "https://medusa-backend-sg-production.up.railway.app"
+
+/** Stock for a new flower whose Stock cell is blank. */
+const DEFAULT_STOCK = 10
 const BACKEND =
   process.argv.includes("--local")
     ? "http://localhost:9000"
@@ -144,6 +147,8 @@ const HEADINGS = {
   photo: "photo",
   "photo file name": "photoFile",
   "publish?": "publish",
+  stock: "stock",
+  "in stock": "stock",
   publish: "publish",
 }
 
@@ -290,6 +295,7 @@ async function readSheet() {
       size: get("size"),
       price: num("price"),
       wasPrice: num("wasPrice"),
+      stock: num("stock"),
       categories: [get("cat1"), get("cat2"), get("cat3")].filter(Boolean),
       variety: get("variety"),
       colour: get("colour").toLowerCase(),
@@ -382,6 +388,13 @@ async function main() {
     admin("GET", "/admin/sales-channels?limit=10"),
     admin("GET", "/admin/shipping-profiles?limit=10"),
   ])
+  const { stock_locations } = await admin(
+    "GET",
+    "/admin/stock-locations?limit=10&fields=id,name"
+  )
+  const stockLocationId = (
+    stock_locations.find((l) => /doha/i.test(l.name)) ?? stock_locations[0]
+  )?.id
 
   const catIdByName = new Map(
     (cats.product_categories ?? []).map((c) => [c.name.trim().toLowerCase(), c.id])
@@ -403,6 +416,38 @@ async function main() {
   const idByHandle = new Map(
     (existing.products ?? []).map((p) => [p.handle, p.id])
   )
+
+  /**
+   * Puts each size's stock at the warehouse.
+   *
+   * A blank Stock cell means DEFAULT_STOCK on a new product and "leave it" on
+   * an existing one, so re-importing the sheet as a price list never resets
+   * counts the florist has since changed in the admin.
+   */
+  async function setStock(productId, rows, isNew) {
+    const { product } = await admin(
+      "GET",
+      `/admin/products/${productId}?fields=variants.id,variants.title,variants.inventory_items.inventory_item_id,variants.inventory_items.inventory.location_levels.location_id`
+    )
+    for (const v of product.variants ?? []) {
+      const row = rows.find((r) => (r.size || "One size") === v.title)
+      const wanted = row?.stock ?? (isNew ? DEFAULT_STOCK : null)
+      const link = v.inventory_items?.[0]
+      if (wanted == null || !link || !stockLocationId) continue
+      const hasLevel = (link.inventory?.location_levels ?? []).some(
+        (l) => l.location_id === stockLocationId
+      )
+      await admin(
+        "POST",
+        hasLevel
+          ? `/admin/inventory-items/${link.inventory_item_id}/location-levels/${stockLocationId}`
+          : `/admin/inventory-items/${link.inventory_item_id}/location-levels`,
+        hasLevel
+          ? { stocked_quantity: wanted }
+          : { location_id: stockLocationId, stocked_quantity: wanted }
+      )
+    }
+  }
 
   /** Tags are created on demand so a new colour does not need a code change. */
   async function tagIdFor(value) {
@@ -500,9 +545,10 @@ async function main() {
       options,
       variants: variantRows.map((r) => ({
         title: r.size || "One size",
-        // Flowers are made to order — a stock count the shop does not keep
-        // would take products off sale for no reason.
-        manage_inventory: false,
+        // Stock is counted: each order takes one off and the storefront shows
+        // "sold out" at zero. Medusa makes the inventory item here; the level
+        // at the warehouse is set once the product exists (setStock below).
+        manage_inventory: true,
         options: { Size: r.size || "One size" },
         prices: [{ amount: r.price, currency_code: "qar" }],
         ...(r.wasPrice
@@ -542,6 +588,12 @@ async function main() {
         productId = res.product.id
         created++
       }
+
+      // Stock goes on once the product exists: the create makes each size's
+      // inventory item, but not the level at the warehouse, and a size with no
+      // level anywhere reads as sold out. On an update only a Stock cell that
+      // was filled in changes anything — a blank one leaves the count alone.
+      await setStock(productId, variantRows, !existingId)
 
       // Now that the product exists, the photo has somewhere to go. A failure
       // here leaves a product without a photo, which is reported and fixable

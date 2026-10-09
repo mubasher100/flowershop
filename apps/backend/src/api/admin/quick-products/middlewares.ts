@@ -10,6 +10,7 @@ export const CreateQuickProductSchema = z.object({
   // value no bouquet reaches, so a stray keystroke cannot list something at
   // six figures.
   price: z.number().positive("Set a price.").max(100000),
+  stock: z.number().int().min(0).max(10000),
   image: z.string().url("The photo did not upload properly.").nullish(),
   description: z.string().max(2000).nullish(),
   categoryIds: z.array(z.string()).max(20).optional(),

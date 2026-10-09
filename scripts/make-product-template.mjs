@@ -93,6 +93,12 @@ const COLUMNS = [
     width: 14,
     note: "Only for a Hot Deal: the old price, shown struck through. Leave blank otherwise.",
   },
+  {
+    header: "Stock",
+    key: "stock",
+    width: 9,
+    note: "How many you can sell before the website shows it as sold out. Each order takes one off. Leave blank for 10.",
+  },
   { header: "Category 1", key: "cat1", width: 22, required: true, list: "categories" },
   { header: "Category 2", key: "cat2", width: 22, list: "categories" },
   { header: "Category 3", key: "cat3", width: 22, list: "categories" },
@@ -205,7 +211,7 @@ COLUMNS.forEach((c, i) => {
       }
     }
   }
-  if (["price", "wasPrice", "stems"].includes(c.key)) {
+  if (["price", "wasPrice", "stock", "stems"].includes(c.key)) {
     column.numFmt = "0.##"
     column.alignment = { vertical: "middle", horizontal: "right" }
   } else {
@@ -218,6 +224,7 @@ const example = ws.getRow(2)
 example.values = {
   name: "EXAMPLE — Fifty Red Roses, Vased",
   price: 450,
+  stock: 10,
   cat1: "50 Roses",
   cat2: "Flowers in Vases",
   variety: "Red (assorted)",
@@ -251,6 +258,8 @@ const LINES = [
   ["p", "One photo per product. Landscape or square works best: the catalogue crops to a square and the product page shows the whole picture. Shoot against a plain wall if you can — the flowers should be the only busy thing in frame. Photos straight off a phone are fine and are resized automatically."],
   ["h2", "Sizes"],
   ["p", "If a product comes in more than one size, use one row per size and give every row the SAME product name. Put Small / Medium / Large, or 50 / 100 / 200, in the Size column, each with its own price. They become one product page with a size chooser."],
+  ["h2", "Stock"],
+  ["p", "How many of each flower you can sell. Every order takes one off, and at 0 the website shows it as sold out until you add more — in the admin, or by importing this sheet again with a new number. Leave it blank and a new flower starts at 10. On a flower that already exists, a blank cell leaves its stock as it is."],
   ["h2", "Prices"],
   ["p", "Plain numbers in Qatari riyal: 450, not 450 QAR and not 45000. Was price QAR is only for a Hot Deal — fill it in and the old price appears struck through beside the new one."],
   ["h2", "Categories"],
