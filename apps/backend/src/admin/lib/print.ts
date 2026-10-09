@@ -118,7 +118,19 @@ export function labelHtml(
   const address = ship?.address_1 || ""
   const date = meta(order, "delivery_date")
   const window = meta(order, "delivery_window")
-  const note = meta(order, "gift_note")
+  /*
+   * Every card message on the order. The product page stores one per item —
+   * two bouquets can carry two messages — and checkout has an order-level
+   * box too. Reading only the order's left a message written on the product
+   * page off the label entirely, so the florist never saw it.
+   */
+  const notes = [
+    ...(order.items ?? []).map((i) =>
+      typeof i.metadata?.gift_note === "string" ? i.metadata.gift_note.trim() : ""
+    ),
+    meta(order, "gift_note").trim(),
+  ].filter(Boolean)
+  const cards = [...new Set(notes)]
   // The buyer asked not to be named on the card or the label.
   const anonymous = meta(order, "anonymous_gift") === "true"
 
@@ -160,9 +172,9 @@ export function labelHtml(
       <div><span class="muted">Time</span><br/><strong>${esc(window) || "—"}</strong></div>
     </div>
 
-    ${
-      note
-        ? `<div class="card">
+    ${cards
+      .map(
+        (note) => `<div class="card">
              <div class="muted" style="font-size:9pt;letter-spacing:.08em;text-transform:uppercase">
                Gift message — cut out and enclose${anonymous ? " · send anonymously" : ""}
              </div>
@@ -170,8 +182,8 @@ export function labelHtml(
                “${esc(note)}”
              </div>
            </div>`
-        : ""
-    }
+      )
+      .join("")}
 
     <div class="muted" style="margin-top:8mm;font-size:10pt">
       Fresh flowers — keep upright, out of direct sun.
