@@ -109,6 +109,19 @@ function whatsappLink(order: ShopOrder) {
   return `https://wa.me/${to}?text=${encodeURIComponent(lines.join("\n"))}`
 }
 
+/**
+ * Every card message on the order: one per item that has one, falling back to
+ * the order-level note older orders carried. Duplicates collapse — the same
+ * message on two items is one card to write, not two lines to read.
+ */
+function giftNotes(order: ShopOrder): string[] {
+  const fromItems = (order.items ?? [])
+    .map((i) => (typeof i.metadata?.gift_note === "string" ? i.metadata.gift_note.trim() : ""))
+    .filter(Boolean)
+  const notes = fromItems.length ? fromItems : [meta(order, "gift_note").trim()].filter(Boolean)
+  return [...new Set(notes)]
+}
+
 const STAGE_BADGE: Record<Stage, { label: string; color: "blue" | "purple" | "green" | "grey" }> = {
   new: { label: "New", color: "blue" },
   confirmed: { label: "Confirmed", color: "purple" },
@@ -352,6 +365,15 @@ function OrderCard({
             Note: {meta(order, "delivery_notes")}
           </Text>
         )}
+
+        {/* The card message is what the florist writes while making the
+            bouquet, so it belongs on the order, not one click away. It lives
+            on each item — two bouquets can carry two different messages. */}
+        {giftNotes(order).map((note, i) => (
+          <Text key={i} size="small" leading="compact" className="text-ui-fg-base italic">
+            Card: “{note}”
+          </Text>
+        ))}
       </div>
 
       <div className="flex flex-none flex-wrap items-center gap-2">
