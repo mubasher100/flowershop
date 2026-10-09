@@ -17,6 +17,7 @@ import {
   qatarClock,
   windowsFor,
 } from "@lib/util/delivery"
+import { unstable_rethrow } from "next/navigation"
 
 /**
  * Guest ordering.
@@ -262,7 +263,29 @@ export async function placeGuestOrder(
 
   // placeOrder redirects to the confirmation page on success, so anything
   // returning here means the cart could not be completed.
-  await placeOrder(cart.id, segment)
+  try {
+    await placeOrder(cart.id, segment)
+  } catch (e) {
+    // The success path *is* a throw: redirect() works by throwing, and
+    // swallowing it here would strand a placed order on the checkout page.
+    unstable_rethrow(e)
+
+    /*
+     * Stock is counted, and a product page can be up to half an hour behind
+     * it, so a flower can sell out between "add to bag" and "place order".
+     * Medusa refuses the order with "Not enough stock available for item
+     * iitem_… at location sloc_…" — which, uncaught, reached the customer as
+     * an error page full of internal ids.
+     */
+    const message = e instanceof Error ? e.message : ""
+    if (/not enough stock|insufficient inventory|does not have the required inventory/i.test(message)) {
+      return {
+        error:
+          "Sorry — a flower in your bag has just sold out. Please remove it from your bag and choose another.",
+      }
+    }
+    return { error: "We couldn't confirm that order. Please try again." }
+  }
   return {
     error: "We couldn't confirm that order. Please check your details.",
   }

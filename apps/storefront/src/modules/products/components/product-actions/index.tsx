@@ -2,6 +2,7 @@
 
 import { addToCart } from "@lib/data/cart"
 import { useIntersection } from "@lib/hooks/use-in-view"
+import { useLiveStock } from "@lib/hooks/use-live-stock"
 import { useTranslations } from "@lib/i18n/use-translations"
 import { bumpCartCount, refreshCartCount } from "@lib/util/cart-events"
 import { enqueueCartMutation } from "@lib/util/cart-queue"
@@ -100,29 +101,41 @@ export default function ProductActions({
     router.replace(pathname + "?" + params.toString())
   }, [selectedVariant, isValidVariant])
 
+  // The cached page's stock can be half an hour old; this is the live figure
+  // for the same variant, merged over it once it arrives. Price, options and
+  // the id still come from the page — only the stock fields are overridden.
+  const liveStock = useLiveStock(product.id)
+  const stockVariant = useMemo(
+    () =>
+      selectedVariant && liveStock[selectedVariant.id]
+        ? { ...selectedVariant, ...liveStock[selectedVariant.id] }
+        : selectedVariant,
+    [selectedVariant, liveStock]
+  )
+
   // check if the selected variant is in stock
   const inStock = useMemo(() => {
     // If we don't manage inventory, we can always add to cart
-    if (selectedVariant && !selectedVariant.manage_inventory) {
+    if (stockVariant && !stockVariant.manage_inventory) {
       return true
     }
 
     // If we allow back orders on the variant, we can add to cart
-    if (selectedVariant?.allow_backorder) {
+    if (stockVariant?.allow_backorder) {
       return true
     }
 
     // If there is inventory available, we can add to cart
     if (
-      selectedVariant?.manage_inventory &&
-      (selectedVariant?.inventory_quantity || 0) > 0
+      stockVariant?.manage_inventory &&
+      (stockVariant?.inventory_quantity || 0) > 0
     ) {
       return true
     }
 
     // Otherwise, we can't add to cart
     return false
-  }, [selectedVariant])
+  }, [stockVariant])
 
   const actionsRef = useRef<HTMLDivElement>(null)
 
@@ -221,32 +234,32 @@ export default function ProductActions({
 
         <ProductPrice product={product} variant={selectedVariant} />
 
-        {/* Live stock, straight from the variant's inventory_quantity — so a
-            stock change in the admin shows here as soon as the cache is
-            revalidated. Scarcity is only stated when it is true; inventing
-            urgency on a well-stocked item is a dark pattern. */}
-        {selectedVariant &&
-          selectedVariant.manage_inventory &&
-          !selectedVariant.allow_backorder && (
+        {/* Live stock — the figure fetched in the browser by useLiveStock,
+            not the cached page's, which can be half an hour old. Scarcity is
+            only stated when it is true; inventing urgency on a well-stocked
+            item is a dark pattern. */}
+        {stockVariant &&
+          stockVariant.manage_inventory &&
+          !stockVariant.allow_backorder && (
             <p
               className="text-sm"
               aria-live="polite"
               data-testid="stock-counter"
             >
-              {(selectedVariant.inventory_quantity ?? 0) <= 0 ? (
+              {(stockVariant.inventory_quantity ?? 0) <= 0 ? (
                 <span className="font-medium text-ink-600">
                   {t("product.soldOutSize")}
                 </span>
-              ) : (selectedVariant.inventory_quantity ?? 0) <= 5 ? (
+              ) : (stockVariant.inventory_quantity ?? 0) <= 5 ? (
                 <span className="font-medium text-blush-700">
                   {t("product.onlyLeft", {
-                    count: selectedVariant.inventory_quantity ?? 0,
+                    count: stockVariant.inventory_quantity ?? 0,
                   })}
                 </span>
               ) : (
                 <span className="text-sage-700">
                   {t("product.inStock", {
-                    count: selectedVariant.inventory_quantity ?? 0,
+                    count: stockVariant.inventory_quantity ?? 0,
                   })}
                 </span>
               )}
