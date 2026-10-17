@@ -32,18 +32,41 @@ export async function GET(
 ) {
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
+  // The sale list's prices are read from the list itself and joined on price
+  // set. They are not reachable through `price_set.prices`, which returns only
+  // the base price — reading them that way found no sale on any flower, though
+  // the Store API was applying all fourteen.
   const { data: lists } = await query.graph({
     entity: "price_list",
-    fields: ["id", "title", "type", "status"],
+    fields: [
+      "id",
+      "title",
+      "type",
+      "status",
+      "prices.id",
+      "prices.amount",
+      "prices.currency_code",
+      "prices.price_set_id",
+    ],
   })
   const sale =
     lists.find((l) => l.title === SALE_LIST_TITLE && l.type === "sale") ??
     lists.find((l) => l.type === "sale" && l.status === "active")
 
+  const salePriceBySet = new Map<string, PriceRow>()
+  for (const p of (
+    (sale?.prices ?? []) as (PriceRow & {
+      price_set_id?: string
+    })[]
+  ).filter((p) => p.currency_code === "qar" && p.price_set_id)) {
+    salePriceBySet.set(p.price_set_id!, p)
+  }
+
   const { data: variants } = await query.graph({
     entity: "product_variant",
     fields: [
       "id",
+      "price_set.id",
       "price_set.prices.id",
       "price_set.prices.amount",
       "price_set.prices.currency_code",
@@ -57,13 +80,10 @@ export async function GET(
   > = {}
 
   for (const v of variants) {
-    const rows = ((v.price_set as { prices?: PriceRow[] } | null)?.prices ??
-      []) as PriceRow[]
-    const qar = rows.filter((p) => p.currency_code === "qar")
-    const base = qar.find((p) => !p.price_list_id)
-    const onSale = sale
-      ? qar.find((p) => p.price_list_id === sale.id)
-      : undefined
+    const set = v.price_set as { id?: string; prices?: PriceRow[] } | null
+    const rows = (set?.prices ?? []) as PriceRow[]
+    const base = rows.find((p) => p.currency_code === "qar" && !p.price_list_id)
+    const onSale = set?.id ? salePriceBySet.get(set.id) : undefined
     prices[v.id] = {
       base: base ? Number(base.amount) : null,
       sale: onSale ? Number(onSale.amount) : null,
