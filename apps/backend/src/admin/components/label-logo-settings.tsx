@@ -29,7 +29,7 @@ const SAMPLE = {
     gift_note: "Happy birthday, Noor. See you tonight.",
   },
   shipping_address: {
-    address_1: "Building 10, Al Abhariya Street",
+    address_1: "Building 64, Al Abhariya Street",
     city: "Doha",
   },
 }
