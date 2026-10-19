@@ -65,7 +65,14 @@ const blank: NewFlower = {
   publish: true,
 }
 
-function AddFlower({ categories }: { categories: ShopCategory[] }) {
+function AddFlower({
+  categories,
+  salesOn,
+}: {
+  categories: ShopCategory[]
+  /** Whether a sale list is active. Off, the Was box is not offered. */
+  salesOn: boolean
+}) {
   const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState<NewFlower>(blank)
@@ -203,7 +210,9 @@ function AddFlower({ categories }: { categories: ShopCategory[] }) {
               </div>
 
               <div className="flex flex-col gap-2">
-                <div className="grid grid-cols-3 gap-3">
+                <div
+                  className={`grid gap-3 ${salesOn ? "grid-cols-3" : "grid-cols-2"}`}
+                >
                   <div className="flex flex-col gap-2">
                     <Label size="small" weight="plus" htmlFor="new-price">
                       Price (QAR)
@@ -218,23 +227,25 @@ function AddFlower({ categories }: { categories: ShopCategory[] }) {
                       placeholder="350"
                     />
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <Label size="small" weight="plus" htmlFor="new-was">
-                      Was{" "}
-                      <span className="text-ui-fg-muted font-normal">
-                        (optional)
-                      </span>
-                    </Label>
-                    <Input
-                      id="new-was"
-                      type="number"
-                      inputMode="decimal"
-                      min={1}
-                      value={draft.was}
-                      onChange={(e) => set("was", e.target.value)}
-                      placeholder="500"
-                    />
-                  </div>
+                  {salesOn && (
+                    <div className="flex flex-col gap-2">
+                      <Label size="small" weight="plus" htmlFor="new-was">
+                        Was{" "}
+                        <span className="text-ui-fg-muted font-normal">
+                          (optional)
+                        </span>
+                      </Label>
+                      <Input
+                        id="new-was"
+                        type="number"
+                        inputMode="decimal"
+                        min={1}
+                        value={draft.was}
+                        onChange={(e) => set("was", e.target.value)}
+                        placeholder="500"
+                      />
+                    </div>
+                  )}
                   <div className="flex flex-col gap-2">
                     <Label size="small" weight="plus" htmlFor="new-stock">
                       In stock
@@ -251,10 +262,11 @@ function AddFlower({ categories }: { categories: ShopCategory[] }) {
                   </div>
                 </div>
                 <Text size="xsmall" className="text-ui-fg-muted">
-                  Just numbers — 350 means QAR 350. Fill in Was and the price
-                  shows on sale, with the was price struck through. Each order
-                  takes one off the stock; at 0 the website shows it as sold
-                  out.
+                  Just numbers — 350 means QAR 350.
+                  {salesOn &&
+                    " Fill in Was and the price shows on sale, with the was price struck through."}{" "}
+                  Each order takes one off the stock; at 0 the website shows it
+                  as sold out.
                 </Text>
               </div>
 
@@ -330,6 +342,8 @@ function EditFlower({
 }) {
   const queryClient = useQueryClient()
   const variants = product.variants ?? []
+  // Discounts are off while no sale list is active; the Was column goes with them.
+  const salesOn = !!shopPrices?.sale_price_list_id
 
   const [title, setTitle] = useState(product.title)
   const [description, setDescription] = useState(product.description ?? "")
@@ -494,15 +508,18 @@ function EditFlower({
 
           <div className="flex flex-col gap-2">
             {/* One row per size: what customers pay, the optional struck-through
-                "was" price, and how many are in stock. */}
+                "was" price (only while a sale list is active), and how many are
+                in stock. */}
             <div className="flex items-center gap-3">
               {variants.length > 1 && <span className="w-24 flex-none" />}
               <Label size="small" weight="plus" className="flex-1">
                 Price (QAR)
               </Label>
-              <Label size="small" weight="plus" className="flex-1">
-                Was
-              </Label>
+              {salesOn && (
+                <Label size="small" weight="plus" className="flex-1">
+                  Was
+                </Label>
+              )}
               <Label size="small" weight="plus" className="flex-1">
                 In stock
               </Label>
@@ -537,26 +554,28 @@ function EditFlower({
                         }
                       />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <Input
-                        type="number"
-                        inputMode="decimal"
-                        min={1}
-                        placeholder="—"
-                        value={wasPrices[v.id] ?? ""}
-                        onChange={(e) =>
-                          setWasPrices((p) => ({
-                            ...p,
-                            [v.id]: e.target.value,
-                          }))
-                        }
-                        aria-label={
-                          variants.length > 1
-                            ? `Was price for ${v.title}`
-                            : "Was price"
-                        }
-                      />
-                    </div>
+                    {salesOn && (
+                      <div className="min-w-0 flex-1">
+                        <Input
+                          type="number"
+                          inputMode="decimal"
+                          min={1}
+                          placeholder="—"
+                          value={wasPrices[v.id] ?? ""}
+                          onChange={(e) =>
+                            setWasPrices((p) => ({
+                              ...p,
+                              [v.id]: e.target.value,
+                            }))
+                          }
+                          aria-label={
+                            variants.length > 1
+                              ? `Was price for ${v.title}`
+                              : "Was price"
+                          }
+                        />
+                      </div>
+                    )}
                     <div className="min-w-0 flex-1">
                       <Input
                         type="number"
@@ -586,11 +605,13 @@ function EditFlower({
                 </div>
               )
             })}
-            <Text size="xsmall" className="text-ui-fg-muted">
-              Was is optional. Fill it in and the website shows the price on
-              sale, with the was price struck through; clear it to end the sale.
-              It must be higher than the price.
-            </Text>
+            {salesOn && (
+              <Text size="xsmall" className="text-ui-fg-muted">
+                Was is optional. Fill it in and the website shows the price on
+                sale, with the was price struck through; clear it to end the
+                sale. It must be higher than the price.
+              </Text>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -766,7 +787,10 @@ export default function FlowersPanel() {
               : ""}
           </Text>
         </div>
-        <AddFlower categories={categories} />
+        <AddFlower
+          categories={categories}
+          salesOn={!!shopPrices?.sale_price_list_id}
+        />
       </div>
 
       {isLoading ? (

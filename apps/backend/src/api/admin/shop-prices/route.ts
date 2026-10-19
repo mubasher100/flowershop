@@ -49,9 +49,19 @@ export async function GET(
       "prices.price_set_id",
     ],
   })
+  // Only an *active* sale list counts. The shop switched discounts off on
+  // 19 Oct 2026 — promotions in Qatar need ministry approval, which it does
+  // not have yet — by setting the list to draft. With no active list this
+  // route reports none, and the Shop screen hides its Was boxes, so nobody can
+  // put a struck-through price back by accident. Set the list active again
+  // (Admin → Price Lists) once approval is in.
   const sale =
-    lists.find((l) => l.title === SALE_LIST_TITLE && l.type === "sale") ??
-    lists.find((l) => l.type === "sale" && l.status === "active")
+    lists.find(
+      (l) =>
+        l.title === SALE_LIST_TITLE &&
+        l.type === "sale" &&
+        l.status === "active"
+    ) ?? lists.find((l) => l.type === "sale" && l.status === "active")
 
   const salePriceBySet = new Map<string, PriceRow>()
   for (const p of (
