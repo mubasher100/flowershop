@@ -480,6 +480,8 @@ Order confirmations go out through a small Resend provider at `apps/backend/src/
 
 **Live since 27 Sep 2026.** Sending domain `tulipsandtruffle.com` is verified with Resend (region eu-west-1); its DKIM, SPF and MX records are in Cloudflare DNS, unproxied — proxying them breaks mail authentication. Mail goes out as `Tulips and Truffles <orders@tulipsandtruffle.com>` with replies pointed at the shop's own inbox. A gmail.com address cannot be a sender: Resend only sends as a domain you can add DNS records to.
 
+**The shop is emailed every new order too** (`src/subscribers/order-alert.ts`, body in `src/lib/order-alert-email.ts`): a work order rather than a thank-you — delivery date and window in the subject, what to make, card messages, recipient and customer phones as WhatsApp links, and a link to the order in the admin. Recipients are `SHOP_ORDER_ALERT_EMAILS` on Railway, comma-separated; unset sends nothing. It is its own subscriber so a failure in one email never costs the other.
+
 Gated on `RESEND_API_KEY` and `RESEND_FROM` (an address on a domain verified with Resend). Without them the notification module still registers the local provider, which logs the notification, and nothing is sent. Checkout asks for an email **optionally** — the shop reaches people on WhatsApp and a required address would cost orders — so when none is given Medusa's required email is still a placeholder derived from the phone number, and the subscriber skips those rather than mailing a dead domain.
 
 ### Demo payment gateway
