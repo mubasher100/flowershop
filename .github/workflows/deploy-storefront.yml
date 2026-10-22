@@ -35,7 +35,11 @@ jobs:
 
       - name: Build with OpenNext
         working-directory: apps/storefront
-        run: npx opennextjs-cloudflare build
+        # Next 15 left the Next.js team's two-year support window on
+        # 21 Oct 2026, and OpenNext refuses to build it without this flag.
+        # Temporary: the way off it is Next 16, which needs the tag-cache
+        # setting in open-next.config.ts revisited first (see CLAUDE.md).
+        run: npx opennextjs-cloudflare build --dangerouslyUseUnsupportedNextVersion
         env:
           NEXT_PUBLIC_MEDUSA_BACKEND_URL: ${{ vars.MEDUSA_BACKEND_URL }}
           NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${{ secrets.MEDUSA_PUBLISHABLE_KEY }}
