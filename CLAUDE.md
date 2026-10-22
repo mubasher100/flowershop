@@ -181,7 +181,9 @@ Things that were wrong and are worth not reintroducing:
 - **Product cards take their heading level from context** — `h2` under a page heading, `h3` under a rail. Don't hardcode it.
 - The skip link is `sr-only` until focused, which means automated tap-target checks will flag it at 1px. That is correct; exclude visually-hidden controls from those checks.
 
-**Cart and checkout are deliberately `noindex`**, which is why they carry no canonical or hreflang. Checkout has no skip link on purpose: its header is two links, so a skip link would be a third stop to bypass two.
+**Cart and checkout are deliberately `noindex`**, which is why they carry no canonical or hreflang. Checkout has no skip link on purpose: its header is three links (back to the bag, the logo, *Shop more*), so a skip link would be a fourth stop to bypass three.
+
+**Product pages offer *Checkout now* beside *Add to bag*.** It goes through the same queued add, but unlike the bag button it waits for the add to land before navigating — checkout reads the cart from the server, so arriving early would show an empty bag. On phones the sticky buy bar sits *above* the bottom tab bar; at `bottom-0` the tab bar, at the same z-index and later in the DOM, covered half of it.
 
 **Unmatched paths are caught inside the locale** by `[countryCode]/(main)/[...notFound]`, which calls `notFound()`. Without it they fell through to the root not-found, which renders outside `[countryCode]` — so an Arabic visitor got an English 404 on a bare page with no way back.
 

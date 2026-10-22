@@ -153,8 +153,8 @@ export default function ProductActions({
    * behind it, and reconciles the badge against the server when it lands. A
    * failure rolls the badge back and shows the error here.
    */
-  const handleAddToCart = () => {
-    if (!selectedVariant?.id) return
+  const handleAddToCart = (): Promise<boolean> => {
+    if (!selectedVariant?.id) return Promise.resolve(false)
 
     const metadata = {
       ...(giftNote.trim() ? { gift_note: giftNote.trim() } : {}),
@@ -187,25 +187,54 @@ export default function ProductActions({
 
     // Queued, not fired directly: concurrent adds each create their own cart
     // when none has the cookie yet. See lib/util/cart-queue.ts.
-    enqueueCartMutation(() =>
-      addToCart({
-        variantId: selectedVariant.id,
-        quantity: 1,
-        countryCode,
-        metadata,
-      })
+    return (
+      enqueueCartMutation(() =>
+        addToCart({
+          variantId: selectedVariant.id,
+          quantity: 1,
+          countryCode,
+          metadata,
+        })
+      )
+        // Reconcile against the server once this add has actually landed,
+        // rather than on a timer that could race a later one.
+        .then(() => {
+          refreshCartCount()
+          return true
+        })
+        .catch((error) => {
+          bumpCartCount(-1)
+          setJustAdded(false)
+          setAddError(
+            error instanceof Error ? error.message : t("product.addFailed")
+          )
+          return false
+        })
     )
-      // Reconcile against the server once this add has actually landed,
-      // rather than on a timer that could race a later one.
-      .then(() => refreshCartCount())
-      .catch((error) => {
-        bumpCartCount(-1)
-        setJustAdded(false)
-        setAddError(
-          error instanceof Error ? error.message : t("product.addFailed")
-        )
-      })
   }
+
+  /**
+   * Adds the flower and goes straight to checkout.
+   *
+   * Unlike the bag button this one does wait for the add: checkout reads the
+   * cart from the server, so arriving before the item lands would show an
+   * empty bag. The ~2.8s is spent on a spinner the shopper asked for.
+   */
+  const [checkingOut, setCheckingOut] = useState(false)
+  const handleCheckoutNow = () => {
+    if (checkingOut) return
+    setCheckingOut(true)
+    handleAddToCart().then((added) => {
+      if (added) {
+        router.push(`/${countryCode}/checkout`)
+      } else {
+        setCheckingOut(false)
+      }
+    })
+  }
+
+  const buyDisabled =
+    !inStock || !selectedVariant || !!disabled || !isValidVariant
 
   return (
     <>
@@ -285,13 +314,7 @@ export default function ProductActions({
 
         <Button
           onClick={handleAddToCart}
-          disabled={
-            !inStock ||
-            !selectedVariant ||
-            !!disabled ||
-
-            !isValidVariant
-          }
+          disabled={buyDisabled}
           variant="primary"
           className="w-full"
           // Deliberately not isLoading: the add is optimistic, so a spinner
@@ -311,6 +334,19 @@ export default function ProductActions({
             ? t("product.added")
             : t("product.addToBag")}
         </Button>
+        {/* Only offered once there is something to buy — "Select a size" or
+            "Out of stock" twice over says nothing the button above does not. */}
+        {!buyDisabled && (
+          <Button
+            onClick={handleCheckoutNow}
+            variant="secondary"
+            className="w-full"
+            isLoading={checkingOut}
+            data-testid="checkout-now-button"
+          >
+            {t("product.checkoutNow")}
+          </Button>
+        )}
         <MobileActions
           product={product}
           variant={selectedVariant}
@@ -318,6 +354,8 @@ export default function ProductActions({
           updateOptions={setOptionValue}
           inStock={inStock}
           handleAddToCart={handleAddToCart}
+          handleCheckoutNow={handleCheckoutNow}
+          isCheckingOut={checkingOut}
           isAdding={false}
           show={!inView}
           optionsDisabled={!!disabled}

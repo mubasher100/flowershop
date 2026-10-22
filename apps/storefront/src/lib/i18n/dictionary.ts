@@ -47,6 +47,7 @@ export const DICTIONARY = {
     "product.selectSize": "Select a size",
     "product.addToBag": "Add to bag",
     "product.added": "Added to bag ✓",
+    "product.checkoutNow": "Checkout now",
     "product.addFailed": "That didn't go in — please try again.",
     "product.outOfStock": "Out of stock",
     "product.soldOutSize": "Sold out in this size",
@@ -189,6 +190,7 @@ export const DICTIONARY = {
     "cart.total": "Total",
     "cart.summary": "Summary",
     "cart.checkout": "Go to checkout",
+    "checkout.shopMore": "Shop more",
     "cart.emptyBody": "There is nothing in your bag yet.",
     "cart.browse": "Browse the flowers",
 
@@ -451,6 +453,7 @@ export const DICTIONARY = {
     "product.selectSize": "اختر الحجم",
     "product.addToBag": "أضف إلى السلة",
     "product.added": "أُضيف إلى السلة ✓",
+    "product.checkoutNow": "اشترِ الآن",
     "product.addFailed": "لم تتم الإضافة — يرجى المحاولة مرة أخرى.",
     "product.outOfStock": "نفدت الكمية",
     "product.soldOutSize": "نفدت الكمية بهذا الحجم",
@@ -582,6 +585,7 @@ export const DICTIONARY = {
     "cart.total": "الإجمالي",
     "cart.summary": "ملخص الطلب",
     "cart.checkout": "إتمام الطلب",
+    "checkout.shopMore": "تسوق المزيد",
     "cart.emptyBody": "لا يوجد شيء في سلتك بعد.",
     "cart.browse": "تصفح الورود",
 

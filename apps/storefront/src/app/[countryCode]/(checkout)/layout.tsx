@@ -7,7 +7,9 @@ import ChevronDown from "@modules/common/icons/chevron-down"
  * Checkout chrome.
  *
  * Deliberately stripped back — no nav, no rails, nothing to wander off into
- * once someone has decided to buy. The only way out is back to the bag.
+ * once someone has decided to buy. The ways out are back to the bag, and
+ * "Shop more" for someone who came straight from a product page's "Checkout
+ * now" and wants to add another bouquet — the bag keeps what is already in it.
  *
  * The starter footed this page with "Powered by Medusa & Next.js" linking to
  * both projects. That is someone else's branding on the last screen before a
@@ -42,7 +44,15 @@ export default async function CheckoutLayout({
 
           <Brand className="text-xl" />
 
-          <div className="flex-1 basis-0" />
+          <div className="flex flex-1 basis-0 justify-end">
+            <LocalizedClientLink
+              href="/store"
+              className="flex min-h-[2.75rem] items-center text-sm font-medium text-blush-700 underline-offset-4 transition-colors hover:text-blush-800 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700"
+              data-testid="shop-more-link"
+            >
+              {t("checkout.shopMore")}
+            </LocalizedClientLink>
+          </div>
         </nav>
       </div>
 

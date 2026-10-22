@@ -19,6 +19,8 @@ type MobileActionsProps = {
   updateOptions: (title: string, value: string) => void
   inStock?: boolean
   handleAddToCart: () => void
+  handleCheckoutNow: () => void
+  isCheckingOut?: boolean
   isAdding?: boolean
   show: boolean
   optionsDisabled: boolean
@@ -31,6 +33,8 @@ const MobileActions: React.FC<MobileActionsProps> = ({
   updateOptions,
   inStock,
   handleAddToCart,
+  handleCheckoutNow,
+  isCheckingOut,
   isAdding,
   show,
   optionsDisabled,
@@ -53,13 +57,20 @@ const MobileActions: React.FC<MobileActionsProps> = ({
   }, [price])
 
   const isSimple = isSimpleProduct(product)
+  const canCheckOut = !!variant && !!inStock
 
   return (
     <>
+      {/* Sits on top of the bottom tab bar (3.5rem tall, a 1px border, and
+          the home-indicator inset), not at bottom-0 — there the tab bar,
+          rendered later at the same z-index, covered the lower half of it. */}
       <div
-        className={clx("lg:hidden inset-x-0 bottom-0 fixed z-50", {
-          "pointer-events-none": !show,
-        })}
+        className={clx(
+          "lg:hidden inset-x-0 bottom-[calc(3.5rem+1px+env(safe-area-inset-bottom))] small:bottom-0 fixed z-50",
+          {
+            "pointer-events-none": !show,
+          }
+        )}
       >
         <Transition
           as={Fragment}
@@ -100,9 +111,15 @@ const MobileActions: React.FC<MobileActionsProps> = ({
                 <div></div>
               )}
             </div>
-            <div className={clx("grid grid-cols-2 w-full gap-x-4", {
-              "!grid-cols-1": isSimple
-            })}>
+            {/* A one-size flower puts both buttons side by side. With a size
+                picker that would be three abreast, which does not fit a 375px
+                screen at a 44px touch target, so Checkout now takes a row of
+                its own. */}
+            <div
+              className={clx("grid grid-cols-2 w-full gap-x-4 gap-y-3", {
+                "!grid-cols-1": isSimple && !canCheckOut,
+              })}
+            >
               {!isSimple && <Button
                 onClick={open}
                 variant="secondary"
@@ -131,6 +148,17 @@ const MobileActions: React.FC<MobileActionsProps> = ({
                   ? t("product.outOfStock")
                   : t("product.addToBag")}
               </Button>
+              {canCheckOut && (
+                <Button
+                  onClick={handleCheckoutNow}
+                  variant="secondary"
+                  className={clx("w-full", { "col-span-2": !isSimple })}
+                  isLoading={isCheckingOut}
+                  data-testid="mobile-checkout-now-button"
+                >
+                  {t("product.checkoutNow")}
+                </Button>
+              )}
             </div>
           </div>
         </Transition>
