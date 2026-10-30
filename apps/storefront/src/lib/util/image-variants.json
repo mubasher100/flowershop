@@ -520,5 +520,29 @@
     "960": "https://media.tulipsandtruffle.com/fifty-sunlight-yellow-roses-960-01M4GDR8X6061BYDKQ9CPCQNP4.webp",
     "1280": "https://media.tulipsandtruffle.com/fifty-sunlight-yellow-roses-1280-01M4GDRA4WH4J48GV01WPQECX5.webp",
     "1312": "https://media.tulipsandtruffle.com/fifty-sunlight-yellow-roses-01M4GDD21QCJ5T6J37XBXAPE1Y.webp"
+  },
+  "/hero/fifty-red-roses-eucalyptus.webp": {
+    "320": "/hero/fifty-red-roses-eucalyptus-320.webp",
+    "640": "/hero/fifty-red-roses-eucalyptus-640.webp",
+    "960": "/hero/fifty-red-roses-eucalyptus-960.webp",
+    "1280": "/hero/fifty-red-roses-eucalyptus.webp"
+  },
+  "/hero/purple-hydrangeas.webp": {
+    "320": "/hero/purple-hydrangeas-320.webp",
+    "640": "/hero/purple-hydrangeas-640.webp",
+    "960": "/hero/purple-hydrangeas-960.webp",
+    "1280": "/hero/purple-hydrangeas.webp"
+  },
+  "/hero/shimmer-roses.webp": {
+    "320": "/hero/shimmer-roses-320.webp",
+    "640": "/hero/shimmer-roses-640.webp",
+    "960": "/hero/shimmer-roses-960.webp",
+    "1280": "/hero/shimmer-roses.webp"
+  },
+  "/hero/two-hundred-red-roses.webp": {
+    "320": "/hero/two-hundred-red-roses-320.webp",
+    "640": "/hero/two-hundred-red-roses-640.webp",
+    "960": "/hero/two-hundred-red-roses-960.webp",
+    "1280": "/hero/two-hundred-red-roses.webp"
   }
 }

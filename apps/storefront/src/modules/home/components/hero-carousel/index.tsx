@@ -121,9 +121,11 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
                 blush with the photograph beside it, rather than white type
                 over a darkened image. On a phone the photo comes first, since
                 the flowers are what sell; from the small breakpoint the two
-                sit side by side with the copy leading. */}
+                sit side by side with the copy leading. The extra bottom
+                padding on a phone keeps the slide dots clear of the button
+                when the copy runs to three lines. */}
             <div className="bg-blush-50">
-              <div className="content-container grid grid-cols-1 items-center gap-6 py-6 small:grid-cols-[1fr_1.15fr] small:gap-10 small:py-12">
+              <div className="content-container grid grid-cols-1 items-center gap-6 pb-14 pt-6 small:grid-cols-[1fr_1.15fr] small:gap-10 small:py-12">
                 <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl small:order-2 small:aspect-[4/3]">
                   <Image
                     src={slide.image}

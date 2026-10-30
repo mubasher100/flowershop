@@ -24,25 +24,32 @@ import PromoBanner from "@modules/home/components/promo-banner"
  * dictionary, so the carousel — the largest block of type on the site — reads
  * in the visitor's language rather than staying English on /ar-qa.
  *
- * Photography is CC0 (public domain) — see public/IMAGE-CREDITS.json for the
- * source of every file. Swap these for real studio shots of our own
- * arrangements when they exist; nothing else needs to change.
+ * Photography is the shop's own (30 Oct 2026), cropped to 4:3 around the
+ * flower heads so the 16:10 phone frame and the 4:3 desktop frame both keep
+ * them. Each slide links to the category its photo belongs to.
  */
 const HERO_SLIDES = [
-  // The brand slide. The photograph is cropped from the brand reference —
-  // tulips in blush wrapping with the shop's own ribbon — and the title is
-  // the wordmark rather than text.
-  { image: "/hero/tulips.webp", key: "hero.1", href: "/store", wordmark: true },
-  { image: "/hero/hero-02.webp", key: "hero.2", href: "/categories/roses" },
+  // The brand slide: the title is the wordmark rather than text.
   {
-    image: "/hero/hero-03.webp",
-    key: "hero.3",
-    href: "/collections/new-this-week",
+    image: "/hero/shimmer-roses.webp",
+    key: "hero.1",
+    href: "/store",
+    wordmark: true,
   },
   {
-    image: "/hero/hero-04.jpg",
+    image: "/hero/fifty-red-roses-eucalyptus.webp",
+    key: "hero.2",
+    href: "/categories/50-roses",
+  },
+  {
+    image: "/hero/purple-hydrangeas.webp",
+    key: "hero.3",
+    href: "/categories/big-flowers",
+  },
+  {
+    image: "/hero/two-hundred-red-roses.webp",
     key: "hero.4",
-    href: "/collections/luxury-edit",
+    href: "/categories/200-roses",
   },
 ] as const
 

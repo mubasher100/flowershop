@@ -109,27 +109,26 @@ export const DICTIONARY = {
     "hero.1.body": "Beautiful blooms. Thoughtful gifts. Happier moments.",
     "hero.1.cta": "Shop now",
     "hero.1.alt":
-      "A bouquet of pink tulips in blush wrapping, tied with a Tulips and Truffles ribbon, beside a gift box",
+      "Fifty peach and apricot shimmer roses in white wrapping",
 
     "hero.2.eyebrow": "Signature roses",
     "hero.2.title": "Fifty stems, one gesture",
     "hero.2.body":
       "Hand-spiralled so the heads sit level, in glass or wrapped in matte paper.",
     "hero.2.cta": "Shop roses",
-    "hero.2.alt": "Roses arranged closely in a clear glass vase",
+    "hero.2.alt": "Fifty red roses with eucalyptus in a clear glass vase",
 
-    "hero.3.eyebrow": "In season",
-    "hero.3.title": "Peonies are back, briefly",
-    "hero.3.body": "Six weeks a year, and then they're gone until next spring.",
-    "hero.3.cta": "Shop the season",
-    "hero.3.alt": "Pale garden flowers in soft daylight",
+    "hero.3.eyebrow": "Hydrangeas",
+    "hero.3.title": "Big blooms, full of colour",
+    "hero.3.body": "Pink, white, blue, green and purple, in glass or wrapped.",
+    "hero.3.cta": "Shop hydrangeas",
+    "hero.3.alt": "Purple and violet hydrangeas in a clear glass vase",
 
     "hero.4.eyebrow": "The luxury edit",
     "hero.4.title": "For the occasions that matter",
-    "hero.4.body":
-      "Crystal spheres, hatboxes and hundred-stem arrangements, built to order.",
-    "hero.4.cta": "Browse luxury",
-    "hero.4.alt": "A luxury flower arrangement in a dark ceramic vase",
+    "hero.4.body": "Two hundred roses, wrapped in black or white and built to order.",
+    "hero.4.cta": "Shop 200 roses",
+    "hero.4.alt": "Two hundred red roses in black wrapping",
 
     // Homepage metadata
     "meta.homeTitle": "Tulips and Truffles — Flowers & gifts, same-day delivery in Doha",
@@ -509,27 +508,26 @@ export const DICTIONARY = {
     "hero.1.body": "أزهار جميلة. هدايا مدروسة. لحظات أسعد.",
     "hero.1.cta": "تسوق الآن",
     "hero.1.alt":
-      "باقة توليب وردية بغلاف وردي فاتح، مربوطة بشريطة Tulips and Truffles، بجانب علبة هدايا",
+      "خمسون وردة شيمر بلون الخوخ والمشمش بغلاف أبيض",
 
     "hero.2.eyebrow": "ورودنا المميزة",
     "hero.2.title": "خمسون ساقاً، لفتة واحدة",
     "hero.2.body":
       "مرتّبة يدوياً بشكل حلزوني لتتساوى الرؤوس، في مزهرية زجاجية أو بغلاف ورقي مطفي.",
     "hero.2.cta": "تسوق الورود",
-    "hero.2.alt": "ورود مرتّبة بتقارب في مزهرية زجاجية شفافة",
+    "hero.2.alt": "خمسون وردة حمراء مع أوكالبتوس في مزهرية زجاجية شفافة",
 
-    "hero.3.eyebrow": "في الموسم",
-    "hero.3.title": "عاد البيوني، لفترة قصيرة",
-    "hero.3.body": "ستة أسابيع في السنة، ثم يختفي حتى الربيع القادم.",
-    "hero.3.cta": "تسوق منتجات الموسم",
-    "hero.3.alt": "ورود حديقة فاتحة اللون في ضوء نهار هادئ",
+    "hero.3.eyebrow": "الهيدرانجيا",
+    "hero.3.title": "أزهار كبيرة مليئة بالألوان",
+    "hero.3.body": "وردي، أبيض، أزرق، أخضر وبنفسجي، في مزهرية زجاجية أو مغلّفة.",
+    "hero.3.cta": "تسوق الهيدرانجيا",
+    "hero.3.alt": "هيدرانجيا بنفسجية في مزهرية زجاجية شفافة",
 
     "hero.4.eyebrow": "تشكيلة الفخامة",
     "hero.4.title": "للمناسبات التي تستحق",
-    "hero.4.body":
-      "كرات كريستالية وعلب فاخرة وتنسيقات من مئة ساق، تُصنع حسب الطلب.",
-    "hero.4.cta": "تصفح الفخامة",
-    "hero.4.alt": "تنسيق ورد فاخر في مزهرية خزفية داكنة",
+    "hero.4.body": "مئتا وردة بغلاف أسود أو أبيض، تُصنع حسب الطلب.",
+    "hero.4.cta": "تسوق ٢٠٠ وردة",
+    "hero.4.alt": "مئتا وردة حمراء بغلاف أسود",
 
     "meta.homeTitle": "Tulips and Truffles — ورود وهدايا، توصيل في نفس اليوم بالدوحة",
     "meta.homeDescription":
