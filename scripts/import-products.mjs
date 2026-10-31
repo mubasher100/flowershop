@@ -399,6 +399,9 @@ async function main() {
   const catIdByName = new Map(
     (cats.product_categories ?? []).map((c) => [c.name.trim().toLowerCase(), c.id])
   )
+  // Offers was called Hot Deal until 31 Oct 2026; sheets made from the old
+  // template still say so.
+  if (catIdByName.has("offers")) catIdByName.set("hot deal", catIdByName.get("offers"))
   const tagIdByValue = new Map((tags.product_tags ?? []).map((t) => [t.value, t.id]))
   const salesChannelId = channels.sales_channels?.[0]?.id
   const shippingProfileId = profiles.shipping_profiles?.[0]?.id

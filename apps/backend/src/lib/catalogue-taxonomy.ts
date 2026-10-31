@@ -32,9 +32,11 @@ export type TypeCategory = {
 /** Order here is the order they appear in the nav and the catalogue filter. */
 export const TYPE_CATEGORIES: TypeCategory[] = [
   {
-    name: "Hot Deal",
+    // Shown as "Offers" since 31 Oct 2026; the handle keeps its old name so
+    // links to /categories/hot-deals still work.
+    name: "Offers",
     handle: "hot-deals",
-    description: "This week's best value, while the flowers last.",
+    description: "Every flower on offer, at its reduced price.",
     // Deliberately rule-free: what is on offer is a decision the shop makes
     // week to week, so it is curated in the admin, not derived from a price.
     match: () => false,

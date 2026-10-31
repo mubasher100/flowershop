@@ -130,7 +130,7 @@ export default async function PaginatedProducts({
   if (!products.length) {
     // The link out is the point. Without it this is a dead end — which is
     // exactly what a category with nothing in it yet is, and the shop has two
-    // of those (Hot Deal is curated by hand, Baby Roses is waiting on stock).
+    // of those (Offers is curated by hand, Baby Roses is waiting on stock).
     return (
       <div className="py-16 text-center">
         <p className="font-display text-2xl text-ink-900">

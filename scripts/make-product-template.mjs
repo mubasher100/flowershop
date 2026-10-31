@@ -91,7 +91,7 @@ const COLUMNS = [
     header: "Was price QAR",
     key: "wasPrice",
     width: 14,
-    note: "Only for a Hot Deal: the old price, shown struck through. Leave blank otherwise.",
+    note: "Only for an offer: the old price, shown struck through. Leave blank otherwise.",
   },
   {
     header: "Stock",
@@ -261,7 +261,7 @@ const LINES = [
   ["h2", "Stock"],
   ["p", "How many of each flower you can sell. Every order takes one off, and at 0 the website shows it as sold out until you add more — in the admin, or by importing this sheet again with a new number. Leave it blank and a new flower starts at 10. On a flower that already exists, a blank cell leaves its stock as it is."],
   ["h2", "Prices"],
-  ["p", "Plain numbers in Qatari riyal: 450, not 450 QAR and not 45000. Was price QAR is only for a Hot Deal — fill it in and the old price appears struck through beside the new one."],
+  ["p", "Plain numbers in Qatari riyal: 450, not 450 QAR and not 45000. Was price QAR is only for an offer — fill it in and the old price appears struck through beside the new one."],
   ["h2", "Categories"],
   ["p", "Category 1 is required and decides where the product mainly lives. Categories 2 and 3 are optional and worth using: a vased arrangement of fifty roses genuinely belongs under both 50 Roses and Flowers in Vases, and a customer will look under either."],
   ["h2", "What importing does"],
