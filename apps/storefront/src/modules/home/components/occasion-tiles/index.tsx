@@ -23,23 +23,21 @@ const OCCASION_HANDLES = [
   "thank-you",
 ]
 
-/** CC0 photography, distinct per occasion so the row isn't six identical discs. */
 /**
- * These pointed at /products/bloom-01.jpg … bloom-12.jpg, a naming scheme that
- * never existed — product photography is named by handle. Every one of the six
- * tiles was a broken image on the homepage.
+ * The shop's own photography (31 Oct 2026), each a flower that is actually on
+ * sale and sits in that occasion, cropped square around the flower heads so
+ * the circle frames the roses rather than the wrapping.
  *
- * Each now points at a real photograph chosen to suit the occasion: red roses
- * for an anniversary, soft white for get-well and a new baby, something with
- * colour for a birthday.
+ * These used to be stock photographs from the starter catalogue, of flowers
+ * the shop has never sold.
  */
 const TILE_IMAGE: Record<string, string> = {
-  birthday: "/products/piccadilly-charm.jpg",
-  anniversary: "/products/50-red-rose-vase.jpg",
-  congratulations: "/products/hearts-crystal-sphere.jpg",
-  "get-well-soon": "/products/9-white-hydrangea-black-vase.jpg",
-  "new-baby": "/products/pink-parkhome.jpg",
-  "thank-you": "/products/aveline.jpg",
+  birthday: "/occasions/birthday.webp",
+  anniversary: "/occasions/anniversary.webp",
+  congratulations: "/occasions/congratulations.webp",
+  "get-well-soon": "/occasions/get-well-soon.webp",
+  "new-baby": "/occasions/new-baby.webp",
+  "thank-you": "/occasions/thank-you.webp",
 }
 
 export default async function OccasionTiles({
@@ -87,7 +85,7 @@ export default async function OccasionTiles({
               <div className="relative aspect-square w-full overflow-hidden rounded-full ring-1 ring-inset ring-ink-200/60 transition-transform duration-200 group-hover:-translate-y-1 group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-blush-700">
                 <Image
                   src={
-                    TILE_IMAGE[occasion.handle ?? ""] ?? "/products/ashford.jpg"
+                    TILE_IMAGE[occasion.handle ?? ""] ?? "/occasions/birthday.webp"
                   }
                   alt=""
                   fill

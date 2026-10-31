@@ -42,7 +42,7 @@ let savedBytes = 0
 // ---------------------------------------------------------------- public/
 /** Images shipped with the app: the wordmark and the hero photographs. */
 const publicTargets = []
-for (const dir of ["brand", "hero", "placeholders", "products"]) {
+for (const dir of ["brand", "hero", "occasions", "placeholders", "products"]) {
   const full = path.join(PUBLIC_DIR, dir)
   if (!fs.existsSync(full)) continue
   for (const file of fs.readdirSync(full)) {

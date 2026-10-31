@@ -917,5 +917,35 @@
     "640": "https://media.tulipsandtruffle.com/white-floral-ceramic-pot-640-01M674P84HS7XK37Z5HTQ5W21V.webp",
     "960": "https://media.tulipsandtruffle.com/white-floral-ceramic-pot-960-01M674P8VJ2N0D9GXS3DBAYNA6.webp",
     "1086": "https://media.tulipsandtruffle.com/white-floral-ceramic-pot-01M674DEX7VQ929WEWFK50FVDN.webp"
+  },
+  "/hero/midnight-red-roses.webp": {
+    "320": "/hero/midnight-red-roses-320.webp",
+    "640": "/hero/midnight-red-roses-640.webp",
+    "960": "/hero/midnight-red-roses-960.webp",
+    "1086": "/hero/midnight-red-roses.webp"
+  },
+  "/occasions/anniversary.webp": {
+    "320": "/occasions/anniversary-320.webp",
+    "640": "/occasions/anniversary.webp"
+  },
+  "/occasions/birthday.webp": {
+    "320": "/occasions/birthday-320.webp",
+    "640": "/occasions/birthday.webp"
+  },
+  "/occasions/congratulations.webp": {
+    "320": "/occasions/congratulations-320.webp",
+    "640": "/occasions/congratulations.webp"
+  },
+  "/occasions/get-well-soon.webp": {
+    "320": "/occasions/get-well-soon-320.webp",
+    "640": "/occasions/get-well-soon.webp"
+  },
+  "/occasions/new-baby.webp": {
+    "320": "/occasions/new-baby-320.webp",
+    "640": "/occasions/new-baby.webp"
+  },
+  "/occasions/thank-you.webp": {
+    "320": "/occasions/thank-you-320.webp",
+    "640": "/occasions/thank-you.webp"
   }
 }
