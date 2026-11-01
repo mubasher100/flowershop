@@ -62,9 +62,13 @@ const ImageGallery = ({ images, title }: ImageGalleryProps) => {
   const altFor = (index: number) =>
     title
       ? images.length > 1
-        ? `${title} — view ${index + 1} of ${images.length}`
+        ? t("product.imageAlt", {
+            title,
+            n: index + 1,
+            total: images.length,
+          })
         : title
-      : `Product image ${index + 1}`
+      : t("product.imageAltGeneric", { n: index + 1 })
 
   return (
     <div className="relative flex items-start">

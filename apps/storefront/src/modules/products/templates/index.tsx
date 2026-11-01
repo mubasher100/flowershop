@@ -54,7 +54,7 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
         </div>
 
         <div className="flex flex-col gap-8">
-          <ProductInfo product={product} />
+          <ProductInfo product={product} segment={countryCode} />
 
           <Suspense
             fallback={

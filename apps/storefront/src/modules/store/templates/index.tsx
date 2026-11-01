@@ -11,7 +11,7 @@ import FilterPanel, {
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 
 import PaginatedProducts, { CatalogueFilters } from "./paginated-products"
-import { TYPE_HANDLES } from "@lib/util/categories"
+import { localizedCategoryName, TYPE_HANDLES } from "@lib/util/categories"
 
 
 /**
@@ -91,7 +91,10 @@ const StoreTemplate = async ({
     allCategories?.find((c) => c.handle === h)
   )
     .filter(Boolean)
-    .map((c) => ({ label: c!.name ?? "", value: c!.handle ?? "" }))
+    .map((c) => ({
+      label: localizedCategoryName(c!.handle, c!.name, countryCode),
+      value: c!.handle ?? "",
+    }))
 
   const categoryIdByHandle = new Map(
     (allCategories ?? []).map((c) => [c.handle, c.id])

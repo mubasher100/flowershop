@@ -1,7 +1,9 @@
 "use client"
 
 import { Table, Text, clx } from "@modules/common/components/ui"
-import { updateLineItem } from "@lib/data/cart"
+import { setBagLine } from "@lib/util/cart-api"
+import { useRouter } from "next/navigation"
+import { refreshCartCount } from "@lib/util/cart-events"
 import { HttpTypes } from "@medusajs/types"
 import CartItemSelect from "@modules/cart/components/cart-item-select"
 import ErrorMessage from "@modules/checkout/components/error-message"
@@ -24,20 +26,23 @@ type ItemProps = {
 const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
   const [updating, setUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   const changeQuantity = async (quantity: number) => {
     setError(null)
     setUpdating(true)
 
-    await updateLineItem({
-      lineId: item.id,
-      quantity,
-    })
+    // A route rather than a Server Action (lib/util/cart-api.ts), so the
+    // refresh a Server Action did implicitly is done here.
+    await setBagLine(item.id, quantity)
+      .then(() => router.refresh())
       .catch((err) => {
         setError(err.message)
       })
       .finally(() => {
         setUpdating(false)
+        // The badge counts bouquets, so a quantity change moves it too.
+        refreshCartCount()
       })
   }
 

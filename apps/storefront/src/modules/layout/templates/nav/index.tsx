@@ -9,17 +9,25 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import CartButton from "@modules/layout/components/cart-button"
 import CategoryNav from "@modules/layout/components/category-nav"
 import SideMenu, { MenuLink } from "@modules/layout/components/side-menu"
-import { TYPE_HANDLES, OCCASION_HANDLES } from "@lib/util/categories"
+import {
+  localizedCategoryName,
+  OCCASION_HANDLES,
+  TYPE_HANDLES,
+} from "@lib/util/categories"
 
 
 const pick = (
   all: { name?: string; handle?: string }[] | null,
-  handles: string[]
+  handles: string[],
+  segment?: string
 ): MenuLink[] =>
   handles
     .map((h) => all?.find((c) => c.handle === h))
     .filter(Boolean)
-    .map((c) => ({ name: c!.name ?? "", handle: c!.handle ?? "" }))
+    .map((c) => ({
+      name: localizedCategoryName(c!.handle, c!.name, segment),
+      handle: c!.handle ?? "",
+    }))
 
 export default async function Nav({ segment }: { segment?: string }) {
   const categories = await listCategories({ limit: 50 })
@@ -50,8 +58,8 @@ export default async function Nav({ segment }: { segment?: string }) {
         <nav className="content-container flex h-full w-full items-center justify-between text-sm text-ink-700 small:text-base">
           <div className="flex h-full flex-1 basis-0 items-center">
             <SideMenu
-              categories={pick(categories, TYPE_HANDLES)}
-              occasions={pick(categories, OCCASION_HANDLES)}
+              categories={pick(categories, TYPE_HANDLES, segment)}
+              occasions={pick(categories, OCCASION_HANDLES, segment)}
             />
           </div>
 

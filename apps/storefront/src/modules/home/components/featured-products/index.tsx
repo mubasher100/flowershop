@@ -1,3 +1,4 @@
+import { localizedCategoryName } from "@lib/util/categories"
 import { HttpTypes } from "@medusajs/types"
 import ProductRail from "@modules/home/components/featured-products/product-rail"
 
@@ -42,7 +43,14 @@ export default async function FeaturedProducts({
   return ordered.map((collection) => (
     <li key={collection.id}>
       <ProductRail
-        collection={collection}
+        collection={{
+          ...collection,
+          title: localizedCategoryName(
+            collection.handle,
+            collection.title,
+            segment
+          ),
+        }}
         region={region}
         segment={segment}
       />

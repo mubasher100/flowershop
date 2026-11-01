@@ -6,14 +6,22 @@ import GuestCheckout from "@modules/checkout/templates/guest-checkout"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { BRAND_NAME } from "@modules/common/components/brand"
+import { getTranslations } from "@lib/i18n/dictionary"
 
-export const metadata: Metadata = {
-  title: `Checkout | ${BRAND_NAME}`,
-  description: "Confirm your delivery details and place your order.",
-  // Deliberately not indexed, which is also why it carries no canonical or
-  // hreflang: a checkout is a step in one person's session, not a page anyone
-  // should reach from a search result.
-  robots: { index: false, follow: false },
+export async function generateMetadata(props: {
+  params: Promise<{ countryCode: string }>
+}): Promise<Metadata> {
+  const { countryCode } = await props.params
+  const { t } = getTranslations(countryCode)
+
+  return {
+    title: `${t("checkout.metaTitle")} | ${BRAND_NAME}`,
+    description: t("checkout.metaDescription"),
+    // Deliberately not indexed, which is also why it carries no canonical or
+    // hreflang: a checkout is a step in one person's session, not a page
+    // anyone should reach from a search result.
+    robots: { index: false, follow: false },
+  }
 }
 
 /**

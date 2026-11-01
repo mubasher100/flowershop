@@ -7,9 +7,9 @@ import Items from "@modules/order/components/items"
 import OnboardingCta from "@modules/order/components/onboarding-cta"
 import OrderDetails from "@modules/order/components/order-details"
 import ShippingDetails from "@modules/order/components/shipping-details"
-import PaymentDetails from "@modules/order/components/payment-details"
 import SendOnWhatsapp from "@modules/order/components/send-on-whatsapp"
 import { HttpTypes } from "@medusajs/types"
+import { getTranslations } from "@lib/i18n/dictionary"
 
 type OrderCompletedTemplateProps = {
   order: HttpTypes.StoreOrder
@@ -23,6 +23,7 @@ export default async function OrderCompletedTemplate({
   const cookies = await nextCookies()
 
   const isOnboarding = cookies.get("_medusa_onboarding")?.value === "true"
+  const { t } = getTranslations(segment)
 
   return (
     <div className="py-6 min-h-[calc(100vh-64px)]">
@@ -36,21 +37,23 @@ export default async function OrderCompletedTemplate({
             level="h1"
             className="flex flex-col gap-y-3 text-ui-fg-base text-3xl mb-4"
           >
-            <span>Thank you!</span>
-            <span>Your order was placed successfully.</span>
+            <span>{t("order.thankYou")}</span>
+            <span>{t("order.placed")}</span>
           </Heading>
           {/* Every order is confirmed on WhatsApp, so starting that chat is
               the next thing the customer has to do — it goes first. */}
           <SendOnWhatsapp order={order} segment={segment} />
-          <OrderDetails order={order} />
+          <OrderDetails order={order} segment={segment} />
           <Heading level="h2" className="flex flex-row text-3xl-regular">
-            Summary
+            {t("cart.summary")}
           </Heading>
           <Items order={order} />
           <CartTotals totals={order} />
-          <ShippingDetails order={order} />
-          <PaymentDetails order={order} />
-          <Help />
+          <ShippingDetails order={order} segment={segment} />
+          {/* No PaymentDetails here. Nothing is paid online — payment is
+              agreed on WhatsApp — so it printed "Manual Payment … paid at"
+              for money that had not moved. */}
+          <Help segment={segment} />
         </div>
       </div>
     </div>

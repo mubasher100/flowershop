@@ -1,3 +1,6 @@
+"use client"
+
+import { useTranslations } from "@lib/i18n/use-translations"
 import { clx } from "@modules/common/components/ui"
 
 import { getProductPrice } from "@lib/util/get-product-price"
@@ -16,6 +19,7 @@ export default function ProductPrice({
   })
 
   const selectedPrice = variant ? variantPrice : cheapestPrice
+  const { t } = useTranslations()
 
   if (!selectedPrice) {
     return <div className="block w-32 h-9 bg-gray-100 animate-pulse" />
@@ -28,7 +32,7 @@ export default function ProductPrice({
           "text-ui-fg-interactive": selectedPrice.price_type === "sale",
         })}
       >
-        {!variant && "From "}
+        {!variant && `${t("product.from")} `}
         <span
           data-testid="product-price"
           data-value={selectedPrice.calculated_price_number}
@@ -40,7 +44,7 @@ export default function ProductPrice({
           percentage off. */}
       {selectedPrice.price_type === "sale" && (
         <p>
-          <span className="text-ui-fg-subtle">Original: </span>
+          <span className="text-ui-fg-subtle">{t("product.original")} </span>
           <span
             className="line-through"
             data-testid="original-product-price"

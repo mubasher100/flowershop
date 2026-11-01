@@ -1,7 +1,8 @@
 "use client"
 
 import { HttpTypes } from "@medusajs/types"
-import { useActionState, useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 import DemoPayment from "@modules/checkout/components/demo-payment"
 import {
@@ -18,7 +19,12 @@ import { setSelectedDelivery } from "@lib/util/delivery-selection"
 import type { DayAvailability } from "@lib/data/delivery-availability"
 
 import { convertToLocale } from "@lib/util/money"
-import { placeGuestOrder, GuestOrderState } from "@lib/data/guest-order"
+import { placeOrderRequest } from "@lib/util/cart-api"
+import {
+  deliveryAddressFor,
+  whatsappLink,
+  whatsappOrderMessage,
+} from "@lib/util/whatsapp-order"
 import { useTranslations } from "@lib/i18n/use-translations"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
@@ -28,6 +34,9 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
  * never appear on a live storefront by accident.
  */
 const DEMO_PAYMENT_ENABLED = process.env.NEXT_PUBLIC_DEMO_PAYMENT === "true"
+
+/** The shop's WhatsApp, digits only. Unset means no hand-off. */
+const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP?.replace(/\D/g, "") || null
 
 
 /**
@@ -56,10 +65,9 @@ export default function GuestCheckout({
   /** What the shop can still take, per day, for the coming weeks. */
   availability?: DayAvailability[]
 }) {
-  const [state, formAction, pending] = useActionState<
-    GuestOrderState,
-    FormData
-  >(placeGuestOrder, {})
+  const [orderError, setOrderError] = useState<string | undefined>()
+  const [pending, setPending] = useState(false)
+  const router = useRouter()
 
   const { t, segment } = useTranslations()
   const [payMethod, setPayMethod] = useState<"whatsapp" | "card">("whatsapp")
@@ -158,8 +166,86 @@ export default function GuestCheckout({
     )
   }, [selectedOption])
 
+  /**
+   * The order, as the WhatsApp message the shop receives — built from the
+   * form and the bag because the order does not exist yet. The confirmation
+   * page offers the same message again with the order number on it.
+   */
+  const buildWhatsappLink = (data: FormData) => {
+    if (!WHATSAPP) return null
+    const s = (k: string) => String(data.get(k) ?? "").trim()
+    const delivery = selectedOption?.amount ?? 0
+    return whatsappLink(
+      WHATSAPP,
+      whatsappOrderMessage({
+        currencyCode: cart.currency_code,
+        items: (cart.items ?? []).map((item) => ({
+          quantity: item.quantity,
+          title: item.product_title ?? item.title,
+          size: item.variant_title,
+          total: item.total,
+          note: (item.metadata as Record<string, unknown> | null)?.gift_note as
+            | string
+            | undefined,
+        })),
+        deliveryName: selectedOption?.name,
+        deliveryAmount: delivery,
+        total: (cart.total ?? 0) - (cart.shipping_subtotal ?? 0) + delivery,
+        date: s("delivery_date"),
+        window: s("delivery_window"),
+        area: s("area"),
+        address: deliveryAddressFor(s("address"), locationLater),
+        instructions: s("delivery_notes"),
+        recipientName: s("recipient") || s("name"),
+        recipientPhone: s("recipient_phone"),
+        giftNote: s("gift_note"),
+        anonymous: data.get("anonymous") === "true",
+        contactName: s("name"),
+        contactPhone: s("phone"),
+        locationOnWhatsapp: locationLater,
+      })
+    )
+  }
+
+  /**
+   * Place the order and open WhatsApp, in the one tap.
+   *
+   * WhatsApp has to open inside the tap itself: a phone only hands a link to
+   * the WhatsApp app on a user gesture, and a redirect after the order had
+   * saved left customers on WhatsApp's web page instead. The order request
+   * is started first, so it is already on its way when WhatsApp takes the
+   * screen.
+   *
+   * The order goes to a route, not a Server Action, so a checkout opened
+   * before a deploy can still place it (lib/util/cart-api.ts). The browser's
+   * own required-field checks have already passed by the time this runs.
+   */
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (pending) return
+
+    const data = new FormData(event.currentTarget)
+    setOrderError(undefined)
+    setPending(true)
+
+    const request = placeOrderRequest(data)
+    const whatsapp = buildWhatsappLink(data)
+    if (whatsapp) window.open(whatsapp, "_blank", "noopener")
+
+    request.then((result) => {
+      if (result.redirect) {
+        router.push(result.redirect)
+        return
+      }
+      setOrderError(
+        result.error ?? "We couldn't confirm that order. Please try again."
+      )
+      setPending(false)
+    })
+  }
+
   return (
-    <form action={formAction} className="flex flex-col gap-8">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-8">
       {/* So the confirmation page opens in the language they ordered in. */}
       <input type="hidden" name="segment" value={segment} />
       <section className="flex flex-col gap-4">
@@ -438,10 +524,10 @@ export default function GuestCheckout({
         </label>
       </section>
 
-      {state.error && (
+      {orderError && (
         <p role="alert"
           className="rounded-xl border border-blush-300 bg-blush-50 px-4 py-3 text-sm text-blush-800">
-          {state.error}
+          {orderError}
         </p>
       )}
 

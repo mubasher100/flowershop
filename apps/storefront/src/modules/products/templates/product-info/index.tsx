@@ -1,11 +1,14 @@
+import { localizedCategoryName } from "@lib/util/categories"
 import { HttpTypes } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 type ProductInfoProps = {
   product: HttpTypes.StoreProduct
+  /** The locale URL segment, for the collection's name. */
+  segment?: string
 }
 
-const ProductInfo = ({ product }: ProductInfoProps) => {
+const ProductInfo = ({ product, segment }: ProductInfoProps) => {
   return (
     <div id="product-info" className="flex flex-col gap-3">
       {product.collection && (
@@ -13,9 +16,13 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
           href={`/collections/${product.collection.handle}`}
           // -my-2 absorbs the extra height back out of the layout, so the
           // link is a 44px target without opening a gap above the title.
-          className="-my-2 inline-flex min-h-[2.75rem] w-fit items-center text-xs font-semibold uppercase tracking-[0.14em] text-blush-700 hover:underline"
+          className="-my-2 inline-flex min-h-[2.75rem] w-fit items-center text-xs font-semibold uppercase tracking-[0.14em] text-blush-700 hover:underline rtl:tracking-normal"
         >
-          {product.collection.title}
+          {localizedCategoryName(
+            product.collection.handle,
+            product.collection.title,
+            segment
+          )}
         </LocalizedClientLink>
       )}
 

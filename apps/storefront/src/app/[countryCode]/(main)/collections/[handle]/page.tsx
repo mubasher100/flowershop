@@ -9,6 +9,7 @@ import CollectionTemplate from "@modules/collections/templates"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import { parseOptionValueIds } from "@lib/util/product-option-filters"
 import { BRAND_NAME } from "@modules/common/components/brand"
+import { localizedCategoryName } from "@lib/util/categories"
 
 type Props = {
   params: Promise<{ handle: string; countryCode: string }>
@@ -64,9 +65,14 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     notFound()
   }
 
+  const name = localizedCategoryName(
+    collection.handle,
+    collection.title,
+    params.countryCode
+  )
   const metadata = {
-    title: `${collection.title} | ${BRAND_NAME}`,
-    description: `${collection.title} collection`,
+    title: `${name} | ${BRAND_NAME}`,
+    description: `${name} | ${BRAND_NAME}`,
   } as Metadata
 
   return metadata

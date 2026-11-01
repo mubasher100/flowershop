@@ -1,13 +1,18 @@
-import { deleteLineItem } from "@lib/data/cart"
+"use client"
+
+import { useTranslations } from "@lib/i18n/use-translations"
+import { setBagLine } from "@lib/util/cart-api"
+import { refreshCartCount } from "@lib/util/cart-events"
 import { Spinner, Trash } from "@medusajs/icons"
 import { clx } from "@modules/common/components/ui"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 const DeleteButton = ({
   id,
   children,
   className,
-  label = "Remove from bag",
+  label,
 }: {
   id: string
   children?: React.ReactNode
@@ -16,12 +21,23 @@ const DeleteButton = ({
   label?: string
 }) => {
   const [isDeleting, setIsDeleting] = useState(false)
+  const { t } = useTranslations()
+  const router = useRouter()
+  const name = label ?? t("cart.remove")
 
   const handleDelete = async (id: string) => {
     setIsDeleting(true)
-    await deleteLineItem(id).catch((_err) => {
-      setIsDeleting(false)
-    })
+    // A route, not a Server Action, so a bag opened before a deploy still
+    // works after it (lib/util/cart-api.ts). That also means refreshing the
+    // page here, which a Server Action used to do as a side effect.
+    await setBagLine(id, 0)
+      .then(() => router.refresh())
+      .catch((_err) => {
+        setIsDeleting(false)
+      })
+    // The badges only refetch on navigation or a cart event, and removing
+    // an item is neither — the header kept saying "Bag (1)" over an empty bag.
+    refreshCartCount()
   }
 
   return (
@@ -33,8 +49,8 @@ const DeleteButton = ({
     >
       <button
         type="button"
-        aria-label={label}
-        title={label}
+        aria-label={name}
+        title={name}
         className="flex min-h-[2.75rem] items-center gap-x-1 text-ui-fg-subtle hover:text-ui-fg-base cursor-pointer"
         onClick={() => handleDelete(id)}
       >

@@ -3,6 +3,7 @@
 import Image from "next/image"
 import { useCallback, useEffect, useRef, useState } from "react"
 
+import { useTranslations } from "@lib/i18n/use-translations"
 import Brand from "@modules/common/components/brand"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { clx } from "@modules/common/components/ui"
@@ -43,12 +44,18 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
   const [paused, setPaused] = useState(false)
+  const { t } = useTranslations()
 
+  // In a right-to-left scroll container scrollLeft runs from 0 down to
+  // negative values, so on /ar-qa a positive offset clamped to the first
+  // slide and the dots and autoplay did nothing. Read the direction from the
+  // track itself rather than the locale, so it follows whatever dir is set.
   const goTo = useCallback((index: number) => {
     const track = trackRef.current
     if (!track) return
+    const sign = getComputedStyle(track).direction === "rtl" ? -1 : 1
     track.scrollTo({
-      left: track.clientWidth * index,
+      left: sign * track.clientWidth * index,
       behavior: "smooth",
     })
   }, [])
@@ -62,7 +69,9 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
     const onScroll = () => {
       cancelAnimationFrame(frame)
       frame = requestAnimationFrame(() => {
-        const index = Math.round(track.scrollLeft / track.clientWidth)
+        const index = Math.round(
+          Math.abs(track.scrollLeft) / track.clientWidth
+        )
         setActive(Math.max(0, Math.min(slides.length - 1, index)))
       })
     }
@@ -98,7 +107,7 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   return (
     <section
       aria-roledescription="carousel"
-      aria-label="Featured collections"
+      aria-label={t("hero.label")}
       className="relative"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -114,7 +123,7 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
             key={slide.image}
             role="group"
             aria-roledescription="slide"
-            aria-label={`${i + 1} of ${slides.length}`}
+            aria-label={t("hero.slideOf", { n: i + 1, total: slides.length })}
             className="relative w-full flex-none snap-start"
           >
             {/* Split composition, after the brand reference: dark type on
@@ -181,7 +190,7 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
               key={slide.image}
               type="button"
               onClick={() => goTo(i)}
-              aria-label={`Go to slide ${i + 1}`}
+              aria-label={t("hero.goToSlide", { n: i + 1 })}
               aria-current={i === active}
               className="group flex h-11 w-8 items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700"
             >

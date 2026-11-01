@@ -1,6 +1,7 @@
 import { listCategories } from "@lib/data/categories"
 import { listCollections } from "@lib/data/collections"
 import { getTranslations, TranslationKey } from "@lib/i18n/dictionary"
+import { localizedCategoryName } from "@lib/util/categories"
 
 import Brand, { BRAND_NAME } from "@modules/common/components/brand"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
@@ -75,7 +76,7 @@ export default async function Footer({ segment }: { segment?: string }) {
                         href={`/categories/${c.handle}`}
                         data-testid="category-link"
                       >
-                        {c.name}
+                        {localizedCategoryName(c.handle, c.name, segment)}
                       </LocalizedClientLink>
                     </li>
                   ))}
@@ -98,7 +99,7 @@ export default async function Footer({ segment }: { segment?: string }) {
                       className={linkClass}
                       href={`/collections/${c.handle}`}
                     >
-                      {c.title}
+                      {localizedCategoryName(c.handle, c.title, segment)}
                     </LocalizedClientLink>
                   </li>
                 ))}

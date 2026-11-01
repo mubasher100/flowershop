@@ -1,6 +1,6 @@
 "use client"
 
-import { addToCart } from "@lib/data/cart"
+import { addToBag } from "@lib/util/cart-api"
 import { useIntersection } from "@lib/hooks/use-in-view"
 import { useLiveStock } from "@lib/hooks/use-live-stock"
 import { useTranslations } from "@lib/i18n/use-translations"
@@ -189,7 +189,9 @@ export default function ProductActions({
     // when none has the cookie yet. See lib/util/cart-queue.ts.
     return (
       enqueueCartMutation(() =>
-        addToCart({
+        // A route, not a Server Action: its address survives a deploy, so a
+        // page opened before a release can still add. See lib/util/cart-api.ts.
+        addToBag({
           variantId: selectedVariant.id,
           quantity: 1,
           countryCode,

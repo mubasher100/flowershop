@@ -1,3 +1,5 @@
+import { localeOf } from "@lib/util/locale"
+
 /**
  * The category handles the nav, side menu and catalogue filter present, in
  * order.
@@ -33,3 +35,59 @@ export const OCCASION_HANDLES = [
   "new-baby",
   "thank-you",
 ]
+
+/**
+ * Arabic names for the categories and collections above, keyed by handle.
+ *
+ * Category and collection names come from Medusa in English, and the catalogue
+ * is otherwise left for a human translator — but these are navigation, not
+ * florist copy, and an Arabic visitor otherwise steered through the shop by
+ * English labels. A handle missing here (one added in the admin since) falls
+ * back to its Medusa name, so nothing ever renders blank.
+ */
+const ARABIC_NAMES: Record<string, string> = {
+  // Types
+  "hot-deals": "العروض",
+  bouquets: "باقات منسقة يدوياً",
+  "big-bouquets": "باقات كبيرة",
+  vases: "ورود في مزهريات",
+  "50-roses": "٥٠ وردة",
+  "100-roses": "١٠٠ وردة",
+  "200-roses": "٢٠٠ وردة",
+  "mix-flowers": "زهور مشكّلة",
+  "big-flowers": "زهور كبيرة",
+  "baby-roses": "ورود صغيرة",
+
+  // Occasions
+  birthday: "عيد ميلاد",
+  anniversary: "ذكرى سنوية",
+  congratulations: "تهانينا",
+  "get-well-soon": "تمنيات بالشفاء",
+  "new-baby": "مولود جديد",
+  "thank-you": "شكراً لك",
+
+  // Collections. Under 400 matches the homepage rail's Arabic heading in
+  // apps/backend/src/scripts/seed-homepage.ts.
+  "best-sellers": "الأكثر مبيعاً",
+  "new-this-week": "جديد هذا الأسبوع",
+  "roses-always": "الورود دائماً",
+  "luxury-edit": "تشكيلة الفخامة",
+  "under-400": "أقل من ٤٠٠ ريال",
+}
+
+/**
+ * The name to show for a category or collection in the visitor's language.
+ *
+ * English shows Medusa's own name, so a rename in the admin still follows
+ * automatically there; Arabic uses the table above where it knows the handle.
+ */
+export function localizedCategoryName(
+  handle: string | null | undefined,
+  name: string | null | undefined,
+  segment?: string | null
+): string {
+  if (localeOf(segment) === "ar" && handle && ARABIC_NAMES[handle]) {
+    return ARABIC_NAMES[handle]
+  }
+  return name ?? ""
+}

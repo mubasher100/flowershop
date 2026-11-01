@@ -4,6 +4,7 @@ import { Badge, Heading, Input, Label, Text } from "@modules/common/components/u
 import React from "react"
 
 import { applyPromotions } from "@lib/data/cart"
+import { useTranslations } from "@lib/i18n/use-translations"
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
 import Trash from "@modules/common/icons/trash"
@@ -17,6 +18,7 @@ type DiscountCodeProps = {
 const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
   const [isOpen, setIsOpen] = React.useState(false)
   const [errorMessage, setErrorMessage] = React.useState("")
+  const { t } = useTranslations()
 
   const { promotions = [] } = cart
   const removePromotionCode = async (code: string) => {
@@ -51,9 +53,7 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
       if (!landed) {
         // Medusa ignores an unknown code rather than refusing it, so silence
         // here would read as "applied" to the customer.
-        setErrorMessage(
-          `“${entered}” is not a valid code, or it does not apply to this order.`
-        )
+        setErrorMessage(t("discount.invalid", { code: entered }))
         return
       }
       setErrorMessage("")
@@ -78,7 +78,7 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
               className="txt-medium font-medium text-blush-700 underline underline-offset-4 hover:text-blush-800"
               data-testid="add-discount-button"
             >
-              Add Promotion Code(s)
+              {t("discount.add")}
             </button>
 
             {/* <Tooltip content="You can add multiple promotion codes">
@@ -96,12 +96,13 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
                   type="text"
                   autoFocus={false}
                   data-testid="discount-input"
+                  aria-label={t("discount.inputLabel")}
                 />
                 <SubmitButton
                   variant="secondary"
                   data-testid="discount-apply-button"
                 >
-                  Apply
+                  {t("discount.apply")}
                 </SubmitButton>
               </div>
 
@@ -117,7 +118,7 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
           <div className="w-full flex items-center">
             <div className="flex flex-col w-full">
               <Heading className="txt-medium mb-2">
-                Promotion(s) applied:
+                {t("discount.applied")}
               </Heading>
 
               {promotions.map((promotion) => {
@@ -160,7 +161,8 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
                     </Text>
                     {!promotion.is_automatic && (
                       <button
-                        className="flex items-center"
+                        type="button"
+                        className="flex min-h-[2.75rem] min-w-[2.75rem] items-center justify-center"
                         onClick={() => {
                           if (!promotion.code) {
                             return
@@ -172,7 +174,7 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
                       >
                         <Trash size={14} />
                         <span className="sr-only">
-                          Remove discount code from order
+                          {t("discount.remove")}
                         </span>
                       </button>
                     )}

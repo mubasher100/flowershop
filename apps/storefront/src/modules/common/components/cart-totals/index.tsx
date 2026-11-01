@@ -32,7 +32,6 @@ const CartTotals: React.FC<CartTotalsProps> = ({
   const {
     currency_code,
     total,
-    tax_total,
     item_subtotal,
     shipping_subtotal,
     discount_subtotal,
@@ -53,13 +52,13 @@ const CartTotals: React.FC<CartTotalsProps> = ({
     <div>
       <div className="flex flex-col gap-y-2 txt-medium text-ui-fg-subtle ">
         <div className="flex items-center justify-between">
-          <span>Subtotal (excl. shipping and taxes)</span>
+          <span>{t("cart.subtotal")}</span>
           <span data-testid="cart-subtotal" data-value={item_subtotal || 0}>
             {convertToLocale({ amount: item_subtotal ?? 0, currency_code })}
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span>Shipping</span>
+          <span>{t("cart.shipping")}</span>
           <span data-testid="cart-shipping" data-value={shipping}>
             {showPlaceholder
               ? shippingPlaceholder
@@ -70,7 +69,7 @@ const CartTotals: React.FC<CartTotalsProps> = ({
         </div>
         {!!discount_subtotal && (
           <div className="flex items-center justify-between">
-            <span>Discount</span>
+            <span>{t("cart.discount")}</span>
             <span
               className="text-ui-fg-interactive"
               data-testid="cart-discount"
@@ -84,16 +83,12 @@ const CartTotals: React.FC<CartTotalsProps> = ({
             </span>
           </div>
         )}
-        <div className="flex justify-between">
-          <span className="flex gap-x-1 items-center ">Taxes</span>
-          <span data-testid="cart-taxes" data-value={tax_total || 0}>
-            {convertToLocale({ amount: tax_total ?? 0, currency_code })}
-          </span>
-        </div>
+        {/* No Taxes row: Qatar has no VAT and the shop charges none, so it
+            only ever said "QAR 0.00" and invited the question why. */}
       </div>
       <div className="h-px w-full border-b border-gray-200 my-4" />
       <div className="flex items-center justify-between text-ui-fg-base mb-2 txt-medium ">
-        <span>Total</span>
+        <span>{t("cart.total")}</span>
         <span
           className="txt-xlarge-plus"
           data-testid="cart-total"

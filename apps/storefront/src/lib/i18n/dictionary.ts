@@ -314,9 +314,13 @@ export const DICTIONARY = {
     "checkout.summaryHeading": "In your bag",
     "cart.shippingAtCheckout": "Chosen at checkout",
     "checkout.free": "Free",
-    "order.whatsappHeading": "One last step: send it to us on WhatsApp",
+    "error.title": "Sorry, something went wrong",
+    "error.body":
+      "Please try again. Your bag is saved. If it keeps happening, message us on WhatsApp and we'll take your order there.",
+    "error.retry": "Try again",
+    "order.whatsappHeading": "Sent it on WhatsApp?",
     "order.whatsappBody":
-      "Tap below and your order opens in WhatsApp, ready to send. We'll confirm it in that chat. Please send your location there too, for better accuracy.",
+      "Your order opened in WhatsApp when you placed it. Make sure you tapped Send, as we confirm orders in that chat. If it didn't open, or you closed it, send it from here. This one includes your order number. Please send your location in the chat too, for better accuracy.",
     "order.whatsappCta": "Send order on WhatsApp",
     "checkout.locationNote":
       "We'll message you on WhatsApp to confirm your order. Please send the location there too, for better accuracy.",
@@ -427,6 +431,61 @@ export const DICTIONARY = {
     "returns.s5.b": "Refunds go back the way you paid, within 14 days of our agreeing them. An order paid on delivery is refunded by bank transfer.",
     "returns.s6.h": "Complaints",
     "returns.s6.b": "Contact us on WhatsApp first — most problems are solved the same day. You also have the right to complain to the Consumer Protection Department of the Ministry of Commerce and Industry, hotline 16001.",
+
+    // Order confirmation page
+    "order.metaTitle": "Order Confirmed",
+    "order.metaDescription": "Your order was placed successfully.",
+    "order.thankYou": "Thank you!",
+    "order.placed": "Your order was placed successfully.",
+    // The phone number sits between these two, styled on its own.
+    "order.whatsappAtBefore": "We'll message you on WhatsApp at",
+    "order.whatsappAtAfter":
+      "once we've checked the flowers are in stock and confirmed your delivery time.",
+    "order.inTouch": "We'll be in touch shortly to confirm your order.",
+    "order.requestedDelivery": "Requested delivery:",
+    "order.giftMessage": "Gift message:",
+    "order.date": "Order date:",
+    "order.number": "Order number:",
+    "order.status": "Order status:",
+    "order.paymentStatus": "Payment status:",
+    "order.deliveringTo": "Delivering to",
+    "order.contact": "Contact",
+    "order.method": "Method",
+    "order.needHelp": "Need help?",
+    "order.helpContact": "Contact",
+    "order.helpReturns": "Returns & Exchanges",
+
+    // Cart totals and line items
+    "cart.subtotal": "Subtotal",
+    "cart.shipping": "Shipping",
+    "cart.discount": "Discount",
+    "cart.remove": "Remove from bag",
+    "common.select": "Select...",
+    "product.original": "Original:",
+
+    // Promotion codes
+    "discount.add": "Add Promotion Code(s)",
+    "discount.inputLabel": "Promotion code",
+    "discount.apply": "Apply",
+    "discount.invalid":
+      "“{code}” is not a valid code, or it does not apply to this order.",
+    "discount.applied": "Promotion(s) applied:",
+    "discount.remove": "Remove discount code from order",
+
+    // Checkout metadata
+    "checkout.metaTitle": "Checkout",
+    "checkout.metaDescription":
+      "Confirm your delivery details and place your order.",
+
+    // Product gallery alt text
+    "product.imageAlt": "{title} — view {n} of {total}",
+    "product.imageAltGeneric": "Product image {n}",
+
+    // Hero carousel and navigation landmarks
+    "hero.label": "Featured collections",
+    "hero.slideOf": "{n} of {total}",
+    "hero.goToSlide": "Go to slide {n}",
+    "nav.categoriesLabel": "Product categories",
 
     // Language
     "lang.switchTo": "العربية",
@@ -714,9 +773,13 @@ export const DICTIONARY = {
     "checkout.summaryHeading": "في سلتك",
     "cart.shippingAtCheckout": "يُحدد عند إتمام الطلب",
     "checkout.free": "مجاناً",
-    "order.whatsappHeading": "خطوة أخيرة: أرسل طلبك إلينا على واتساب",
+    "error.title": "عذراً، حدث خطأ ما",
+    "error.body":
+      "يُرجى المحاولة مرة أخرى، فسلتك محفوظة. وإن تكرر ذلك، راسلنا على واتساب وسنستلم طلبك هناك.",
+    "error.retry": "حاول مرة أخرى",
+    "order.whatsappHeading": "هل أرسلت طلبك على واتساب؟",
     "order.whatsappBody":
-      "اضغط أدناه وسيفتح طلبك في واتساب جاهزاً للإرسال. سنؤكد الطلب في المحادثة نفسها، ويُرجى إرسال موقعك هناك أيضاً لدقة أكبر.",
+      "فُتح طلبك في واتساب عند تقديمه. تأكد من الضغط على إرسال، فنحن نؤكد الطلبات في تلك المحادثة. وإن لم يُفتح أو أغلقته، أرسله من هنا، وهذه الرسالة تتضمن رقم طلبك. ويُرجى إرسال موقعك في المحادثة أيضاً لدقة أكبر.",
     "order.whatsappCta": "أرسل الطلب عبر واتساب",
     "checkout.locationNote":
       "سنرسل لك رسالة على واتساب لتأكيد الطلب، ويُرجى إرسال الموقع هناك أيضاً لدقة أكبر.",
@@ -823,6 +886,52 @@ export const DICTIONARY = {
     "returns.s5.b": "يُردّ المبلغ بالطريقة نفسها التي دفعت بها، خلال ١٤ يوماً من موافقتنا على الاسترداد. والطلب المدفوع عند الاستلام يُردّ عبر تحويل بنكي.",
     "returns.s6.h": "الشكاوى",
     "returns.s6.b": "تواصل معنا عبر واتساب أولاً — تُحل معظم المشكلات في اليوم نفسه. ويحق لك أيضاً تقديم شكوى إلى إدارة حماية المستهلك بوزارة التجارة والصناعة على الخط الساخن ١٦٠٠١.",
+
+    "order.metaTitle": "تم استلام الطلب",
+    "order.metaDescription": "تم استلام طلبك بنجاح.",
+    "order.thankYou": "شكراً لك!",
+    "order.placed": "تم استلام طلبك بنجاح.",
+    "order.whatsappAtBefore": "سنراسلك عبر واتساب على الرقم",
+    "order.whatsappAtAfter":
+      "بعد التأكد من توفر الورود وتأكيد موعد التوصيل.",
+    "order.inTouch": "سنتواصل معك قريباً لتأكيد طلبك.",
+    "order.requestedDelivery": "موعد التوصيل المطلوب:",
+    "order.giftMessage": "رسالة الإهداء:",
+    "order.date": "تاريخ الطلب:",
+    "order.number": "رقم الطلب:",
+    "order.status": "حالة الطلب:",
+    "order.paymentStatus": "حالة الدفع:",
+    "order.deliveringTo": "التوصيل إلى",
+    "order.contact": "بيانات التواصل",
+    "order.method": "طريقة التوصيل",
+    "order.needHelp": "تحتاج إلى مساعدة؟",
+    "order.helpContact": "تواصل معنا",
+    "order.helpReturns": "الإرجاع والاستبدال",
+
+    "cart.subtotal": "المجموع الفرعي",
+    "cart.shipping": "التوصيل",
+    "cart.discount": "الخصم",
+    "cart.remove": "إزالة من السلة",
+    "common.select": "اختر...",
+    "product.original": "السعر الأصلي:",
+
+    "discount.add": "إضافة رمز خصم",
+    "discount.inputLabel": "رمز الخصم",
+    "discount.apply": "تطبيق",
+    "discount.invalid": "الرمز «{code}» غير صالح أو لا ينطبق على هذا الطلب.",
+    "discount.applied": "الخصومات المطبقة:",
+    "discount.remove": "إزالة رمز الخصم من الطلب",
+
+    "checkout.metaTitle": "إتمام الطلب",
+    "checkout.metaDescription": "أكّد تفاصيل التوصيل وأرسل طلبك.",
+
+    "product.imageAlt": "{title} — صورة {n} من {total}",
+    "product.imageAltGeneric": "صورة المنتج {n}",
+
+    "hero.label": "مجموعات مميزة",
+    "hero.slideOf": "{n} من {total}",
+    "hero.goToSlide": "الانتقال إلى الشريحة {n}",
+    "nav.categoriesLabel": "فئات المنتجات",
 
     "lang.switchTo": "English",
     "lang.label": "اللغة",

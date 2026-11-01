@@ -10,6 +10,7 @@ import { getRegion, listRegions } from "@lib/data/regions"
 import ProductTemplate from "@modules/products/templates"
 import { HttpTypes } from "@medusajs/types"
 import { BRAND_NAME } from "@modules/common/components/brand"
+import { getTranslations } from "@lib/i18n/dictionary"
 
 type Props = {
   params: Promise<{ countryCode: string; handle: string }>
@@ -139,6 +140,7 @@ export default async function ProductPage(props: Props) {
   }
 
   const images = getImagesForVariant(pricedProduct, selectedVariantId)
+  const { t } = getTranslations(params.countryCode)
 
   return (
     <>
@@ -151,8 +153,8 @@ export default async function ProductPage(props: Props) {
       <BreadcrumbJsonLd
         segment={params.countryCode}
         trail={[
-          { name: "Home", path: "" },
-          { name: "All flowers", path: "/store" },
+          { name: t("nav.home"), path: "" },
+          { name: t("nav.allFlowers"), path: "/store" },
           { name: pricedProduct.title, path: `/products/${pricedProduct.handle}` },
         ]}
       />

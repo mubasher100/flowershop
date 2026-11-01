@@ -2,6 +2,7 @@ import Image from "next/image"
 
 import { listCategories } from "@lib/data/categories"
 import { getTranslations } from "@lib/i18n/dictionary"
+import { localizedCategoryName, OCCASION_HANDLES } from "@lib/util/categories"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 /**
@@ -14,15 +15,6 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
  * Circular tiles, matching the reference's treatment: they read as distinct
  * from the square type tiles above, so the two rows don't blur together.
  */
-const OCCASION_HANDLES = [
-  "birthday",
-  "anniversary",
-  "congratulations",
-  "get-well-soon",
-  "new-baby",
-  "thank-you",
-]
-
 /**
  * The shop's own photography (31 Oct 2026), each a flower that is actually on
  * sale and sits in that occasion, cropped square around the flower heads so
@@ -94,7 +86,7 @@ export default async function OccasionTiles({
                 />
               </div>
               <span className="text-sm font-medium leading-snug text-ink-800">
-                {occasion.name}
+                {localizedCategoryName(occasion.handle, occasion.name, segment)}
               </span>
             </LocalizedClientLink>
           </li>

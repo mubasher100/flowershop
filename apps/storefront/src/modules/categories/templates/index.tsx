@@ -9,6 +9,7 @@ import PaginatedProducts from "@modules/store/templates/paginated-products"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { HttpTypes } from "@medusajs/types"
 import { OptionValueIds } from "@lib/util/product-option-filters"
+import { localizedCategoryName } from "@lib/util/categories"
 
 export default function CategoryTemplate({
   category,
@@ -59,12 +60,14 @@ export default function CategoryTemplate({
                   href={`/categories/${parent.handle}`}
                   data-testid="sort-by-link"
                 >
-                  {parent.name}
+                  {localizedCategoryName(parent.handle, parent.name, countryCode)}
                 </LocalizedClientLink>
                 /
               </span>
             ))}
-          <h1 data-testid="category-page-title">{category.name}</h1>
+          <h1 data-testid="category-page-title">
+            {localizedCategoryName(category.handle, category.name, countryCode)}
+          </h1>
         </div>
         {category.description && (
           <div className="mb-8 text-base-regular">
@@ -77,7 +80,7 @@ export default function CategoryTemplate({
               {category.category_children?.map((c) => (
                 <li key={c.id}>
                   <InteractiveLink href={`/categories/${c.handle}`}>
-                    {c.name}
+                    {localizedCategoryName(c.handle, c.name, countryCode)}
                   </InteractiveLink>
                 </li>
               ))}

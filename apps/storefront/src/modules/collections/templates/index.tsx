@@ -6,6 +6,7 @@ import { SortOptions } from "@modules/store/components/refinement-list/sort-prod
 import PaginatedProducts from "@modules/store/templates/paginated-products"
 import { HttpTypes } from "@medusajs/types"
 import { OptionValueIds } from "@lib/util/product-option-filters"
+import { localizedCategoryName } from "@lib/util/categories"
 
 export default function CollectionTemplate({
   sortBy,
@@ -28,7 +29,13 @@ export default function CollectionTemplate({
       <RefinementList sortBy={sort} hideOptionsPicker />
       <div className="w-full">
         <div className="mb-8 text-2xl-semi">
-          <h1>{collection.title}</h1>
+          <h1>
+            {localizedCategoryName(
+              collection.handle,
+              collection.title,
+              countryCode
+            )}
+          </h1>
         </div>
         <Suspense
           fallback={

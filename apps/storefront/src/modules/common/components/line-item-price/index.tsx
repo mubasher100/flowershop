@@ -1,3 +1,6 @@
+"use client"
+
+import { useTranslations } from "@lib/i18n/use-translations"
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
 import { clx } from "@modules/common/components/ui"
@@ -17,6 +20,7 @@ const LineItemPrice = ({
   const originalPrice = original_total ?? 0
   const currentPrice = total ?? 0
   const hasReducedPrice = currentPrice < originalPrice
+  const { t } = useTranslations()
 
   return (
     <div className="flex flex-col gap-x-2 text-ui-fg-subtle items-end">
@@ -26,7 +30,7 @@ const LineItemPrice = ({
         {hasReducedPrice && (
           <p>
             {style === "default" && (
-              <span className="text-ui-fg-subtle">Original: </span>
+              <span className="text-ui-fg-subtle">{t("product.original")} </span>
             )}
             <span
               className="line-through text-ui-fg-muted"
