@@ -376,11 +376,11 @@ export default async function seedQatar({
                   "We arrive at 11:59pm, so it is in their hands as the day begins.",
                 code: MIDNIGHT_CODE,
               },
-              // Free since 1 Nov 2026, like Standard. It was a 50 QAR
-              // placeholder; stored as-is, so 50 would mean 50.00 QAR.
+              // Still charged when Standard went free (1 Nov 2026, the
+              // shop's decision). Stored as-is: 50 means 50.00 QAR.
               prices: [
-                { currency_code: CURRENCY, amount: 0 },
-                { region_id: qatarRegion.id, amount: 0 },
+                { currency_code: CURRENCY, amount: 50 },
+                { region_id: qatarRegion.id, amount: 50 },
               ],
               rules: [
                 { attribute: "enabled_in_store", value: "true", operator: "eq" },
@@ -389,7 +389,7 @@ export default async function seedQatar({
             },
           ],
         })
-        logger.info("Created 11:59 midnight delivery (free).")
+        logger.info("Created 11:59 midnight delivery (50 QAR).")
       }
     }
   }
