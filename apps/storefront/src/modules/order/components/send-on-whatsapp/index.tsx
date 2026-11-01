@@ -3,6 +3,8 @@ import { HttpTypes } from "@medusajs/types"
 import { getTranslations } from "@lib/i18n/dictionary"
 import { convertToLocale } from "@lib/util/money"
 
+import AutoOpenWhatsapp from "./auto-open"
+
 const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP?.replace(/\D/g, "") || null
 
 const meta = (order: HttpTypes.StoreOrder, key: string) => {
@@ -74,15 +76,17 @@ export default function SendOnWhatsapp({
 }) {
   if (!WHATSAPP) return null
   const { t } = getTranslations(segment)
+  const href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(orderMessage(order))}`
 
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-blush-200 bg-blush-50 p-5">
+      <AutoOpenWhatsapp href={href} orderId={order.id} />
       <h2 className="font-display text-2xl text-ink-900">
         {t("order.whatsappHeading")}
       </h2>
       <p className="text-sm text-ink-700">{t("order.whatsappBody")}</p>
       <a
-        href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(orderMessage(order))}`}
+        href={href}
         target="_blank"
         rel="noopener noreferrer"
         className="inline-flex min-h-[3.25rem] items-center justify-center rounded-full bg-[#128c7e] px-8 text-base font-semibold text-white transition-colors hover:bg-[#0f7a6e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700"

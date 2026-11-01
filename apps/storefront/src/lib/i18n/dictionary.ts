@@ -324,7 +324,7 @@ export const DICTIONARY = {
     "checkout.locationLaterHint":
       "The address can be short or left blank. We'll use the location you send.",
     "checkout.noCharge":
-      "Nothing is charged now. We'll confirm availability and payment with you on WhatsApp.",
+      "Nothing is charged now. WhatsApp opens with your order ready to send us, and we'll confirm availability and payment there.",
 
     // Store filters
     "filter.title": "Filters & sort",
@@ -724,7 +724,7 @@ export const DICTIONARY = {
     "checkout.locationLaterHint":
       "يمكن أن يكون العنوان مختصراً أو فارغاً، وسنعتمد على الموقع الذي ترسله.",
     "checkout.noCharge":
-      "لن يتم خصم أي مبلغ الآن. سنؤكد التوفر وطريقة الدفع معك على واتساب.",
+      "لن يتم خصم أي مبلغ الآن. سيفتح واتساب وطلبك جاهز للإرسال إلينا، وسنؤكد التوفر وطريقة الدفع هناك.",
 
     "filter.title": "التصفية والترتيب",
     "filter.none": "لا شيء",
