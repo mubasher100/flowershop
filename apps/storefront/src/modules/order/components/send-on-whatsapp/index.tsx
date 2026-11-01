@@ -50,16 +50,18 @@ export const orderMessage = (order: HttpTypes.StoreOrder) => {
     `Date: ${meta(order, "delivery_date")}, ${meta(order, "delivery_window")}`,
     `Area: ${meta(order, "delivery_area")}`,
     `Address: ${order.shipping_address?.address_1 ?? ""}`,
-    notes && `Instructions: ${notes}`,
+    notes ? `Instructions: ${notes}` : null,
     `Recipient: ${[recipientName, recipientPhone].filter(Boolean).join(", ")}`,
-    giftNote && `Card message: ${giftNote}`,
-    meta(order, "anonymous_gift") === "true" && "Send without my name.",
+    giftNote ? `Card message: ${giftNote}` : null,
+    meta(order, "anonymous_gift") === "true" ? "Send without my name." : null,
     "",
     `From: ${[meta(order, "contact_name"), meta(order, "contact_phone")].filter(Boolean).join(", ")}`,
-    meta(order, "location_on_whatsapp") === "true" &&
-      "I'll send the location in this chat.",
+    meta(order, "location_on_whatsapp") === "true"
+      ? "I'll send the location in this chat."
+      : null,
   ]
-    .filter((line) => line !== false && line !== null && line !== undefined)
+    // null is a line that does not apply; "" is a deliberate blank line.
+    .filter((line) => line !== null)
     .join("\n")
 }
 
