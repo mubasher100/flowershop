@@ -1,4 +1,3 @@
-import { getPercentageDiff } from "@lib/util/get-percentage-diff"
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
 import { clx } from "@modules/common/components/ui"
@@ -22,28 +21,23 @@ const LineItemPrice = ({
   return (
     <div className="flex flex-col gap-x-2 text-ui-fg-subtle items-end">
       <div className="text-start">
+        {/* The struck-through price only; the shop does not show a
+            percentage off. */}
         {hasReducedPrice && (
-          <>
-            <p>
-              {style === "default" && (
-                <span className="text-ui-fg-subtle">Original: </span>
-              )}
-              <span
-                className="line-through text-ui-fg-muted"
-                data-testid="product-original-price"
-              >
-                {convertToLocale({
-                  amount: originalPrice,
-                  currency_code: currencyCode,
-                })}
-              </span>
-            </p>
+          <p>
             {style === "default" && (
-              <span className="text-ui-fg-interactive">
-                -{getPercentageDiff(originalPrice, currentPrice || 0)}%
-              </span>
+              <span className="text-ui-fg-subtle">Original: </span>
             )}
-          </>
+            <span
+              className="line-through text-ui-fg-muted"
+              data-testid="product-original-price"
+            >
+              {convertToLocale({
+                amount: originalPrice,
+                currency_code: currencyCode,
+              })}
+            </span>
+          </p>
         )}
         <span
           className={clx("text-base-regular", {

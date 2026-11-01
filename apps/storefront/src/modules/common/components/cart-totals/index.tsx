@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "@lib/i18n/use-translations"
 import { convertToLocale } from "@lib/util/money"
 import React from "react"
 
@@ -36,6 +37,7 @@ const CartTotals: React.FC<CartTotalsProps> = ({
     shipping_subtotal,
     discount_subtotal,
   } = totals
+  const { t } = useTranslations()
 
   // Qatar charges no VAT and the shop runs no shipping-specific tax, so the
   // selected fee can simply be added; the server arrives at the same number
@@ -61,7 +63,9 @@ const CartTotals: React.FC<CartTotalsProps> = ({
           <span data-testid="cart-shipping" data-value={shipping}>
             {showPlaceholder
               ? shippingPlaceholder
-              : convertToLocale({ amount: shipping, currency_code })}
+              : shipping
+                ? convertToLocale({ amount: shipping, currency_code })
+                : t("checkout.free")}
           </span>
         </div>
         {!!discount_subtotal && (

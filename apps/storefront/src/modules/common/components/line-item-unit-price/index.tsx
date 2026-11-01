@@ -17,32 +17,25 @@ const LineItemUnitPrice = ({
   const original_total = item.original_total ?? 0
   const hasReducedPrice = total < original_total
 
-  const percentage_diff = Math.round(
-    ((original_total - total) / original_total) * 100
-  )
-
   return (
     <div className="flex flex-col text-ui-fg-muted justify-center h-full">
+      {/* The struck-through price only; the shop does not show a
+          percentage off. */}
       {hasReducedPrice && (
-        <>
-          <p>
-            {style === "default" && (
-              <span className="text-ui-fg-muted">Original: </span>
-            )}
-            <span
-              className="line-through"
-              data-testid="product-unit-original-price"
-            >
-              {convertToLocale({
-                amount: original_total / item.quantity,
-                currency_code: currencyCode,
-              })}
-            </span>
-          </p>
+        <p>
           {style === "default" && (
-            <span className="text-ui-fg-interactive">-{percentage_diff}%</span>
+            <span className="text-ui-fg-muted">Original: </span>
           )}
-        </>
+          <span
+            className="line-through"
+            data-testid="product-unit-original-price"
+          >
+            {convertToLocale({
+              amount: original_total / item.quantity,
+              currency_code: currencyCode,
+            })}
+          </span>
+        </p>
       )}
       <span
         className={clx("text-base-regular", {

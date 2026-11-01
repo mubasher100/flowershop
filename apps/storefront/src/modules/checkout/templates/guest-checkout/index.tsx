@@ -296,10 +296,14 @@ export default function GuestCheckout({
                 </span>
               </span>
               <span className="tabular-nums text-ink-700">
-                {convertToLocale({
-                  amount: option.amount ?? 0,
-                  currency_code: cart.currency_code,
-                })}
+                {/* Delivery is free for now (1 Nov 2026), and "QAR 0.00"
+                    reads as a missing price rather than a free one. */}
+                {option.amount
+                  ? convertToLocale({
+                      amount: option.amount,
+                      currency_code: cart.currency_code,
+                    })
+                  : t("checkout.free")}
               </span>
             </label>
           ))}

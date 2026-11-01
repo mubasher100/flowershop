@@ -312,6 +312,7 @@ export const DICTIONARY = {
       "Today's deliveries have closed. The earliest we can deliver is tomorrow.",
     "checkout.summaryHeading": "In your bag",
     "cart.shippingAtCheckout": "Chosen at checkout",
+    "checkout.free": "Free",
     "checkout.noCharge":
       "Nothing is charged now. We'll confirm availability and payment with you on WhatsApp.",
 
@@ -701,6 +702,7 @@ export const DICTIONARY = {
       "أُغلقت توصيلات اليوم. أقرب موعد للتوصيل هو الغد.",
     "checkout.summaryHeading": "في سلتك",
     "cart.shippingAtCheckout": "يُحدد عند إتمام الطلب",
+    "checkout.free": "مجاناً",
     "checkout.noCharge":
       "لن يتم خصم أي مبلغ الآن. سنؤكد التوفر وطريقة الدفع معك على واتساب.",
 

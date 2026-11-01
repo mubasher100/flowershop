@@ -297,10 +297,11 @@ export default async function seedQatar({
             description: "Delivered within Doha in 1-2 days.",
             code: "standard",
           },
-          // Prices are stored as-is, NOT in cents. 20 means 20.00 QAR.
+          // Prices are stored as-is, NOT in cents. Free since 1 Nov 2026;
+          // see STANDARD_AMOUNT below.
           prices: [
-            { currency_code: CURRENCY, amount: 20 },
-            { region_id: qatarRegion.id, amount: 20 },
+            { currency_code: CURRENCY, amount: 0 },
+            { region_id: qatarRegion.id, amount: 0 },
           ],
           rules: [
             { attribute: "enabled_in_store", value: "true", operator: "eq" },
@@ -375,10 +376,11 @@ export default async function seedQatar({
                   "We arrive at 11:59pm, so it is in their hands as the day begins.",
                 code: MIDNIGHT_CODE,
               },
-              // Placeholder surcharge. Stored as-is: 50 means 50.00 QAR.
+              // Free since 1 Nov 2026, like Standard. It was a 50 QAR
+              // placeholder; stored as-is, so 50 would mean 50.00 QAR.
               prices: [
-                { currency_code: CURRENCY, amount: 50 },
-                { region_id: qatarRegion.id, amount: 50 },
+                { currency_code: CURRENCY, amount: 0 },
+                { region_id: qatarRegion.id, amount: 0 },
               ],
               rules: [
                 { attribute: "enabled_in_store", value: "true", operator: "eq" },
@@ -387,13 +389,13 @@ export default async function seedQatar({
             },
           ],
         })
-        logger.info("Created 11:59 midnight delivery (50 QAR placeholder).")
+        logger.info("Created 11:59 midnight delivery (free).")
       }
     }
   }
 
   // ---------------------------------------------------------------------
-  // Delivery line-up (19 Sep 2026): Standard at 20 QAR with a time slot, and
+  // Delivery line-up (19 Sep 2026): Standard with a time slot, and
   // 11:59. Same-Day as a paid tier is gone — Standard on today's date with a
   // slot already is same-day, so the 50 QAR option was a second price for the
   // same thing.
@@ -401,9 +403,13 @@ export default async function seedQatar({
   // Runs on an existing store too: reprices Standard if it still carries the
   // old 25, and removes Same-Day if it is still there. Orders that already
   // used Same-Day keep their line — a shipping option is soft-deleted.
+  //
+  // Delivery is free for now, on the shop's instruction (1 Nov 2026): it was
+  // 20 QAR. This block reprices on every run, so put the fee back here, not
+  // only in the admin, or the next run of this script takes it off again.
   // ---------------------------------------------------------------------
   {
-    const STANDARD_AMOUNT = 20
+    const STANDARD_AMOUNT = 0
 
     const { data: lineup } = await query.graph({
       entity: "shipping_option",

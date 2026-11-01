@@ -35,7 +35,7 @@ const Summary = ({ cart }: SummaryProps) => {
       <DiscountCode cart={cart} />
       <Divider />
       {/* No delivery option has been chosen yet, so a zero fee would read as
-          free delivery when it is 20 QAR. */}
+          free delivery — true today (1 Nov 2026), but not once a fee is back. */}
       <CartTotals totals={cart} shippingPlaceholder={t("cart.shippingAtCheckout")} />
       <LocalizedClientLink
         href={"/checkout?step=" + step}

@@ -36,22 +36,19 @@ export default function ProductPrice({
           {selectedPrice.calculated_price}
         </span>
       </span>
+      {/* The struck-through price only; the shop does not show a
+          percentage off. */}
       {selectedPrice.price_type === "sale" && (
-        <>
-          <p>
-            <span className="text-ui-fg-subtle">Original: </span>
-            <span
-              className="line-through"
-              data-testid="original-product-price"
-              data-value={selectedPrice.original_price_number}
-            >
-              {selectedPrice.original_price}
-            </span>
-          </p>
-          <span className="text-ui-fg-interactive">
-            -{selectedPrice.percentage_diff}%
+        <p>
+          <span className="text-ui-fg-subtle">Original: </span>
+          <span
+            className="line-through"
+            data-testid="original-product-price"
+            data-value={selectedPrice.original_price_number}
+          >
+            {selectedPrice.original_price}
           </span>
-        </>
+        </p>
       )}
     </div>
   )

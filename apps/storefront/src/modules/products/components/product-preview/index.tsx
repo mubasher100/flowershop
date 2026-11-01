@@ -36,17 +36,6 @@ export default async function ProductPreview({
 
   const hasSizeLadder = (product.variants?.length ?? 0) > 1
 
-  const isOnSale = cheapestPrice?.price_type === "sale"
-  const discountPercent =
-    isOnSale && cheapestPrice
-      ? Math.round(
-          ((cheapestPrice.original_price_number -
-            cheapestPrice.calculated_price_number) /
-            cheapestPrice.original_price_number) *
-            100
-        )
-      : 0
-
   return (
     <LocalizedClientLink
       href={`/products/${product.handle}`}
@@ -61,14 +50,9 @@ export default async function ProductPreview({
             isFeatured={isFeatured}
             className="group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-blush-700"
           />
-
-          {/* Only shown when a sale price list actually applies, so the badge
-              always reflects a real reduction against a real former price. */}
-          {isOnSale && discountPercent > 0 && (
-            <span className="absolute start-2 top-2 rounded-full bg-blush-600 px-2.5 py-1 text-xs font-bold text-white">
-              −{discountPercent}%
-            </span>
-          )}
+          {/* No "−30%" badge, on the shop's instruction (1 Nov 2026): a
+              reduced flower shows its old price struck through and nothing
+              more. */}
         </div>
 
         <div className="flex flex-col gap-1">
