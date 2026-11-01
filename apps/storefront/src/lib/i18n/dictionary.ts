@@ -314,6 +314,9 @@ export const DICTIONARY = {
     "checkout.summaryHeading": "In your bag",
     "cart.shippingAtCheckout": "Chosen at checkout",
     "checkout.free": "Free",
+    "checkout.placedTitle": "Your order has been placed",
+    "checkout.placedBody":
+      "Thank you! Your order reached us. Please make sure you sent the WhatsApp message, as that's where we confirm your order and delivery time.",
     "error.title": "Sorry, something went wrong",
     "error.body":
       "Please try again. Your bag is saved. If it keeps happening, message us on WhatsApp and we'll take your order there.",
@@ -773,6 +776,9 @@ export const DICTIONARY = {
     "checkout.summaryHeading": "في سلتك",
     "cart.shippingAtCheckout": "يُحدد عند إتمام الطلب",
     "checkout.free": "مجاناً",
+    "checkout.placedTitle": "تم تقديم طلبك",
+    "checkout.placedBody":
+      "شكراً لك! وصلنا طلبك. يُرجى التأكد من إرسال رسالة واتساب، فهناك نؤكد طلبك وموعد التوصيل.",
     "error.title": "عذراً، حدث خطأ ما",
     "error.body":
       "يُرجى المحاولة مرة أخرى، فسلتك محفوظة. وإن تكرر ذلك، راسلنا على واتساب وسنستلم طلبك هناك.",

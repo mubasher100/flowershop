@@ -51,16 +51,35 @@ export async function retrieveCart(cartId?: string, fields?: string) {
     .fetch<HttpTypes.StoreCartResponse>(`/store/carts/${id}`, {
       method: "GET",
       query: {
-        fields,
+        // "+", so it is added to whatever `fields` asks for. A bare name
+        // makes the list explicit and Medusa drops every default field —
+        // totals and currency went missing the first time.
+        fields: `${fields},+completed_at`,
       },
       headers,
       cache: "no-store",
     })
-    .then(({ cart }: { cart: HttpTypes.StoreCart }) => cart)
+    // A completed cart is an order now, not a bag. The cookie should have
+    // been cleared when the order was placed, but that rides on the reply —
+    // and when "Place order" hands the phone to WhatsApp, Chrome on iOS can
+    // suspend the page before the reply lands. The order went through; the
+    // cookie stayed, and every add after it failed with "Cart … is already
+    // completed" over a bag that showed the ordered flowers and could not be
+    // emptied (1 Nov 2026). Treated as no cart, it heals: the bag reads
+    // empty and the next add starts a fresh one.
+    .then(({ cart }: { cart: HttpTypes.StoreCart }) =>
+      cart?.completed_at ? null : cart
+    )
     .catch(() => null)
 }
 
-export async function getOrSetCart(countryCode: string) {
+/** A cart that is gone or already an order — start a new one rather than fail. */
+const isDeadCartError = (e: unknown) =>
+  /already completed|not found|does not exist/i.test(
+    e instanceof Error ? e.message : String(e)
+  )
+
+export async function getOrSetCart(countryCode: string, fresh = false) {
   const region = await getRegion(countryCode)
 
   if (!region) {
@@ -76,7 +95,8 @@ export async function getOrSetCart(countryCode: string) {
    * same. The id is enough to add a line item; if the cart has since expired,
    * createLineItem fails and the caller retries with a fresh one.
    */
-  const existingId = await getCartId()
+  // `fresh` ignores the cookie: the caller has just found its cart dead.
+  const existingId = fresh ? undefined : await getCartId()
 
   const headers = {
     ...(await getAuthHeaders()),
@@ -84,7 +104,9 @@ export async function getOrSetCart(countryCode: string) {
 
   let cart = existingId
     ? ({ id: existingId, region_id: region.id } as HttpTypes.StoreCart)
-    : await retrieveCart(undefined, "id,region_id")
+    : fresh
+      ? null
+      : await retrieveCart(undefined, "id,region_id")
 
   if (!cart) {
     const locale = await getLocale()
@@ -155,19 +177,13 @@ export async function addToCart({
     throw new Error("Missing variant ID when adding to cart")
   }
 
-  const cart = await getOrSetCart(countryCode)
-
-  if (!cart) {
-    throw new Error("Error retrieving or creating cart")
-  }
-
   const headers = {
     ...(await getAuthHeaders()),
   }
 
-  await sdk.store.cart
-    .createLineItem(
-      cart.id,
+  const add = (cartId: string) =>
+    sdk.store.cart.createLineItem(
+      cartId,
       {
         variant_id: variantId,
         quantity,
@@ -178,6 +194,22 @@ export async function addToCart({
       {},
       headers
     )
+
+  const cart = await getOrSetCart(countryCode)
+
+  if (!cart) {
+    throw new Error("Error retrieving or creating cart")
+  }
+
+  // The cookie's cart can be dead — expired, or already turned into an order
+  // whose reply never reached the phone (see retrieveCart). Start a fresh bag
+  // and add to that, once, rather than refuse every add from then on.
+  await add(cart.id)
+    .catch(async (e) => {
+      if (!isDeadCartError(e)) throw e
+      const fresh = await getOrSetCart(countryCode, true)
+      return add(fresh.id)
+    })
     .then(async () => {
       const cartCacheTag = await getCacheTag("carts")
       revalidateTag(cartCacheTag)

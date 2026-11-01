@@ -19,7 +19,7 @@ import { setSelectedDelivery } from "@lib/util/delivery-selection"
 import type { DayAvailability } from "@lib/data/delivery-availability"
 
 import { convertToLocale } from "@lib/util/money"
-import { placeOrderRequest } from "@lib/util/cart-api"
+import { bagIsEmpty, placeOrderRequest } from "@lib/util/cart-api"
 import {
   deliveryAddressFor,
   whatsappLink,
@@ -67,6 +67,7 @@ export default function GuestCheckout({
 }) {
   const [orderError, setOrderError] = useState<string | undefined>()
   const [pending, setPending] = useState(false)
+  const [placedWithoutReply, setPlacedWithoutReply] = useState(false)
   const router = useRouter()
 
   const { t, segment } = useTranslations()
@@ -232,9 +233,17 @@ export default function GuestCheckout({
     const whatsapp = buildWhatsappLink(data)
     if (whatsapp) window.open(whatsapp, "_blank", "noopener")
 
-    request.then((result) => {
+    request.then(async (result) => {
       if (result.redirect) {
         router.push(result.redirect)
+        return
+      }
+      // The reply was lost — most likely the phone switched to WhatsApp and
+      // the page was suspended. If the bag is now an order, it went through:
+      // say so, rather than invite a second attempt.
+      if (result.unreachable && (await bagIsEmpty())) {
+        setPlacedWithoutReply(true)
+        setPending(false)
         return
       }
       setOrderError(
@@ -531,6 +540,17 @@ export default function GuestCheckout({
         </p>
       )}
 
+      {placedWithoutReply && (
+        <div role="status"
+          className="flex flex-col gap-3 rounded-xl border border-sage-300 bg-sage-50 px-4 py-4 text-sm text-sage-800">
+          <p className="text-base font-semibold">{t("checkout.placedTitle")}</p>
+          <p>{t("checkout.placedBody")}</p>
+          <LocalizedClientLink href="/" className={legalLinkClass}>
+            {t("nav.home")}
+          </LocalizedClientLink>
+        </div>
+      )}
+
       {/* Payment. The card path is a simulation, shown only when
           NEXT_PUBLIC_DEMO_PAYMENT is set, so it cannot appear on a real
           storefront by accident. SkipCash replaces it in phase 8. */}
@@ -604,6 +624,8 @@ export default function GuestCheckout({
           // enforces too.
           disabled={
             pending ||
+            // Placed already, reply lost — a second tap would be a second order.
+            placedWithoutReply ||
             dayClosed ||
             (!midnight && !windows.length) ||
             (DEMO_PAYMENT_ENABLED && payMethod === "card" && !paymentRef)

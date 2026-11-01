@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { retrieveCart } from "@lib/data/cart"
+import { getCartId, removeCartId } from "@lib/data/cookies"
 
 /**
  * Cart item count, for the nav badge.
@@ -16,6 +17,11 @@ export const dynamic = "force-dynamic"
 export async function GET() {
   try {
     const cart = await retrieveCart()
+
+    // A cookie pointing at a cart that is gone or already an order (see
+    // retrieveCart) is dropped here: every page asks for this count, so a
+    // phone stuck on a completed bag heals on its next page view.
+    if (!cart && (await getCartId())) await removeCartId()
     const count =
       cart?.items?.reduce((acc, item) => acc + item.quantity, 0) ?? 0
 

@@ -22,8 +22,14 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } })
   } catch (e) {
+    const message = e instanceof Error ? e.message : String(e)
+    console.error("Bag update failed:", message)
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Could not update your bag." },
+      {
+        error: /not enough stock|insufficient inventory|required inventory/i.test(message)
+          ? "Sorry, there aren't enough of that flower left."
+          : "We couldn't update your bag. Please try again.",
+      },
       { status: 400, headers: { "Cache-Control": "no-store" } }
     )
   }

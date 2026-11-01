@@ -34,8 +34,17 @@ export async function POST(req: NextRequest) {
     })
     return NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } })
   } catch (e) {
+    // Medusa's own wording ("Error setting up the request: Cart cart_01… is
+    // already completed") went straight onto the product page. The customer
+    // gets a sentence; the detail goes to the Worker log.
+    const message = e instanceof Error ? e.message : String(e)
+    console.error("Add to bag failed:", message)
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Could not add to your bag." },
+      {
+        error: /not enough stock|insufficient inventory|required inventory/i.test(message)
+          ? "Sorry, that flower has just sold out."
+          : "That didn't go in. Please try again.",
+      },
       { status: 400, headers: { "Cache-Control": "no-store" } }
     )
   }
