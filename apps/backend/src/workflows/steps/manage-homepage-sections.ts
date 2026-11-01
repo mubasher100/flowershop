@@ -113,10 +113,14 @@ export const createHomepageSectionStep = createStep(
       input.rank ??
       existing.reduce((max, s) => Math.max(max, s.rank ?? 0), 0) + 10
 
-    const [created] = await service.createHomepageSections({
+    // One input returns one row, not an array — the same trap as the update
+    // step below. Destructuring it threw "not iterable" *after* the row was
+    // written, so the admin saw a 500, retried, and got a duplicate each time.
+    const result = await service.createHomepageSections({
       ...input,
       rank: nextRank,
     })
+    const created = Array.isArray(result) ? result[0] : result
 
     return new StepResponse(created, created.id)
   },

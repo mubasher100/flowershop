@@ -33,7 +33,9 @@ export default async function Nav({ segment }: { segment?: string }) {
           that decides a purchase, so it is the one that stays. */}
       <div className="bg-blush-600 text-white">
         <div className="content-container flex h-8 items-center justify-center gap-4 text-[0.68rem] font-medium uppercase tracking-[0.18em] small:justify-between small:text-xs">
-          <span className="truncate">{t("promise.sameDayShort")}</span>
+          {/* Free delivery leads while it lasts (1 Nov 2026); switch back to
+              promise.sameDayShort when the fee returns. */}
+          <span className="truncate">{t("promise.freeDelivery")}</span>
           <span className="hidden text-blush-100 medium:inline">
             {t("brand.strapline")}
           </span>

@@ -29,6 +29,7 @@ export const DICTIONARY = {
     // Standing promise
     "promise.sameDay": "Same-day delivery across Doha · Order before 6pm",
     "promise.sameDayShort": "Same-day delivery across Qatar",
+    "promise.freeDelivery": "Free delivery right now!",
     "brand.strapline": "Flowers • Chocolates • Gifts • Happiness",
     "brand.location": "Doha, Qatar",
     "promise.title": "Same-day delivery across Doha",
@@ -313,6 +314,11 @@ export const DICTIONARY = {
     "checkout.summaryHeading": "In your bag",
     "cart.shippingAtCheckout": "Chosen at checkout",
     "checkout.free": "Free",
+    "checkout.locationNote":
+      "We'll message you on WhatsApp to confirm your order. Please send the location there too, for better accuracy.",
+    "checkout.locationLater": "I'll send the location on WhatsApp",
+    "checkout.locationLaterHint":
+      "The address can be short or left blank. We'll use the location you send.",
     "checkout.noCharge":
       "Nothing is charged now. We'll confirm availability and payment with you on WhatsApp.",
 
@@ -437,6 +443,7 @@ export const DICTIONARY = {
 
     "promise.sameDay": "توصيل في نفس اليوم داخل الدوحة · اطلب قبل ٦ مساءً",
     "promise.sameDayShort": "توصيل في نفس اليوم في جميع أنحاء قطر",
+    "promise.freeDelivery": "التوصيل مجاني الآن!",
     "brand.strapline": "ورود • شوكولاتة • هدايا • سعادة",
     "brand.location": "الدوحة، قطر",
     "promise.title": "توصيل في نفس اليوم داخل الدوحة",
@@ -703,6 +710,11 @@ export const DICTIONARY = {
     "checkout.summaryHeading": "في سلتك",
     "cart.shippingAtCheckout": "يُحدد عند إتمام الطلب",
     "checkout.free": "مجاناً",
+    "checkout.locationNote":
+      "سنرسل لك رسالة على واتساب لتأكيد الطلب، ويُرجى إرسال الموقع هناك أيضاً لدقة أكبر.",
+    "checkout.locationLater": "سأرسل الموقع عبر واتساب",
+    "checkout.locationLaterHint":
+      "يمكن أن يكون العنوان مختصراً أو فارغاً، وسنعتمد على الموقع الذي ترسله.",
     "checkout.noCharge":
       "لن يتم خصم أي مبلغ الآن. سنؤكد التوفر وطريقة الدفع معك على واتساب.",
 

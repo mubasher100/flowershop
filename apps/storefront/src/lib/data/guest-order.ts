@@ -67,6 +67,8 @@ export async function placeGuestOrder(
   const email = get("email", FIELD_LIMITS.email).toLowerCase()
   const instructions = get("delivery_notes", FIELD_LIMITS.instructions)
   const anonymous = String(formData.get("anonymous") ?? "") === "true"
+  const locationOnWhatsapp =
+    String(formData.get("location_on_whatsapp") ?? "") === "true"
   const giftNote = get("gift_note", FIELD_LIMITS.giftNote)
 
   // Only ever a DEMO- reference from the simulated gateway. Guarded so a
@@ -95,7 +97,17 @@ export async function placeGuestOrder(
   if (!isDeliveryArea(area)) {
     return { error: "Please choose a delivery area from the list." }
   }
-  if (!address) return { error: "Please add the delivery address." }
+  if (!address && !locationOnWhatsapp) {
+    return { error: "Please add the delivery address." }
+  }
+  // Written into the address itself, in English for the shopkeeper like the
+  // area, so the label, the admin and the shop's alert email all carry it
+  // without each having to learn a new metadata key.
+  const deliveryAddress = locationOnWhatsapp
+    ? address
+      ? `${address} (exact location to follow on WhatsApp)`
+      : "Location to be sent on WhatsApp"
+    : address
   // Optional, but if given it has to be usable — a typo means the
   // confirmation goes nowhere and the customer never learns it did not.
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
@@ -202,7 +214,7 @@ export async function placeGuestOrder(
         first_name: firstName,
         last_name: restName.join(" ") || "-",
         phone: recipientPhone,
-        address_1: address,
+        address_1: deliveryAddress,
         city: area,
         country_code: "qa",
       },
@@ -217,6 +229,7 @@ export async function placeGuestOrder(
         // order still records who placed it — the shop has to be able to
         // reach them.
         anonymous_gift: anonymous ? "true" : "",
+        location_on_whatsapp: locationOnWhatsapp ? "true" : "",
         delivery_area: area,
         delivery_date: deliveryDate,
         delivery_window: deliveryWindow,

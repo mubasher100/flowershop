@@ -63,6 +63,7 @@ export default function GuestCheckout({
 
   const { t, segment } = useTranslations()
   const [payMethod, setPayMethod] = useState<"whatsapp" | "card">("whatsapp")
+  const [locationLater, setLocationLater] = useState(false)
 
   /**
    * Which delivery is selected. Needed because 11:59 changes the form: the
@@ -261,12 +262,39 @@ export default function GuestCheckout({
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="address">
             {t("checkout.address")}
+            {locationLater && (
+              <>
+                {" "}
+                <span className="font-normal text-ink-500">
+                  {t("checkout.optional")}
+                </span>
+              </>
+            )}
           </label>
-          <textarea id="address" name="address" required rows={3}
+          <textarea id="address" name="address" required={!locationLater} rows={3}
             maxLength={FIELD_LIMITS.address}
+            aria-describedby="location-note"
             className={`${fieldClass} py-3`}
             placeholder={t("checkout.addressPlaceholder")} />
+          <p id="location-note" className="text-xs text-ink-500">
+            {t("checkout.locationNote")}
+          </p>
         </div>
+
+        {/* Doha addresses are often a landmark and a guess; a dropped pin on
+            WhatsApp is what the driver actually navigates by. Ticked, the
+            street becomes optional and the order says the location is to
+            follow, so the label and the shop's email show it too. */}
+        <label className="flex min-h-[3.25rem] cursor-pointer items-start gap-3 rounded-xl border border-ink-200 bg-white px-4 py-3 has-[:checked]:border-blush-500 has-[:checked]:ring-2 has-[:checked]:ring-blush-200">
+          <input type="checkbox" name="location_on_whatsapp" value="true"
+            checked={locationLater}
+            onChange={(e) => setLocationLater(e.target.checked)}
+            className="mt-1 h-4 w-4 accent-blush-600" />
+          <span className="flex flex-col">
+            <span className="text-base text-ink-900">{t("checkout.locationLater")}</span>
+            <span className="text-sm text-ink-600">{t("checkout.locationLaterHint")}</span>
+          </span>
+        </label>
 
         {/* Delivery choice comes before date and time because choosing 11:59
             rewrites both — the date becomes "the night before" and the time
