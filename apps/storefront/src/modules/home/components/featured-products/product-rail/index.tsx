@@ -14,10 +14,16 @@ import ProductPreview from "@modules/products/components/product-preview"
  */
 export default async function ProductRail({
   collection,
+  kind = "collection",
   region,
   segment,
 }: {
-  collection: HttpTypes.StoreCollection
+  collection: Pick<HttpTypes.StoreCollection, "id" | "handle" | "title">
+  /**
+   * Where `collection` came from. A category rail (Offers) passes a category
+   * in the same shape: a product has one collection but many categories.
+   */
+  kind?: "collection" | "category"
   region: HttpTypes.StoreRegion
   segment?: string
 }) {
@@ -28,7 +34,9 @@ export default async function ProductRail({
   } = await listProducts({
     regionId: region.id,
     queryParams: {
-      collection_id: collection.id,
+      ...(kind === "category"
+        ? { category_id: collection.id }
+        : { collection_id: collection.id }),
       fields: "*variants.calculated_price",
       // Six, not eight. Desktop shows one row of four and a phone scrolls
       // through them, so the last two were never reached — and every extra
@@ -50,7 +58,7 @@ export default async function ProductRail({
           {collection.title}
         </h2>
         <LocalizedClientLink
-          href={`/collections/${collection.handle}`}
+          href={`/${kind === "category" ? "categories" : "collections"}/${collection.handle}`}
           aria-label={`${t("section.viewAll")} — ${collection.title}`}
           className="inline-flex min-h-[2.75rem] flex-none items-center whitespace-nowrap text-sm font-semibold text-blush-700 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700"
         >

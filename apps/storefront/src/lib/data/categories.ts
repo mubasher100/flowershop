@@ -26,6 +26,23 @@ export const listCategories = async (query?: Record<string, unknown>) => {
     .then(({ product_categories }) => product_categories)
 }
 
+/**
+ * Id, handle and name only — for a homepage category rail, which needs the id
+ * to filter products by. `getCategoryByHandle` also pulls every product in
+ * the category, which the homepage render cannot afford.
+ */
+export const getCategorySummary = async (handle: string) =>
+  sdk.client
+    .fetch<HttpTypes.StoreProductCategoryListResponse>(
+      `/store/product-categories`,
+      {
+        query: { fields: "id,handle,name", handle },
+        next: getPublicCacheOptions("categories"),
+        cache: "force-cache",
+      }
+    )
+    .then(({ product_categories }) => product_categories[0])
+
 export const getCategoryByHandle = async (categoryHandle: string[]) => {
   const handle = `${categoryHandle.join("/")}`
 

@@ -19,6 +19,7 @@ const HomepageSection = model.define("homepage_section", {
    * What the block renders.
    *
    * - product_rail: a horizontal row of products from `resource_handle`
+   * - category_rail: the same, from a category handle rather than a collection
    * - category_tiles: the occasion/category tile grid
    * - banner: a promotional image with a heading and a link
    *

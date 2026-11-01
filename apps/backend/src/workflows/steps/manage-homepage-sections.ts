@@ -10,6 +10,10 @@ import { HOMEPAGE_MODULE } from "../../modules/homepage"
 export const SECTION_TYPES = [
   "hero_slide",
   "product_rail",
+  // Products from a category rather than a collection. A product sits in
+  // one collection but many categories, so a rail like Offers — which
+  // overlaps every other rail — can only be a category.
+  "category_rail",
   "category_tiles",
   "banner",
 ] as const
@@ -67,11 +71,14 @@ function assertShape(input: SectionInput) {
     )
   }
 
-  const needsResource = input.type === "product_rail"
+  const needsResource =
+    input.type === "product_rail" || input.type === "category_rail"
   if (needsResource && !input.resource_handle?.trim()) {
     throw new MedusaError(
       MedusaError.Types.INVALID_DATA,
-      "A product rail needs a collection handle to draw its products from."
+      input.type === "category_rail"
+        ? "A category rail needs a category handle to draw its products from."
+        : "A product rail needs a collection handle to draw its products from."
     )
   }
 

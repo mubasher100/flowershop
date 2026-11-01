@@ -42,7 +42,12 @@ import { sdk } from "../../lib/sdk"
 
 type Section = {
   id: string
-  type: "hero_slide" | "product_rail" | "category_tiles" | "banner"
+  type:
+    | "hero_slide"
+    | "product_rail"
+    | "category_rail"
+    | "category_tiles"
+    | "banner"
   title: string
   title_ar: string | null
   resource_handle: string | null
@@ -57,6 +62,7 @@ type Section = {
 const TYPE_LABELS: Record<Section["type"], string> = {
   hero_slide: "Hero slide",
   product_rail: "Product rail",
+  category_rail: "Category rail",
   category_tiles: "Category tiles",
   banner: "Banner",
 }
@@ -101,6 +107,7 @@ function SectionForm({
     setDraft({ ...draft, [key]: value })
 
   const isRail = draft.type === "product_rail"
+  const isCategoryRail = draft.type === "category_rail"
   const isTiles = draft.type === "category_tiles"
   const isBanner = draft.type === "banner"
   const isHero = draft.type === "hero_slide"
@@ -154,7 +161,7 @@ function SectionForm({
         </Text>
       </div>
 
-      {(isRail || isTiles) && (
+      {(isRail || isCategoryRail || isTiles) && (
         <div className="flex flex-col gap-2">
           <Label size="small" weight="plus">
             {isRail ? "Collection handle" : "Category handle"}
@@ -162,12 +169,16 @@ function SectionForm({
           <Input
             value={draft.resource_handle}
             onChange={(e) => set("resource_handle", e.target.value)}
-            placeholder={isRail ? "best-sellers" : "birthday"}
+            placeholder={
+              isRail ? "best-sellers" : isCategoryRail ? "hot-deals" : "birthday"
+            }
           />
           <Text size="small" leading="compact" className="text-ui-fg-subtle">
             {isRail
               ? "The handle of the collection whose products this rail shows."
-              : "Leave blank to show every occasion category."}
+              : isCategoryRail
+                ? "The handle of the category whose products this rail shows — hot-deals for Offers."
+                : "Leave blank to show every occasion category."}
           </Text>
         </div>
       )}

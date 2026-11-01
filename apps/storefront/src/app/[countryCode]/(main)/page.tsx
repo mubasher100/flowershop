@@ -9,6 +9,7 @@ import HeroCarousel, {
 } from "@modules/home/components/hero-carousel"
 
 import { getTranslations } from "@lib/i18n/dictionary"
+import { getCategorySummary } from "@lib/data/categories"
 import { listCollections } from "@lib/data/collections"
 import { listHomepageSections } from "@lib/data/homepage"
 import { getRegion, listRegions } from "@lib/data/regions"
@@ -150,6 +151,22 @@ export default async function Home(props: {
   const configuredHero = sections.filter((s) => s.type === "hero_slide")
   const bodySections = sections.filter((s) => s.type !== "hero_slide")
 
+  // A category rail filters by id, but the section stores a handle. Resolved
+  // up front and in parallel, so picking a rail below stays synchronous.
+  const categoryByHandle = new Map(
+    await Promise.all(
+      bodySections
+        .filter((s) => s.type === "category_rail" && s.resource_handle)
+        .map(async (s) => {
+          const handle = s.resource_handle as string
+          const category = await getCategorySummary(handle).catch(
+            () => undefined
+          )
+          return [handle, category] as const
+        })
+    )
+  )
+
   const heroSlides: HeroSlide[] = configuredHero.length
     ? configuredHero.map((s) => {
         const heading = headingFor(s, locale)
@@ -210,6 +227,30 @@ export default async function Home(props: {
                 <ProductRail
                   key={section.id}
                   collection={{ ...collection, title: heading }}
+                  region={region}
+                  segment={countryCode}
+                />
+              )
+            }
+
+            if (section.type === "category_rail") {
+              const category = section.resource_handle
+                ? categoryByHandle.get(section.resource_handle)
+                : undefined
+
+              // Same rule as a collection rail: a missing category renders
+              // nothing rather than an empty heading.
+              if (!category) return null
+
+              return (
+                <ProductRail
+                  key={section.id}
+                  kind="category"
+                  collection={{
+                    id: category.id,
+                    handle: category.handle,
+                    title: heading,
+                  }}
                   region={region}
                   segment={countryCode}
                 />

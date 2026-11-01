@@ -341,7 +341,9 @@ A separate A6 gift card document was built on 28 Sep 2026 and removed the same d
 
 The homepage layout is data, not code. **Admin → Homepage** lists the blocks below the hero carousel; they can be added, renamed (in both languages), reordered, hidden and deleted without a deploy.
 
-Three types: `product_rail` (products from a collection handle), `category_tiles` (occasion tiles), `banner` (image, subtitle and a link). A rail pointing at a deleted collection renders nothing rather than an empty heading, and a missing Arabic heading falls back to English.
+Four types: `product_rail` (products from a collection handle), `category_rail` (products from a category handle), `category_tiles` (occasion tiles), `banner` (image, subtitle and a link). A rail pointing at a deleted collection or category renders nothing rather than an empty heading, and a missing Arabic heading falls back to English.
+
+**Offers is a category rail** (`hot-deals`), first under the carousel since 1 Nov 2026. It has to be: a product belongs to one collection, so an Offers *collection* would have pulled every discounted flower out of Best Sellers and the other rails. Each rail is six more product cards in a render that must fit a Worker's CPU allowance — check the homepage with a cache-busting request after adding one.
 
 The hero carousel and the delivery-reassurance strip are deliberately *not* managed here — the strip answers "will it arrive in time", which decides the purchase, and should not be switchable off by accident.
 
