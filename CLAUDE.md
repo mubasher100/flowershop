@@ -157,7 +157,7 @@ Frontend (via Medusa JS SDK only)
 
 Use `blush-600` or `blush-700` for anything carrying text — 5.05:1 and 7.03:1 on white. The mid-tones that look best fail AA.
 
-**Typeface** — Google Sans, self-hosted via `next/font/local` from `src/fonts/`. Google released it under the SIL OFL in 2025. Do **not** switch to `next/font/google`: Next 15's manifest predates the release and rejects it with "Unknown font".
+**Typeface** — Google Sans, self-hosted via `next/font/local` from `src/fonts/`. The display serif, Cormorant Garamond, is self-hosted the same way since 1 Nov 2026: `next/font/google` downloads at build time, and Next 15's loader stopped parsing Google's response (*"Cannot read properties of null (reading '1')"*), which failed every storefront deploy. **Nothing in the build should fetch fonts from Google.** Google released it under the SIL OFL in 2025. Do **not** switch to `next/font/google`: Next 15's manifest predates the release and rejects it with "Unknown font".
 
 **References** — homepage follows [floward.com/en-qa](https://floward.com/en-qa); product page blends [calyaqa.com](https://calyaqa.com) (gallery, size ladder, accordions) with [mayfairqatar.com](https://mayfairqatar.com) (gift message, delivery date + time slots). Floward serves 403 to WebFetch — pull it with `curl` and a browser User-Agent.
 

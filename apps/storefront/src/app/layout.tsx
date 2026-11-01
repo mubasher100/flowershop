@@ -1,6 +1,5 @@
 import { getBaseURL } from "@lib/util/env"
 import { Metadata } from "next"
-import { Cormorant_Garamond } from "next/font/google"
 import localFont from "next/font/local"
 import "styles/globals.css"
 
@@ -11,12 +10,24 @@ import "styles/globals.css"
  * display serif: gorgeous at 24px and up, but its hairline strokes thin out
  * badly at UI sizes on a phone, so body copy, buttons and form labels stay on
  * Google Sans. That pairing is how the reference sites use their serifs too.
+ *
+ * Self-hosted since 1 Nov 2026 (Latin subset, from Fontsource, SIL OFL).
+ * It came from next/font/google, which downloads the font at build time —
+ * and Next 15's loader stopped being able to read Google's response
+ * ("Cannot read properties of null (reading '1')"), failing every build. A
+ * deploy should not depend on a third party answering in a shape an
+ * unsupported Next version still understands.
  */
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
+const cormorant = localFont({
+  src: [
+    { path: "../fonts/cormorant-garamond-latin-400.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/cormorant-garamond-latin-500.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/cormorant-garamond-latin-600.woff2", weight: "600", style: "normal" },
+    { path: "../fonts/cormorant-garamond-latin-700.woff2", weight: "700", style: "normal" },
+  ],
   display: "swap",
-  weight: ["400", "500", "600", "700"],
   variable: "--font-display",
+  fallback: ["Georgia", "Times New Roman", "serif"],
 })
 
 /**
