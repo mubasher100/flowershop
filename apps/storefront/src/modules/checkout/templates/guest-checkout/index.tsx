@@ -97,10 +97,10 @@ export default function GuestCheckout({
    * rather than silently pushed to tomorrow.
    */
   /**
-   * Standard delivery keeps the shop's own promise: "order before 6pm and it
-   * arrives today". After 6pm today is gone, and before then a window has to
-   * be far enough ahead to actually make and drive the order — so at 1pm the
-   * 2pm slot is no longer offered. Without this the site sold deliveries it
+   * Standard delivery keeps the shop's own promise: "order before 8pm and it
+   * arrives today". After 8pm today is gone, and before then a window has to
+   * be far enough ahead to actually make and drive the order — an hour's
+   * notice, so at 2pm the 2pm slot is no longer offered. Without this the site sold deliveries it
    * could not make, including windows that had already passed.
    */
   /**

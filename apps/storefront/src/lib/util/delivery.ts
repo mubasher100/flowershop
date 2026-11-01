@@ -128,16 +128,22 @@ export const midnightAvailability = (
 /**
  * Same-day delivery, and when it stops.
  *
- * The site promises "order before 6pm and it arrives today", so 6pm is the
+ * The site promises "order before 8pm and it arrives today", so 8pm is the
  * hour after which today is no longer offered at all. Before then, a window
  * still has to be far enough ahead to cut, arrange and drive the order:
- * LEAD_HOURS is that gap, so at 1pm the 2pm-4pm slot is already gone.
+ * LEAD_HOURS is that gap, counted in whole hours: the 2pm-4pm slot is
+ * offered until 1:59pm and gone at 2pm.
+ *
+ * One hour since 1 Nov 2026, on the shop's instruction (it was two, with a
+ * 6pm cut-off) — so a 7:30pm order can still take the 8pm-9pm window. The
+ * cut-off is simply where the last window runs out at that notice.
  *
  * Both numbers live here because the checkout, the delivery page and the
- * server-side validation all have to agree about them.
+ * server-side validation all have to agree about them. The "order before"
+ * hour in the dictionary has to match the cut-off.
  */
-export const SAME_DAY_CUTOFF_HOUR = 18
-export const SAME_DAY_LEAD_HOURS = 2
+export const SAME_DAY_CUTOFF_HOUR = 20
+export const SAME_DAY_LEAD_HOURS = 1
 
 /** The hour a window opens: "2pm - 4pm" is 14. */
 export const windowStartHour = (value: string): number => {

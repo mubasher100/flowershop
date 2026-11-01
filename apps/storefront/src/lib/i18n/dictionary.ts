@@ -27,13 +27,13 @@ export const DICTIONARY = {
     "nav.open": "Open menu",
 
     // Standing promise
-    "promise.sameDay": "Same-day delivery across Doha · Order before 6pm",
+    "promise.sameDay": "Same-day delivery across Doha · Order before 8pm",
     "promise.sameDayShort": "Same-day delivery across Qatar",
     "promise.freeDelivery": "Free delivery right now!",
     "brand.strapline": "Flowers • Chocolates • Gifts • Happiness",
     "brand.location": "Doha, Qatar",
     "promise.title": "Same-day delivery across Doha",
-    "promise.body": "Order before 6pm and it arrives today.",
+    "promise.body": "Order before 8pm and it arrives today.",
 
     // Sections
     "section.shopByType": "Shop by type",
@@ -75,7 +75,7 @@ export const DICTIONARY = {
     "care.leaves": "Strip any leaves that would sit below the waterline.",
 
     "delivery.sameDayLabel": "Same-day across Doha",
-    "delivery.sameDayBody": "order before 6pm and it arrives today.",
+    "delivery.sameDayBody": "order before 8pm and it arrives today.",
     "delivery.window":
       "Choose a two-hour window at checkout, any time from 10am to 9pm.",
     "delivery.fresh":
@@ -102,7 +102,7 @@ export const DICTIONARY = {
 
     // Product page reassurance block
     "product.promiseBody":
-      "Order before 6pm and it arrives today. Pick a two-hour window at checkout, and we'll confirm on WhatsApp before it leaves.",
+      "Order before 8pm and it arrives today. Pick a two-hour window at checkout, and we'll confirm on WhatsApp before it leaves.",
 
     // Hero carousel
     "hero.1.eyebrow": "Flowers · Chocolates · Gifts",
@@ -314,6 +314,10 @@ export const DICTIONARY = {
     "checkout.summaryHeading": "In your bag",
     "cart.shippingAtCheckout": "Chosen at checkout",
     "checkout.free": "Free",
+    "order.whatsappHeading": "One last step: send it to us on WhatsApp",
+    "order.whatsappBody":
+      "Tap below and your order opens in WhatsApp, ready to send. We'll confirm it in that chat. Please send your location there too, for better accuracy.",
+    "order.whatsappCta": "Send order on WhatsApp",
     "checkout.locationNote":
       "We'll message you on WhatsApp to confirm your order. Please send the location there too, for better accuracy.",
     "checkout.locationLater": "I'll send the location on WhatsApp",
@@ -354,7 +358,7 @@ export const DICTIONARY = {
     "colour.mixed": "Mixed",
 
     // Footer
-    "footer.tagline": "Arranged in Doha, delivered the same day. Order before 6pm.",
+    "footer.tagline": "Arranged in Doha, delivered the same day. Order before 8pm.",
     "footer.deliveryAreas": "Delivery & areas",
     "footer.flowerCare": "Flower care",
     "footer.contact": "Contact us",
@@ -441,13 +445,13 @@ export const DICTIONARY = {
     "nav.close": "إغلاق القائمة",
     "nav.open": "فتح القائمة",
 
-    "promise.sameDay": "توصيل في نفس اليوم داخل الدوحة · اطلب قبل ٦ مساءً",
+    "promise.sameDay": "توصيل في نفس اليوم داخل الدوحة · اطلب قبل ٨ مساءً",
     "promise.sameDayShort": "توصيل في نفس اليوم في جميع أنحاء قطر",
     "promise.freeDelivery": "التوصيل مجاني الآن!",
     "brand.strapline": "ورود • شوكولاتة • هدايا • سعادة",
     "brand.location": "الدوحة، قطر",
     "promise.title": "توصيل في نفس اليوم داخل الدوحة",
-    "promise.body": "اطلب قبل ٦ مساءً ويصلك اليوم.",
+    "promise.body": "اطلب قبل ٨ مساءً ويصلك اليوم.",
 
     "section.shopByType": "تسوق حسب النوع",
     "section.shopByOccasion": "تسوق حسب المناسبة",
@@ -484,7 +488,7 @@ export const DICTIONARY = {
     "care.leaves": "أزل الأوراق التي تقع تحت مستوى الماء.",
 
     "delivery.sameDayLabel": "توصيل في نفس اليوم داخل الدوحة",
-    "delivery.sameDayBody": "اطلب قبل ٦ مساءً ويصلك اليوم.",
+    "delivery.sameDayBody": "اطلب قبل ٨ مساءً ويصلك اليوم.",
     "delivery.window":
       "اختر فترة زمنية من ساعتين عند إتمام الطلب، من ١٠ صباحاً حتى ٩ مساءً.",
     "delivery.fresh":
@@ -509,7 +513,7 @@ export const DICTIONARY = {
     "strip.noteDetail": "لأنك تهتم",
 
     "product.promiseBody":
-      "اطلب قبل ٦ مساءً ويصلك اليوم. اختر فترة من ساعتين عند إتمام الطلب، وسنؤكد لك على واتساب قبل خروج الطلب.",
+      "اطلب قبل ٨ مساءً ويصلك اليوم. اختر فترة من ساعتين عند إتمام الطلب، وسنؤكد لك على واتساب قبل خروج الطلب.",
 
     "hero.1.eyebrow": "ورود · شوكولاتة · هدايا",
     "hero.1.title": "Tulips and Truffles",
@@ -710,6 +714,10 @@ export const DICTIONARY = {
     "checkout.summaryHeading": "في سلتك",
     "cart.shippingAtCheckout": "يُحدد عند إتمام الطلب",
     "checkout.free": "مجاناً",
+    "order.whatsappHeading": "خطوة أخيرة: أرسل طلبك إلينا على واتساب",
+    "order.whatsappBody":
+      "اضغط أدناه وسيفتح طلبك في واتساب جاهزاً للإرسال. سنؤكد الطلب في المحادثة نفسها، ويُرجى إرسال موقعك هناك أيضاً لدقة أكبر.",
+    "order.whatsappCta": "أرسل الطلب عبر واتساب",
     "checkout.locationNote":
       "سنرسل لك رسالة على واتساب لتأكيد الطلب، ويُرجى إرسال الموقع هناك أيضاً لدقة أكبر.",
     "checkout.locationLater": "سأرسل الموقع عبر واتساب",
@@ -746,7 +754,7 @@ export const DICTIONARY = {
     "colour.orange": "برتقالي",
     "colour.mixed": "متعدد الألوان",
 
-    "footer.tagline": "تُنسّق في الدوحة وتُوصّل في نفس اليوم. اطلب قبل ٦ مساءً.",
+    "footer.tagline": "تُنسّق في الدوحة وتُوصّل في نفس اليوم. اطلب قبل ٨ مساءً.",
     "footer.deliveryAreas": "التوصيل والمناطق",
     "footer.flowerCare": "العناية بالورود",
     "footer.contact": "اتصل بنا",

@@ -8,14 +8,17 @@ import OnboardingCta from "@modules/order/components/onboarding-cta"
 import OrderDetails from "@modules/order/components/order-details"
 import ShippingDetails from "@modules/order/components/shipping-details"
 import PaymentDetails from "@modules/order/components/payment-details"
+import SendOnWhatsapp from "@modules/order/components/send-on-whatsapp"
 import { HttpTypes } from "@medusajs/types"
 
 type OrderCompletedTemplateProps = {
   order: HttpTypes.StoreOrder
+  segment?: string
 }
 
 export default async function OrderCompletedTemplate({
   order,
+  segment,
 }: OrderCompletedTemplateProps) {
   const cookies = await nextCookies()
 
@@ -36,6 +39,9 @@ export default async function OrderCompletedTemplate({
             <span>Thank you!</span>
             <span>Your order was placed successfully.</span>
           </Heading>
+          {/* Every order is confirmed on WhatsApp, so starting that chat is
+              the next thing the customer has to do — it goes first. */}
+          <SendOnWhatsapp order={order} segment={segment} />
           <OrderDetails order={order} />
           <Heading level="h2" className="flex flex-row text-3xl-regular">
             Summary
