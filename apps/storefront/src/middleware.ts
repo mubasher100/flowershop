@@ -146,7 +146,10 @@ const SECURITY_HEADERS: [string, string][] = [
   ["X-Frame-Options", "SAMEORIGIN"],
   ["Referrer-Policy", "strict-origin-when-cross-origin"],
   ["X-DNS-Prefetch-Control", "on"],
-  ["Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()"],
+  // geolocation=(self): checkout's "Use my current location" (2 Nov 2026)
+  // needs it, and only our own pages may ask. It was geolocation=(), which
+  // made the browser refuse the button on every phone without even asking.
+  ["Permissions-Policy", "camera=(), microphone=(), geolocation=(self), payment=()"],
 ]
 
 const withSecurityHeaders = (response: NextResponse) => {

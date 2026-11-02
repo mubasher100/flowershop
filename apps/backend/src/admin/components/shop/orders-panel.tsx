@@ -5,6 +5,7 @@ import {
   CurrencyDollar,
   DocumentText,
   EllipsisHorizontal,
+  Gift,
   Tag,
   XCircle,
 } from "@medusajs/icons"
@@ -27,6 +28,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 
+import { printGiftCards } from "../../lib/gift-card"
 import { printOrderDocument, SHOP_NAME } from "../../lib/print"
 import { sdk } from "../../lib/sdk"
 import { useLabelLogo } from "../../lib/use-label-logo"
@@ -366,6 +368,15 @@ function OrderCard({
           </Text>
         )}
 
+        {/* The pin from checkout's "Use my current location", when given. */}
+        {meta(order, "location_url") && (
+          <Text size="small" leading="compact">
+            <a href={meta(order, "location_url")} target="_blank" rel="noopener noreferrer" className="text-ui-fg-interactive underline">
+              Open the customer's location on Google Maps
+            </a>
+          </Text>
+        )}
+
         {/* The card message is what the florist writes while making the
             bouquet, so it belongs on the order, not one click away. It lives
             on each item — two bouquets can carry two different messages. */}
@@ -403,6 +414,23 @@ function OrderCard({
           >
             <Tag />
             Label
+          </Button>
+        )}
+
+        {/* The 8 × 12 cm card: logo on one side, the message on the other,
+            one card per message. Only offered when there is a message. */}
+        {stage !== "cancelled" && giftNotes(order).length > 0 && (
+          <Button
+            size="small"
+            variant="secondary"
+            onClick={() => {
+              if (printGiftCards(order, logo) === "blocked") {
+                toast.error("Your browser blocked the print window. Allow pop-ups for this site and try again.")
+              }
+            }}
+          >
+            <Gift />
+            Card
           </Button>
         )}
 

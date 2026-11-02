@@ -36,6 +36,7 @@ export const orderMessage = (order: HttpTypes.StoreOrder) =>
     window: meta(order, "delivery_window"),
     area: meta(order, "delivery_area"),
     address: order.shipping_address?.address_1 ?? "",
+    locationUrl: meta(order, "location_url") || null,
     instructions: meta(order, "delivery_notes"),
     recipientName: meta(order, "recipient_name"),
     recipientPhone: meta(order, "recipient_phone"),

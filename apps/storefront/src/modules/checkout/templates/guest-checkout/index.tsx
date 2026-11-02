@@ -72,7 +72,38 @@ export default function GuestCheckout({
 
   const { t, segment } = useTranslations()
   const [payMethod, setPayMethod] = useState<"whatsapp" | "card">("whatsapp")
-  const [locationLater, setLocationLater] = useState(false)
+  const [forSomeoneElse, setForSomeoneElse] = useState(false)
+
+  /**
+   * "Use my current location": the phone's GPS as a Google Maps link, sent in
+   * the WhatsApp message and kept on the order. Optional — the customer can
+   * always drop a pin in the chat instead — so every failure is a sentence,
+   * never a blocker.
+   */
+  const [pin, setPin] = useState<string | null>(null)
+  const [locating, setLocating] = useState(false)
+  const [locateError, setLocateError] = useState<string | null>(null)
+  const locateMe = () => {
+    setLocateError(null)
+    if (!("geolocation" in navigator)) {
+      setLocateError(t("checkout.locateFailed"))
+      return
+    }
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude.toFixed(6)
+        const lng = pos.coords.longitude.toFixed(6)
+        setPin(`https://www.google.com/maps?q=${lat},${lng}`)
+        setLocating(false)
+      },
+      () => {
+        setLocateError(t("checkout.locateFailed"))
+        setLocating(false)
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+    )
+  }
 
   /**
    * Which delivery is selected. Needed because 11:59 changes the form: the
@@ -195,15 +226,17 @@ export default function GuestCheckout({
         date: s("delivery_date"),
         window: s("delivery_window"),
         area: s("area"),
-        address: deliveryAddressFor(s("address"), locationLater),
+        address: deliveryAddressFor(s("address"), true),
+        locationUrl: pin,
         instructions: s("delivery_notes"),
-        recipientName: s("recipient") || s("name"),
-        recipientPhone: s("recipient_phone"),
+        recipientName: (forSomeoneElse && s("recipient")) || s("name"),
+        // Unticked "gift for someone else": it goes to the customer.
+        recipientPhone: forSomeoneElse ? s("recipient_phone") : s("phone"),
         giftNote: s("gift_note"),
         anonymous: data.get("anonymous") === "true",
         contactName: s("name"),
         contactPhone: s("phone"),
-        locationOnWhatsapp: locationLater,
+        locationOnWhatsapp: true,
       })
     )
   }
@@ -313,32 +346,50 @@ export default function GuestCheckout({
           {t("checkout.delivery")}
         </h2>
 
-        <div className="flex flex-col gap-1.5">
-          <label className={labelClass} htmlFor="recipient">
-            {t("checkout.recipient")}{" "}
-            <span className="font-normal text-ink-500">
-              {t("checkout.optional")}
-            </span>
-          </label>
-          <input id="recipient" name="recipient" className={fieldClass}
-            maxLength={FIELD_LIMITS.recipient}
-            placeholder={t("checkout.recipientPlaceholder")} />
-        </div>
+        {/* Who it goes to, behind a checkbox (the shop's request, 2 Nov 2026).
+            Unticked, the order is delivered to the person placing it and the
+            driver calls their number; ticked, the recipient's name and phone
+            appear. The server applies the same rule, so an unticked form never
+            needs a second phone number. */}
+        <label className="flex min-h-[3.25rem] cursor-pointer items-start gap-3 rounded-xl border border-ink-200 bg-white px-4 py-3 has-[:checked]:border-blush-500 has-[:checked]:ring-2 has-[:checked]:ring-blush-200">
+          <input type="checkbox" name="for_someone_else" value="true"
+            checked={forSomeoneElse}
+            onChange={(e) => setForSomeoneElse(e.target.checked)}
+            className="mt-1 h-4 w-4 accent-blush-600" />
+          <span className="flex flex-col">
+            <span className="text-base text-ink-900">{t("checkout.forSomeoneElse")}</span>
+            <span className="text-sm text-ink-600">{t("checkout.forSomeoneElseHint")}</span>
+          </span>
+        </label>
 
-        <div className="flex flex-col gap-1.5">
-          <label className={labelClass} htmlFor="recipient_phone">
-            {t("checkout.recipientPhone")}
-          </label>
-          {/* The driver's only way to reach the door. Separate from the
-              sender's number on purpose: most orders here are gifts, and
-              ringing the buyer from outside the recipient's building helps
-              nobody. dir="ltr" for the same reason as the sender's field. */}
-          <input id="recipient_phone" name="recipient_phone" required type="tel"
-            inputMode="tel" dir="ltr" maxLength={FIELD_LIMITS.phone}
-            className={`${fieldClass} text-start`}
-            placeholder={t("checkout.phonePlaceholder")} />
-          <p className="text-xs text-ink-500">{t("checkout.recipientPhoneHelp")}</p>
-        </div>
+        {forSomeoneElse && (
+          <>
+            <div className="flex flex-col gap-1.5">
+              <label className={labelClass} htmlFor="recipient">
+                {t("checkout.recipient")}{" "}
+                <span className="font-normal text-ink-500">
+                  {t("checkout.optional")}
+                </span>
+              </label>
+              <input id="recipient" name="recipient" className={fieldClass}
+                maxLength={FIELD_LIMITS.recipient}
+                placeholder={t("checkout.recipientPlaceholder")} />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className={labelClass} htmlFor="recipient_phone">
+                {t("checkout.recipientPhone")}
+              </label>
+              {/* The driver's only way to reach the door when it is a gift.
+                  dir="ltr" for the same reason as the sender's field. */}
+              <input id="recipient_phone" name="recipient_phone" required type="tel"
+                inputMode="tel" dir="ltr" maxLength={FIELD_LIMITS.phone}
+                className={`${fieldClass} text-start`}
+                placeholder={t("checkout.phonePlaceholder")} />
+              <p className="text-xs text-ink-500">{t("checkout.recipientPhoneHelp")}</p>
+            </div>
+          </>
+        )}
 
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="area">
@@ -354,42 +405,49 @@ export default function GuestCheckout({
           </select>
         </div>
 
+        {/* The exact location always comes on WhatsApp (the shop's rule since
+            2 Nov 2026), so the street is optional and there is nothing to tick:
+            the order says the location is to follow, and the label and the
+            shop's email show it. A pin from "Use my current location" rides
+            along in the WhatsApp message and on the order. */}
+        <input type="hidden" name="location_on_whatsapp" value="true" />
+        <input type="hidden" name="location_url" value={pin ?? ""} />
+
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="address">
-            {t("checkout.address")}
-            {locationLater && (
-              <>
-                {" "}
-                <span className="font-normal text-ink-500">
-                  {t("checkout.optional")}
-                </span>
-              </>
-            )}
+            {t("checkout.address")}{" "}
+            <span className="font-normal text-ink-500">
+              {t("checkout.optional")}
+            </span>
           </label>
-          <textarea id="address" name="address" required={!locationLater} rows={3}
+          <textarea id="address" name="address" rows={3}
             maxLength={FIELD_LIMITS.address}
             aria-describedby="location-note"
             className={`${fieldClass} py-3`}
             placeholder={t("checkout.addressPlaceholder")} />
-          <p id="location-note" className="text-xs text-ink-500">
+          <p id="location-note" className="text-sm font-medium text-blush-700">
             {t("checkout.locationNote")}
           </p>
         </div>
 
-        {/* Doha addresses are often a landmark and a guess; a dropped pin on
-            WhatsApp is what the driver actually navigates by. Ticked, the
-            street becomes optional and the order says the location is to
-            follow, so the label and the shop's email show it too. */}
-        <label className="flex min-h-[3.25rem] cursor-pointer items-start gap-3 rounded-xl border border-ink-200 bg-white px-4 py-3 has-[:checked]:border-blush-500 has-[:checked]:ring-2 has-[:checked]:ring-blush-200">
-          <input type="checkbox" name="location_on_whatsapp" value="true"
-            checked={locationLater}
-            onChange={(e) => setLocationLater(e.target.checked)}
-            className="mt-1 h-4 w-4 accent-blush-600" />
-          <span className="flex flex-col">
-            <span className="text-base text-ink-900">{t("checkout.locationLater")}</span>
-            <span className="text-sm text-ink-600">{t("checkout.locationLaterHint")}</span>
-          </span>
-        </label>
+        <div className="flex flex-col gap-1.5">
+          <button type="button" onClick={locateMe} disabled={locating}
+            className="inline-flex min-h-[3rem] items-center justify-center gap-2 rounded-full border border-ink-200 bg-white px-5 text-base font-medium text-ink-900 hover:border-blush-500 disabled:opacity-60">
+            <span aria-hidden="true">📍</span>
+            {locating ? t("checkout.locating") : pin ? t("checkout.relocate") : t("checkout.locateMe")}
+          </button>
+          {pin && (
+            <p role="status" className="text-sm text-sage-800">
+              {t("checkout.located")}{" "}
+              <a href={pin} target="_blank" rel="noopener noreferrer" className={legalLinkClass}>
+                {t("checkout.viewOnMap")}
+              </a>
+            </p>
+          )}
+          {locateError && (
+            <p role="alert" className="text-sm text-blush-700">{locateError}</p>
+          )}
+        </div>
 
         {/* Delivery choice comes before date and time because choosing 11:59
             rewrites both — the date becomes "the night before" and the time

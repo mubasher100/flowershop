@@ -31,6 +31,8 @@ export type WhatsappOrder = {
   window?: string
   area?: string
   address?: string
+  /** A Google Maps link from "Use my current location", when given. */
+  locationUrl?: string | null
   instructions?: string
   recipientName?: string
   recipientPhone?: string
@@ -63,6 +65,7 @@ export const whatsappOrderMessage = (o: WhatsappOrder) => {
     `Date: ${[o.date, o.window].filter(Boolean).join(", ")}`,
     `Area: ${o.area ?? ""}`,
     `Address: ${o.address ?? ""}`,
+    o.locationUrl ? `Location: ${o.locationUrl}` : null,
     o.instructions ? `Instructions: ${o.instructions}` : null,
     `Recipient: ${[o.recipientName, o.recipientPhone].filter(Boolean).join(", ")}`,
     o.giftNote ? `Card message: ${o.giftNote}` : null,

@@ -45,7 +45,7 @@ const HERO_SLIDES = [
   {
     image: "/hero/purple-hydrangeas.webp",
     key: "hero.3",
-    href: "/categories/big-flowers",
+    href: "/categories/table-arrangements",
   },
   {
     image: "/hero/two-hundred-red-roses.webp",

@@ -20,7 +20,7 @@ const SAMPLE = {
   currency_code: "qar",
   metadata: {
     recipient_name: "Noor Al-Thani",
-    recipient_phone: "+974 5151 4161",
+    recipient_phone: "+974 3000 0000",
     delivery_date: new Date().toLocaleDateString("en-CA", {
       timeZone: "Asia/Qatar",
     }),

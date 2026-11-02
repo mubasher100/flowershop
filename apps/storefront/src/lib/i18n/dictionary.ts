@@ -119,10 +119,10 @@ export const DICTIONARY = {
     "hero.2.cta": "Shop roses",
     "hero.2.alt": "Fifty red roses with eucalyptus in a clear glass vase",
 
-    "hero.3.eyebrow": "Hydrangeas",
+    "hero.3.eyebrow": "Table arrangements",
     "hero.3.title": "Big blooms, full of colour",
-    "hero.3.body": "Pink, white, blue, green and purple, in glass or wrapped.",
-    "hero.3.cta": "Shop hydrangeas",
+    "hero.3.body": "Hydrangeas and roses in vases, boxes and pots, made to sit on a table.",
+    "hero.3.cta": "Shop table arrangements",
     "hero.3.alt": "Purple and violet hydrangeas in a clear glass vase",
 
     "hero.4.eyebrow": "The luxury edit",
@@ -326,7 +326,16 @@ export const DICTIONARY = {
       "Your order opened in WhatsApp when you placed it. Make sure you tapped Send, as we confirm orders in that chat. If it didn't open, or you closed it, send it from here. This one includes your order number. Please send your location in the chat too, for better accuracy.",
     "order.whatsappCta": "Send order on WhatsApp",
     "checkout.locationNote":
-      "We'll message you on WhatsApp to confirm your order. Please send the location there too, for better accuracy.",
+      "After you place your order, please send your location on WhatsApp so the driver can find you. We'll confirm your order there.",
+    "checkout.forSomeoneElse": "This is a gift for someone else",
+    "checkout.forSomeoneElseHint": "Add their name and phone so our driver can reach them at the door.",
+    "checkout.locateMe": "Use my current location",
+    "checkout.relocate": "Update my location",
+    "checkout.locating": "Finding you…",
+    "checkout.located": "Location added.",
+    "checkout.viewOnMap": "View on map",
+    "checkout.locateFailed":
+      "We couldn't get your location. You can send it on WhatsApp after ordering instead.",
     "checkout.locationLater": "I'll send the location on WhatsApp",
     "checkout.locationLaterHint":
       "The address can be short or left blank. We'll use the location you send.",
@@ -591,10 +600,10 @@ export const DICTIONARY = {
     "hero.2.cta": "تسوق الورود",
     "hero.2.alt": "خمسون وردة حمراء مع أوكالبتوس في مزهرية زجاجية شفافة",
 
-    "hero.3.eyebrow": "الهيدرانجيا",
+    "hero.3.eyebrow": "تنسيقات الطاولة",
     "hero.3.title": "أزهار كبيرة مليئة بالألوان",
-    "hero.3.body": "وردي، أبيض، أزرق، أخضر وبنفسجي، في مزهرية زجاجية أو مغلّفة.",
-    "hero.3.cta": "تسوق الهيدرانجيا",
+    "hero.3.body": "هيدرانجيا وورود في مزهريات وصناديق وأصص، مُعدّة لتزيين الطاولة.",
+    "hero.3.cta": "تسوق تنسيقات الطاولة",
     "hero.3.alt": "هيدرانجيا بنفسجية في مزهرية زجاجية شفافة",
 
     "hero.4.eyebrow": "تشكيلة الفخامة",
@@ -788,7 +797,16 @@ export const DICTIONARY = {
       "فُتح طلبك في واتساب عند تقديمه. تأكد من الضغط على إرسال، فنحن نؤكد الطلبات في تلك المحادثة. وإن لم يُفتح أو أغلقته، أرسله من هنا، وهذه الرسالة تتضمن رقم طلبك. ويُرجى إرسال موقعك في المحادثة أيضاً لدقة أكبر.",
     "order.whatsappCta": "أرسل الطلب عبر واتساب",
     "checkout.locationNote":
-      "سنرسل لك رسالة على واتساب لتأكيد الطلب، ويُرجى إرسال الموقع هناك أيضاً لدقة أكبر.",
+      "بعد تقديم طلبك، يُرجى إرسال موقعك عبر واتساب ليتمكن السائق من الوصول إليك. وسنؤكد طلبك هناك.",
+    "checkout.forSomeoneElse": "هذه هدية لشخص آخر",
+    "checkout.forSomeoneElseHint": "أضف اسمه ورقم هاتفه ليتمكن السائق من التواصل معه عند الباب.",
+    "checkout.locateMe": "استخدم موقعي الحالي",
+    "checkout.relocate": "تحديث موقعي",
+    "checkout.locating": "جارٍ تحديد موقعك…",
+    "checkout.located": "تمت إضافة الموقع.",
+    "checkout.viewOnMap": "عرض على الخريطة",
+    "checkout.locateFailed":
+      "تعذّر تحديد موقعك. يمكنك إرساله عبر واتساب بعد الطلب بدلاً من ذلك.",
     "checkout.locationLater": "سأرسل الموقع عبر واتساب",
     "checkout.locationLaterHint":
       "يمكن أن يكون العنوان مختصراً أو فارغاً، وسنعتمد على الموقع الذي ترسله.",

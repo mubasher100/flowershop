@@ -1,7 +1,8 @@
 import { defineWidgetConfig } from "@medusajs/admin-sdk"
-import { DocumentText, Tag } from "@medusajs/icons"
+import { DocumentText, Gift, Tag } from "@medusajs/icons"
 import { Button, Container, Heading, Text, toast } from "@medusajs/ui"
 
+import { cardMessages, printGiftCards } from "../lib/gift-card"
 import { printOrderDocument, type PrintableOrder } from "../lib/print"
 import { useLabelLogo } from "../lib/use-label-logo"
 
@@ -33,7 +34,7 @@ const OrderPrint = ({ data }: { data: PrintableOrder }) => {
       <div className="px-6 py-4">
         <Heading level="h2">Print</Heading>
         <Text size="small" className="text-ui-fg-subtle">
-          The label goes on the box. The receipt goes to the customer.
+          The label goes on the box, the receipt to the customer, and the 8 × 12 cm gift card in with the flowers.
         </Text>
       </div>
 
@@ -50,6 +51,22 @@ const OrderPrint = ({ data }: { data: PrintableOrder }) => {
           <DocumentText />
           Receipt
         </Button>
+        {cardMessages(data).length > 0 && (
+          <Button
+            size="small"
+            variant="secondary"
+            onClick={() => {
+              if (printGiftCards(data, logo) === "blocked") {
+                toast.error(
+                  "Your browser blocked the print window. Allow pop-ups for this site and try again."
+                )
+              }
+            }}
+          >
+            <Gift />
+            Gift card
+          </Button>
+        )}
       </div>
     </Container>
   )

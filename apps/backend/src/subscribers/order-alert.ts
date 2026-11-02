@@ -111,6 +111,7 @@ export default async function orderAlertHandler({
       recipientPhone: meta.recipient_phone || order.shipping_address?.phone,
       address: order.shipping_address?.address_1,
       area: order.shipping_address?.city || meta.delivery_area,
+      locationUrl: meta.location_url || null,
       deliveryDate: meta.delivery_date,
       deliveryWindow: meta.delivery_window,
       deliveryMethod: order.shipping_methods?.[0]?.name,

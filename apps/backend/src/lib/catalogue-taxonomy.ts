@@ -65,6 +65,15 @@ export const TYPE_CATEGORIES: TypeCategory[] = [
     match: (p) => p.group === "vases" || /vase|crystal|sphere/i.test(p.name),
   },
   {
+    // Added 2 Nov 2026, when Big Flowers and Mix Flowers were removed on the
+    // shop's instruction. Curated like Offers: the shop will add its own
+    // table pieces, so no rule claims products for it.
+    name: "Table Arrangements",
+    handle: "table-arrangements",
+    description: "Boxes, pots and vased arrangements, made to sit on a table.",
+    match: () => false,
+  },
+  {
     name: "50 Roses",
     handle: "50-roses",
     description: "Fifty roses, in any of our colours.",
@@ -81,18 +90,6 @@ export const TYPE_CATEGORIES: TypeCategory[] = [
     handle: "200-roses",
     description: "Two hundred roses and up.",
     match: (p) => /\b2\d\d\b/.test(p.name),
-  },
-  {
-    name: "Mix Flowers",
-    handle: "mix-flowers",
-    description: "More than one variety, arranged together.",
-    match: (p) => p.group === "everyday" || /mix|seasonal/i.test(p.name),
-  },
-  {
-    name: "Big Flowers",
-    handle: "big-flowers",
-    description: "Hydrangea, gerbera and hot eskimo — large-headed blooms.",
-    match: (p) => /hydrangea|gerbera|eskimo/i.test(p.name),
   },
   {
     name: "Baby Roses",

@@ -62,8 +62,23 @@ export async function placeGuestOrder(
   const phone = get("phone", FIELD_LIMITS.phone)
   const area = get("area")
   const address = get("address", FIELD_LIMITS.address)
-  const recipient = get("recipient", FIELD_LIMITS.recipient)
-  const recipientPhone = get("recipient_phone", FIELD_LIMITS.phone)
+  // The recipient's name and phone only exist when "This is a gift for
+  // someone else" is ticked (2 Nov 2026). Unticked — or from a page loaded
+  // before that change, which never sends the box — a missing recipient
+  // phone means the customer is receiving it, so the driver calls them.
+  const forSomeoneElse =
+    String(formData.get("for_someone_else") ?? "") === "true"
+  const recipient = forSomeoneElse || formData.has("recipient")
+    ? get("recipient", FIELD_LIMITS.recipient)
+    : ""
+  const recipientPhone =
+    get("recipient_phone", FIELD_LIMITS.phone) || (forSomeoneElse ? "" : phone)
+  // A Google Maps pin from "Use my current location". Only that exact shape
+  // is kept, so a crafted value cannot put any other link on the order.
+  const rawLocation = get("location_url", 120)
+  const locationUrl = /^https:\/\/www\.google\.com\/maps\?q=-?\d{1,3}\.\d{1,8},-?\d{1,3}\.\d{1,8}$/.test(rawLocation)
+    ? rawLocation
+    : ""
   const email = get("email", FIELD_LIMITS.email).toLowerCase()
   const instructions = get("delivery_notes", FIELD_LIMITS.instructions)
   const anonymous = String(formData.get("anonymous") ?? "") === "true"
@@ -230,6 +245,7 @@ export async function placeGuestOrder(
         // reach them.
         anonymous_gift: anonymous ? "true" : "",
         location_on_whatsapp: locationOnWhatsapp ? "true" : "",
+        location_url: locationUrl,
         delivery_area: area,
         delivery_date: deliveryDate,
         delivery_window: deliveryWindow,

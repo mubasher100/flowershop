@@ -18,11 +18,10 @@ export const TYPE_HANDLES = [
   "bouquets",
   "big-bouquets",
   "vases",
+  "table-arrangements",
   "50-roses",
   "100-roses",
   "200-roses",
-  "mix-flowers",
-  "big-flowers",
   "baby-roses",
 ]
 
@@ -51,11 +50,10 @@ const ARABIC_NAMES: Record<string, string> = {
   bouquets: "باقات منسقة يدوياً",
   "big-bouquets": "باقات كبيرة",
   vases: "ورود في مزهريات",
+  "table-arrangements": "تنسيقات الطاولة",
   "50-roses": "٥٠ وردة",
   "100-roses": "١٠٠ وردة",
   "200-roses": "٢٠٠ وردة",
-  "mix-flowers": "زهور مشكّلة",
-  "big-flowers": "زهور كبيرة",
   "baby-roses": "ورود صغيرة",
 
   // Occasions

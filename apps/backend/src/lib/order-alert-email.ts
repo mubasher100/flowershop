@@ -32,6 +32,8 @@ export type OrderAlertInput = {
   recipientPhone?: string | null
   address?: string | null
   area?: string | null
+  /** Google Maps pin from checkout's "Use my current location". */
+  locationUrl?: string | null
   deliveryDate?: string | null
   deliveryWindow?: string | null
   deliveryMethod?: string | null
@@ -135,6 +137,7 @@ export function orderAlertEmail(input: OrderAlertInput) {
     ${row("Method", esc(input.deliveryMethod ?? ""))}
     ${row("To", waLink(input.recipientPhone, input.recipientName))}
     ${row("Address", esc([input.address, input.area].filter(Boolean).join(", ")))}
+    ${input.locationUrl ? row("Map", `<a href="${esc(input.locationUrl)}" style="color:#9d1d4a">Open the customer's pin</a>`) : ""}
     ${row("Notes", esc(input.notes ?? ""))}
   </table>
 </td></tr>
