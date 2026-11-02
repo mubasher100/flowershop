@@ -1,6 +1,7 @@
 import { defineRouteConfig } from "@medusajs/admin-sdk"
 import { ShoppingBag } from "@medusajs/icons"
 
+import GiftCardSample from "../../components/gift-card-sample"
 import LabelLogoSettings from "../../components/label-logo-settings"
 import FlowersPanel from "../../components/shop/flowers-panel"
 import OrdersPanel from "../../components/shop/orders-panel"
@@ -32,6 +33,7 @@ const ShopPage = () => (
     <FlowersPanel />
     {/* Last: set once, then forgotten. */}
     <LabelLogoSettings />
+    <GiftCardSample />
   </div>
 )
 

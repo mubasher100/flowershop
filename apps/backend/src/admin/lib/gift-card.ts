@@ -1,10 +1,12 @@
 /**
- * The printed gift card: 8 × 12 cm, logo on one side, the message on the other.
+ * The printed gift card: L size (89 × 127 mm), logo on one side, the message
+ * on the other. L is a stock photo size, so it is in the printer's own paper
+ * list and the print dialog picks it from the page size declared here.
  *
  * Built to the shop's spec (2 Nov 2026):
- *   - the card stock is 80 × 120 mm and goes into the printer upright
+ *   - the card stock is L, 89 × 127 mm, and goes into the printer upright
  *     (portrait), but the card is designed and read landscape, so every side
- *     is laid out 120 × 80 mm and turned a quarter turn onto the page;
+ *     is laid out 127 × 89 mm and turned a quarter turn onto the page;
  *   - the message grows or shrinks to fill its side — "Happy birthday" prints
  *     large, a paragraph prints small, and neither runs off the card;
  *   - one card per message: the note belongs to the bouquet, and two bouquets
@@ -21,6 +23,10 @@ import { DEFAULT_LOGO } from "./brand-mark"
 import type { PrintableOrder } from "./print"
 
 const ROTATE = 90
+
+/** L photo size, as the card goes into the printer: upright. */
+const PAGE_W = 89
+const PAGE_H = 127
 
 const esc = (value: unknown) =>
   String(value ?? "")
@@ -51,7 +57,27 @@ export function printGiftCards(
 ): "printed" | "blocked" | "none" {
   const messages = cardMessages(order)
   if (!messages.length) return "none"
+  return printCards(messages, `Gift card — Order #${order.display_id}`, logoUrl)
+}
 
+/**
+ * One card with whatever message is typed, for checking the printer, the
+ * card stock and how much fits. Nothing is saved.
+ */
+export function printSampleCard(
+  message: string,
+  logoUrl: string = DEFAULT_LOGO
+): "printed" | "blocked" | "none" {
+  const text = message.trim()
+  if (!text) return "none"
+  return printCards([text], "Sample gift card", logoUrl)
+}
+
+function printCards(
+  messages: string[],
+  title: string,
+  logoUrl: string
+): "printed" | "blocked" | "none" {
   const pages = messages
     .map(
       (message) =>
@@ -68,28 +94,28 @@ export function printGiftCards(
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Gift card — Order #${esc(order.display_id)}</title>
+  <title>${esc(title)}</title>
   <!-- Cormorant Garamond is the storefront's display face; Noto Naskh Arabic
        carries Arabic messages, which Cormorant has no letters for. -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500&family=Noto+Naskh+Arabic:wght@500&display=swap" />
   <style>
-    @page { size: 80mm 120mm; margin: 0; }
+    @page { size: ${PAGE_W}mm ${PAGE_H}mm; margin: 0; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { background: #fff; }
     .page {
-      position: relative; width: 80mm; height: 120mm; overflow: hidden;
+      position: relative; width: ${PAGE_W}mm; height: ${PAGE_H}mm; overflow: hidden;
       page-break-after: always; break-after: page;
     }
     .page:last-child { page-break-after: auto; break-after: auto; }
     /* Laid out landscape, then turned onto the upright page. */
     .card {
-      position: absolute; top: 0; left: 0; width: 120mm; height: 80mm;
+      position: absolute; top: 0; left: 0; width: ${PAGE_H}mm; height: ${PAGE_W}mm;
       transform-origin: top left;
-      transform: ${ROTATE === 90 ? "translateX(80mm) rotate(90deg)" : "translateY(120mm) rotate(-90deg)"};
+      transform: ${ROTATE === 90 ? `translateX(${PAGE_W}mm) rotate(90deg)` : `translateY(${PAGE_H}mm) rotate(-90deg)`};
       display: flex; align-items: center; justify-content: center;
       padding: 9mm 11mm;
     }
-    .logo { max-width: 70mm; max-height: 50mm; object-fit: contain; }
+    .logo { max-width: 80mm; max-height: 56mm; object-fit: contain; }
     .message {
       width: 100%; max-height: 100%; overflow: hidden; text-align: center;
       white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.25;
@@ -103,15 +129,15 @@ export function printGiftCards(
 <body>
   ${pages}
   <script>
-    // Fit each message to its side: the largest size, up to 30pt, at which
-    // it still fits. Runs after the fonts arrive, because the fallback face
+    // Fit each message to its side: the largest size, from 6pt up to 30pt,
+    // at which it still fits. Runs after the fonts arrive, because the fallback face
     // measures differently and would leave the real one overflowing.
     function fit(el) {
       // The card's inner area: its height less the padding that keeps text
       // clear of the edge. (The quarter turn does not change layout sizes.)
       var box = el.parentElement, cs = getComputedStyle(box)
       var maxH = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 1
-      var lo = 8, hi = 30
+      var lo = 6, hi = 30
       while (hi - lo > 0.25) {
         var mid = (lo + hi) / 2
         el.style.fontSize = mid + "pt"
