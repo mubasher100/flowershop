@@ -30,10 +30,10 @@ export type OrderEmailInput = {
 
 const COPY = {
   en: {
-    subject: (shop: string, n: string | number) => `${shop} — order #${n} confirmed`,
-    heading: "Thank you for your order",
+    subject: (shop: string, n: string | number) => `Your order #${n} has been confirmed — ${shop}`,
+    heading: "Your order has been confirmed",
     intro: (shop: string) =>
-      `We have your order and ${shop} will confirm the details with you on WhatsApp shortly.`,
+      `Thank you for ordering from ${shop}. Your order is confirmed, and we'll be in touch on WhatsApp about the delivery.`,
     orderNumber: "Order number",
     delivery: "Delivery",
     deliveringTo: "Delivering to",
@@ -45,10 +45,10 @@ const COPY = {
       "You are receiving this because you placed an order. We do not send marketing email.",
   },
   ar: {
-    subject: (shop: string, n: string | number) => `${shop} — تأكيد الطلب رقم ${n}`,
-    heading: "شكراً لطلبك",
+    subject: (shop: string, n: string | number) => `تم تأكيد طلبك رقم ${n} — ${shop}`,
+    heading: "تم تأكيد طلبك",
     intro: (shop: string) =>
-      `استلمنا طلبك، وسيؤكد لك ${shop} التفاصيل عبر واتساب قريباً.`,
+      `شكراً لطلبك من ${shop}. تم تأكيد طلبك، وسنتواصل معك عبر واتساب بخصوص التوصيل.`,
     orderNumber: "رقم الطلب",
     delivery: "التوصيل",
     deliveringTo: "التوصيل إلى",

@@ -35,6 +35,13 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
  */
 const DEMO_PAYMENT_ENABLED = process.env.NEXT_PUBLIC_DEMO_PAYMENT === "true"
 
+/**
+ * Card payment before the order (SkipCash). On, "Place order" goes to the
+ * card page and WhatsApp waits for the confirmation page — nothing is
+ * ordered until payment goes through, so there is nothing to send yet.
+ */
+const ONLINE_PAYMENT = process.env.NEXT_PUBLIC_ONLINE_PAYMENT === "skipcash"
+
 /** The shop's WhatsApp, digits only. Unset means no hand-off. */
 const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP?.replace(/\D/g, "") || null
 
@@ -190,6 +197,13 @@ export default function GuestCheckout({
     if (!windows.includes(deliveryWindow)) setDeliveryWindow(windows[0])
   }, [windows, deliveryWindow])
 
+  // Back from SkipCash without a paid order: say so, with the bag intact.
+  useEffect(() => {
+    const reason = new URLSearchParams(window.location.search).get("payment")
+    if (reason) setOrderError(t("checkout.paymentFailed"))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   useEffect(() => {
     setSelectedDelivery(
       selectedOption
@@ -263,10 +277,15 @@ export default function GuestCheckout({
     setPending(true)
 
     const request = placeOrderRequest(data)
-    const whatsapp = buildWhatsappLink(data)
+    const whatsapp = ONLINE_PAYMENT ? null : buildWhatsappLink(data)
     if (whatsapp) window.open(whatsapp, "_blank", "noopener")
 
     request.then(async (result) => {
+      // Off to SkipCash. The button stays busy: the page is leaving.
+      if (result.payUrl) {
+        window.location.assign(result.payUrl)
+        return
+      }
       if (result.redirect) {
         router.push(result.redirect)
         return
@@ -689,10 +708,14 @@ export default function GuestCheckout({
             (DEMO_PAYMENT_ENABLED && payMethod === "card" && !paymentRef)
           }
           className="inline-flex min-h-[3.25rem] items-center justify-center rounded-full bg-blush-600 px-8 text-base font-semibold text-white transition-colors hover:bg-blush-700 disabled:opacity-60">
-          {pending ? t("checkout.placing") : t("checkout.place")}
+          {pending
+            ? t("checkout.placing")
+            : ONLINE_PAYMENT
+              ? t("checkout.payAndPlace")
+              : t("checkout.place")}
         </button>
         <p className="text-center text-sm text-ink-600">
-          {t("checkout.noCharge")}
+          {ONLINE_PAYMENT ? t("checkout.payNote") : t("checkout.noCharge")}
         </p>
         {/* Pre-contract information, as Qatar's e-commerce law asks for at
             the point of ordering: what the customer is agreeing to, that the

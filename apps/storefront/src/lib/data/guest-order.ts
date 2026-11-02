@@ -7,7 +7,6 @@ import {
   setShippingMethod,
   updateCart,
 } from "./cart"
-import { listCartPaymentMethods } from "./payment"
 import { listDeliveryAvailability } from "@lib/data/delivery-availability"
 import {
   FIELD_LIMITS,
@@ -32,7 +31,18 @@ import { unstable_rethrow } from "next/navigation"
  * their cache invalidation and error handling.
  */
 
-export type GuestOrderState = { error?: string }
+/**
+ * `payUrl` when the order is to be paid by card first: the browser goes
+ * there, and the order is placed when SkipCash sends the customer back.
+ */
+export type GuestOrderState = { error?: string; payUrl?: string }
+
+/**
+ * Card payment before an order exists (SkipCash), switched on by the build
+ * variable. Off, checkout places the order straight away as it always has.
+ */
+const ONLINE_PAYMENT = process.env.NEXT_PUBLIC_ONLINE_PAYMENT === "skipcash"
+const SKIPCASH = "pp_skipcash_skipcash"
 
 /**
  * Medusa requires an email on every cart, but this shop reaches people by
@@ -272,15 +282,41 @@ export async function placeGuestOrder(
       shippingMethodId: shippingOptionId,
     })
 
-    // Nothing is charged online. The system provider is a no-op that lets the
-    // cart complete; SkipCash replaces it in roadmap phase 8.
-    const providers = await listCartPaymentMethods(cart.region?.id ?? "")
-    const providerId = providers?.[0]?.id ?? "pp_system_default"
-
     const refreshed = await retrieveCart()
     if (!refreshed) return { error: "Your bag is empty." }
 
-    await initiatePaymentSession(refreshed, { provider_id: providerId })
+    if (ONLINE_PAYMENT) {
+      // Pay first. The order is placed by /api/checkout/return once SkipCash
+      // sends the customer back — and only if SkipCash says it is paid.
+      // Cart and locale ride in the path, not the query: SkipCash appends its
+      // own parameters to the return URL.
+      const base = (process.env.NEXT_PUBLIC_BASE_URL || "").replace(/\/+$/, "")
+      const [payerFirst, ...payerRest] = name.split(" ")
+      const resp = await initiatePaymentSession(refreshed, {
+        provider_id: SKIPCASH,
+        data: {
+          first_name: payerFirst,
+          last_name: payerRest.join(" "),
+          phone,
+          email,
+          return_url: `${base}/api/checkout/return/${segment ?? "en-qa"}/${cart.id}`,
+        },
+      })
+      const session = resp?.payment_collection?.payment_sessions?.find(
+        (s) => s.provider_id === SKIPCASH
+      )
+      const payUrl = (session?.data as { payUrl?: string } | undefined)?.payUrl
+      if (!payUrl) {
+        return { error: "We couldn't open the payment page. Please try again." }
+      }
+      return { payUrl }
+    }
+
+    // No card payment: the system provider is a no-op that lets the cart
+    // complete. Named explicitly — once SkipCash is enabled on the region the
+    // first provider in the list could be SkipCash, and an order would then
+    // wait on a payment nobody was asked to make.
+    await initiatePaymentSession(refreshed, { provider_id: "pp_system_default" })
   } catch (e) {
     return {
       error:

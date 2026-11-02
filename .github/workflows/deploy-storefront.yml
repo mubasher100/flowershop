@@ -44,6 +44,10 @@ jobs:
           NEXT_PUBLIC_MEDUSA_BACKEND_URL: ${{ vars.MEDUSA_BACKEND_URL }}
           NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${{ secrets.MEDUSA_PUBLISHABLE_KEY }}
           NEXT_PUBLIC_BASE_URL: ${{ vars.STOREFRONT_BASE_URL }}
+          # "skipcash" makes customers pay by card before the order is placed.
+          # Unset, checkout places orders without payment, as before. Turn it
+          # on only once the backend has live SkipCash keys (see CLAUDE.md).
+          NEXT_PUBLIC_ONLINE_PAYMENT: ${{ vars.ONLINE_PAYMENT }}
           # NEXT_PUBLIC_DEMO_PAYMENT is deliberately not set: the simulated
           # card gateway came off the live site on 1 Nov 2026, and orders
           # are confirmed on WhatsApp only until SkipCash is live.

@@ -314,6 +314,14 @@ export const DICTIONARY = {
     "checkout.summaryHeading": "In your bag",
     "cart.shippingAtCheckout": "Chosen at checkout",
     "checkout.free": "Free",
+    "checkout.payAndPlace": "Pay and place order",
+    "checkout.payNote":
+      "You'll pay by card on SkipCash's secure page, and your order is placed as soon as the payment goes through.",
+    "checkout.paymentFailed":
+      "Your payment didn't go through, so no order was placed and nothing was charged. Your bag is saved. Please try again.",
+    "order.whatsappHeadingPaid": "Paid. One last step: send it to us on WhatsApp",
+    "order.whatsappBodyPaid":
+      "Your payment went through and your order is placed. Tap below to send the details to us on WhatsApp, where we'll confirm your delivery. Please share your location there too.",
     "checkout.placedTitle": "Your order has been placed",
     "checkout.placedBody":
       "Thank you! Your order reached us. Please make sure you sent the WhatsApp message, as that's where we confirm your order and delivery time.",
@@ -785,6 +793,14 @@ export const DICTIONARY = {
     "checkout.summaryHeading": "في سلتك",
     "cart.shippingAtCheckout": "يُحدد عند إتمام الطلب",
     "checkout.free": "مجاناً",
+    "checkout.payAndPlace": "ادفع وأكمل الطلب",
+    "checkout.payNote":
+      "ستدفع بالبطاقة عبر صفحة SkipCash الآمنة، ويُسجَّل طلبك فور نجاح الدفع.",
+    "checkout.paymentFailed":
+      "لم تتم عملية الدفع، لذلك لم يُسجَّل أي طلب ولم يُخصم أي مبلغ. سلتك محفوظة، يُرجى المحاولة مرة أخرى.",
+    "order.whatsappHeadingPaid": "تم الدفع. خطوة أخيرة: أرسل طلبك إلينا على واتساب",
+    "order.whatsappBodyPaid":
+      "تمت عملية الدفع وسُجّل طلبك. اضغط أدناه لإرسال التفاصيل إلينا عبر واتساب، وسنؤكد موعد التوصيل هناك. ويُرجى مشاركة موقعك أيضاً.",
     "checkout.placedTitle": "تم تقديم طلبك",
     "checkout.placedBody":
       "شكراً لك! وصلنا طلبك. يُرجى التأكد من إرسال رسالة واتساب، فهناك نؤكد طلبك وموعد التوصيل.",

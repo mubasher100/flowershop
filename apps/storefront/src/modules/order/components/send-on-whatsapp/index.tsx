@@ -4,6 +4,9 @@ import { getTranslations } from "@lib/i18n/dictionary"
 import { whatsappLink, whatsappOrderMessage } from "@lib/util/whatsapp-order"
 
 const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP?.replace(/\D/g, "") || null
+// With card payment first, nothing opened WhatsApp at checkout: this button is
+// the first time the order is sent, not a resend.
+const ONLINE_PAYMENT = process.env.NEXT_PUBLIC_ONLINE_PAYMENT === "skipcash"
 
 const meta = (record: { metadata?: unknown } | null | undefined, key: string) => {
   const value = (record?.metadata as Record<string, unknown> | null)?.[key]
@@ -60,9 +63,11 @@ export default function SendOnWhatsapp({
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-blush-200 bg-blush-50 p-5">
       <h2 className="font-display text-2xl text-ink-900">
-        {t("order.whatsappHeading")}
+        {t(ONLINE_PAYMENT ? "order.whatsappHeadingPaid" : "order.whatsappHeading")}
       </h2>
-      <p className="text-sm text-ink-700">{t("order.whatsappBody")}</p>
+      <p className="text-sm text-ink-700">
+        {t(ONLINE_PAYMENT ? "order.whatsappBodyPaid" : "order.whatsappBody")}
+      </p>
       <a
         href={whatsappLink(WHATSAPP, orderMessage(order))}
         target="_blank"

@@ -25,6 +25,7 @@ const post = async (path: string, body: BodyInit, json = true) => {
   const data = (await res.json().catch(() => ({}))) as {
     error?: string
     redirect?: string
+    payUrl?: string
   }
   return { ok: res.ok, data }
 }
@@ -53,9 +54,10 @@ export const setBagLine = async (lineId: string, quantity: number) => {
  */
 export const placeOrderRequest = async (
   form: FormData
-): Promise<{ error?: string; redirect?: string; unreachable?: boolean }> => {
+): Promise<{ error?: string; redirect?: string; payUrl?: string; unreachable?: boolean }> => {
   try {
     const { ok, data } = await post("/api/checkout/place", form, false)
+    if (data.payUrl) return { payUrl: data.payUrl }
     if (data.redirect) return { redirect: data.redirect }
     if (data.error) return { error: data.error }
     return ok ? {} : { error: GENERIC }

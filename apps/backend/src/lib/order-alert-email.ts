@@ -71,7 +71,7 @@ export function orderAlertEmail(input: OrderAlertInput) {
 
   // The subject is what shows in a phone's notification, so it carries the
   // two things that decide what happens next: when it goes, and how much.
-  const subject = `New order #${input.orderNumber} — ${
+  const subject = `Order #${input.orderNumber} has been placed — ${
     when || "no delivery date"
   } — ${money(input.total, cur)}${midnight ? " — 11:59 MIDNIGHT" : ""}`
 

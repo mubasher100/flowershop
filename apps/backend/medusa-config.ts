@@ -278,24 +278,42 @@ module.exports = defineConfig({
       },
     },
 
-    // Payment providers. SkipCash lands here in Phase 8:
-    // {
-    //   resolve: '@medusajs/medusa/payment',
-    //   options: {
-    //     providers: [
-    //       {
-    //         resolve: './src/modules/skipcash',
-    //         id: 'skipcash',
-    //         options: {
-    //           baseUrl: process.env.SKIPCASH_BASE_URL,
-    //           clientId: process.env.SKIPCASH_CLIENT_ID,
-    //           keyId: process.env.SKIPCASH_KEY_ID,
-    //           keySecret: process.env.SKIPCASH_KEY_SECRET,
-    //           webhookKey: process.env.SKIPCASH_WEBHOOK_KEY,
-    //         },
-    //       },
-    //     ],
-    //   },
-    // },
+    /**
+     * SkipCash card payments (provider id pp_skipcash_skipcash). Registered
+     * only when all four keys are set, so a deploy without them boots exactly
+     * as before; pp_system_default is always there regardless.
+     *
+     * SKIPCASH_BASE_URL picks the environment: https://skipcashtest.azurewebsites.net
+     * for the sandbox, https://api.skipcash.app for live — and the keys must
+     * come from the same tab of the merchant portal.
+     */
+    ...(process.env.SKIPCASH_CLIENT_ID &&
+    process.env.SKIPCASH_KEY_ID &&
+    process.env.SKIPCASH_KEY_SECRET &&
+    process.env.SKIPCASH_WEBHOOK_KEY
+      ? [
+          {
+            resolve: "@medusajs/medusa/payment",
+            options: {
+              providers: [
+                {
+                  resolve: "./src/modules/skipcash",
+                  id: "skipcash",
+                  options: {
+                    baseUrl: process.env.SKIPCASH_BASE_URL || "https://api.skipcash.app",
+                    clientId: process.env.SKIPCASH_CLIENT_ID,
+                    keyId: process.env.SKIPCASH_KEY_ID,
+                    keySecret: process.env.SKIPCASH_KEY_SECRET,
+                    webhookKey: process.env.SKIPCASH_WEBHOOK_KEY,
+                    webhookUrl: process.env.MEDUSA_BACKEND_URL
+                      ? `${process.env.MEDUSA_BACKEND_URL.replace(/\/+$/, "")}/hooks/payment/skipcash_skipcash`
+                      : undefined,
+                  },
+                },
+              ],
+            },
+          },
+        ]
+      : []),
   ],
 })
