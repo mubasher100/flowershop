@@ -302,12 +302,17 @@ class SkipCashProviderService extends AbstractPaymentProvider<Options> {
     const json = (await res.json().catch(() => ({}))) as {
       resultObj?: { id?: string } | string
       errorMessage?: string
+      validationErrors?: { errorMessage?: string }[] | null
     }
     if (!res.ok || json.errorMessage) {
-      throw new MedusaError(
-        MedusaError.Types.UNEXPECTED_STATE,
-        `SkipCash refused the refund (${res.status}): ${json.errorMessage ?? ""}`
-      )
+      // SkipCash only refunds a payment once it has settled — a fresh one
+      // answers "Transaction can't be yet refunded. Please try again in 5
+      // minutes." Pass its own words on, so the shop knows to retry.
+      const reason =
+        json.errorMessage ||
+        json.validationErrors?.map((v) => v.errorMessage).filter(Boolean).join(" ") ||
+        `status ${res.status}`
+      throw new MedusaError(MedusaError.Types.NOT_ALLOWED, `SkipCash: ${reason}`)
     }
     const refundId = typeof json.resultObj === "string" ? json.resultObj : json.resultObj?.id
     return { data: { ...input.data, refundId } }
