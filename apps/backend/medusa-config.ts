@@ -299,12 +299,15 @@ module.exports = defineConfig({
                 {
                   resolve: "./src/modules/skipcash",
                   id: "skipcash",
+                  // Keys are pasted by hand from the portal, and a stray space or
+                  // line break makes every signature fail. None of them can
+                  // legitimately contain whitespace, so it is stripped.
                   options: {
-                    baseUrl: process.env.SKIPCASH_BASE_URL || "https://api.skipcash.app",
-                    clientId: process.env.SKIPCASH_CLIENT_ID,
-                    keyId: process.env.SKIPCASH_KEY_ID,
-                    keySecret: process.env.SKIPCASH_KEY_SECRET,
-                    webhookKey: process.env.SKIPCASH_WEBHOOK_KEY,
+                    baseUrl: (process.env.SKIPCASH_BASE_URL || "https://api.skipcash.app").trim().replace(/\/+$/, ""),
+                    clientId: process.env.SKIPCASH_CLIENT_ID.replace(/\s+/g, ""),
+                    keyId: process.env.SKIPCASH_KEY_ID.replace(/\s+/g, ""),
+                    keySecret: process.env.SKIPCASH_KEY_SECRET.replace(/\s+/g, ""),
+                    webhookKey: process.env.SKIPCASH_WEBHOOK_KEY.replace(/\s+/g, ""),
                     webhookUrl: process.env.MEDUSA_BACKEND_URL
                       ? `${process.env.MEDUSA_BACKEND_URL.replace(/\/+$/, "")}/hooks/payment/skipcash_skipcash`
                       : undefined,
