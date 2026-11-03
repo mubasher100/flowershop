@@ -55,6 +55,8 @@ type Section = {
   image_url: string | null
   cta_label: string | null
   cta_href: string | null
+  subtitle_ar: string | null
+  cta_label_ar: string | null
   rank: number
   enabled: boolean
 }
@@ -78,6 +80,8 @@ const emptyDraft = {
   image_url: "",
   cta_label: "",
   cta_href: "",
+  subtitle_ar: "",
+  cta_label_ar: "",
   enabled: true,
 }
 
@@ -93,6 +97,8 @@ const toPayload = (draft: Draft) => ({
   image_url: draft.image_url.trim() || null,
   cta_label: draft.cta_label.trim() || null,
   cta_href: draft.cta_href.trim() || null,
+  subtitle_ar: draft.subtitle_ar.trim() || null,
+  cta_label_ar: draft.cta_label_ar.trim() || null,
   enabled: draft.enabled,
 })
 
@@ -205,6 +211,20 @@ function SectionForm({
           </div>
           <div className="flex flex-col gap-2">
             <Label size="small" weight="plus">
+              Subtitle (Arabic)
+            </Label>
+            <Input
+              dir="rtl"
+              value={draft.subtitle_ar}
+              onChange={(e) => set("subtitle_ar", e.target.value)}
+            />
+            <Text size="small" leading="compact" className="text-ui-fg-subtle">
+              Left blank, the Arabic storefront shows the English line — and
+              the same for the button label below.
+            </Text>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label size="small" weight="plus">
               Image URL
             </Label>
             <Input
@@ -221,6 +241,17 @@ function SectionForm({
               value={draft.cta_label}
               onChange={(e) => set("cta_label", e.target.value)}
               placeholder="Shop the season"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label size="small" weight="plus">
+              Button label (Arabic)
+            </Label>
+            <Input
+              dir="rtl"
+              value={draft.cta_label_ar}
+              onChange={(e) => set("cta_label_ar", e.target.value)}
+              placeholder="تسوق الآن"
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -349,6 +380,8 @@ const HomepageSectionsPage = () => {
       image_url: section.image_url ?? "",
       cta_label: section.cta_label ?? "",
       cta_href: section.cta_href ?? "",
+      subtitle_ar: section.subtitle_ar ?? "",
+      cta_label_ar: section.cta_label_ar ?? "",
       enabled: section.enabled,
     })
   }

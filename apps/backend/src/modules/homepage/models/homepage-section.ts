@@ -50,6 +50,14 @@ const HomepageSection = model.define("homepage_section", {
   cta_label: model.text().nullable(),
   cta_href: model.text().nullable(),
 
+  /**
+   * Arabic for the banner's line and button. Like `title_ar`, each falls back
+   * to the English when empty — the banner was English on /ar-qa until these
+   * existed (3 Nov 2026).
+   */
+  subtitle_ar: model.text().nullable(),
+  cta_label_ar: model.text().nullable(),
+
   /** Ascending. Gaps are fine — only the relative order is meaningful. */
   rank: model.number().default(0),
 

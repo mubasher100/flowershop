@@ -25,6 +25,8 @@ type SeedSection = {
   image_url?: string
   cta_label?: string
   cta_href?: string
+  subtitle_ar?: string
+  cta_label_ar?: string
 }
 
 /**
@@ -100,6 +102,9 @@ export default async function seedHomepage({ container }: ExecArgs) {
       "We arrive at 11:59pm the night before, so it is in their hands the moment the day begins.",
     image_url: "/hero/hero-04.jpg",
     cta_label: "How it works",
+    subtitle_ar:
+      "نصل الساعة ١١:٥٩ مساءً في الليلة السابقة، لتكون الهدية بين يديه لحظة بداية اليوم.",
+    cta_label_ar: "كيف تعمل الخدمة",
     cta_href: "/delivery",
   })
 

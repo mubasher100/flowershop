@@ -22,6 +22,8 @@ const sectionFields = {
   image_url: z.string().nullish(),
   cta_label: z.string().nullish(),
   cta_href: z.string().nullish(),
+  subtitle_ar: z.string().nullish(),
+  cta_label_ar: z.string().nullish(),
   rank: z.number().int().min(0).optional(),
   enabled: z.boolean().optional(),
 }

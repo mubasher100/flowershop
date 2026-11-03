@@ -12,6 +12,8 @@ type HomepageSectionRow = {
   image_url: string | null
   cta_label: string | null
   cta_href: string | null
+  subtitle_ar: string | null
+  cta_label_ar: string | null
   rank: number
   enabled: boolean
 }
