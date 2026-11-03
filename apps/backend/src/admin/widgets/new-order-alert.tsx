@@ -94,10 +94,17 @@ const NewOrderAlert = () => {
     }
   }
 
-  // After a reload, the first click anywhere re-enables sound.
+  // After a reload, the first click anywhere re-enables sound — except a
+  // click on the bell, which toggle() handles. Waking audio on the bell's own
+  // pointerdown made the click that followed see sound already on and mute
+  // it, so the first press appeared to do nothing.
+  const bellRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     if (!soundOn) return
-    const wake = () => unlockAudio()
+    const wake = (e: Event) => {
+      if (bellRef.current?.contains(e.target as Node)) return
+      unlockAudio()
+    }
     window.addEventListener("pointerdown", wake)
     window.addEventListener("keydown", wake)
     return () => {
@@ -226,7 +233,12 @@ const NewOrderAlert = () => {
           : "Click to hear a chime when an order comes in."
       }
     >
-      <Button size="small" variant={live ? "secondary" : "primary"} onClick={toggle}>
+      <Button
+        ref={bellRef}
+        size="small"
+        variant={live ? "secondary" : "primary"}
+        onClick={toggle}
+      >
         {live ? <BellAlertSolid /> : <BellAlert />}
         {live ? "Order alerts on" : "Turn on order sound"}
       </Button>
