@@ -2,7 +2,7 @@
 
 import { HttpTypes } from "@medusajs/types"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import DemoPayment from "@modules/checkout/components/demo-payment"
 import {
@@ -17,6 +17,7 @@ import {
   windowsFor,
 } from "@lib/util/delivery"
 import { setSelectedDelivery } from "@lib/util/delivery-selection"
+import { readCheckoutDraft, saveCheckoutDraft } from "@lib/util/checkout-draft"
 import type { DayAvailability } from "@lib/data/delivery-availability"
 
 import { convertToLocale } from "@lib/util/money"
@@ -45,6 +46,20 @@ const ONLINE_PAYMENT = process.env.NEXT_PUBLIC_ONLINE_PAYMENT === "skipcash"
 
 /** The shop's WhatsApp, digits only. Unset means no hand-off. */
 const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP?.replace(/\D/g, "") || null
+
+/** The plain fields kept for the round trip to SkipCash (checkout-draft). */
+const DRAFT_FIELDS = [
+  "name",
+  "phone",
+  "email",
+  "recipient",
+  "recipient_phone",
+  "area",
+  "address",
+  "delivery_notes",
+  "gift_note",
+  "anonymous",
+]
 
 
 /**
@@ -198,6 +213,44 @@ export default function GuestCheckout({
     if (!windows.includes(deliveryWindow)) setDeliveryWindow(windows[0])
   }, [windows, deliveryWindow])
 
+  // Whatever was typed before the trip to SkipCash, back in the form. The
+  // plain fields are written straight into the inputs once the render that
+  // restores the gift checkbox has put the recipient's fields on the page.
+  const formRef = useRef<HTMLFormElement>(null)
+  const [draftFields, setDraftFields] = useState<Record<string, string> | null>(null)
+  useEffect(() => {
+    const draft = readCheckoutDraft(cart.id)
+    if (!draft) return
+    const option = shippingOptions.find((o) => o.id === draft.shippingId)
+    if (option) setShippingId(option.id)
+    const floor = isMidnightOption(option) ? midnightMinDate : standardMinDate
+    if (draft.deliveryDate >= floor) setDeliveryDate(draft.deliveryDate)
+    // Checked against what is still offered by the effect above.
+    if (draft.deliveryWindow) setDeliveryWindow(draft.deliveryWindow)
+    setForSomeoneElse(draft.forSomeoneElse)
+    setPin(draft.pin)
+    setDraftFields(draft.fields)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  useEffect(() => {
+    const form = formRef.current
+    if (!draftFields || !form) return
+    for (const [name, value] of Object.entries(draftFields)) {
+      const el = form.elements.namedItem(name)
+      if (el instanceof HTMLInputElement && el.type === "checkbox") {
+        el.checked = value === "true"
+      } else if (
+        (el instanceof HTMLInputElement ||
+          el instanceof HTMLTextAreaElement ||
+          el instanceof HTMLSelectElement) &&
+        !el.value
+      ) {
+        el.value = value
+      }
+    }
+    setDraftFields(null)
+  }, [draftFields])
+
   // Back from SkipCash without a paid order: say so, with the bag intact.
   useEffect(() => {
     const reason = new URLSearchParams(window.location.search).get("payment")
@@ -288,6 +341,20 @@ export default function GuestCheckout({
     setOrderError(undefined)
     setPending(true)
 
+    // Kept for the round trip to SkipCash: Back, or a declined card, reloads
+    // this page empty (lib/util/checkout-draft.ts).
+    saveCheckoutDraft({
+      cartId: cart.id,
+      fields: Object.fromEntries(
+        DRAFT_FIELDS.map((name) => [name, String(data.get(name) ?? "")])
+      ),
+      forSomeoneElse,
+      pin,
+      shippingId,
+      deliveryDate,
+      deliveryWindow,
+    })
+
     const request = placeOrderRequest(data)
     const whatsapp = ONLINE_PAYMENT ? null : buildWhatsappLink(data)
     if (whatsapp) window.open(whatsapp, "_blank", "noopener")
@@ -311,14 +378,14 @@ export default function GuestCheckout({
         return
       }
       setOrderError(
-        result.error ?? "We couldn't confirm that order. Please try again."
+        result.error ?? t("err.orderFailed")
       )
       setPending(false)
     })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+    <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-8">
       {/* So the confirmation page opens in the language they ordered in. */}
       <input type="hidden" name="segment" value={segment} />
       <section className="flex flex-col gap-4">

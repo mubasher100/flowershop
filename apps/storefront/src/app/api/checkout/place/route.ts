@@ -3,6 +3,7 @@ import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { getURLFromRedirectError } from "next/dist/client/components/redirect"
 
 import { placeGuestOrder } from "@lib/data/guest-order"
+import { getTranslations } from "@lib/i18n/dictionary"
 
 /**
  * Place the order, at an address that survives a deploy.
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest) {
     }
     console.error("Placing order failed", e)
     return NextResponse.json(
-      { error: "We couldn't confirm that order. Please try again." },
+      { error: getTranslations(req.headers.get("x-segment")).t("err.orderFailed") },
       { status: 500, headers: { "Cache-Control": "no-store" } }
     )
   }

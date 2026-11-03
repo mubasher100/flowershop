@@ -321,6 +321,38 @@ export const DICTIONARY = {
       "You'll pay by card on SkipCash's secure page, and your order is placed as soon as the payment goes through.",
     "checkout.paymentFailed":
       "Your payment didn't go through, so no order was placed and nothing was charged. Your bag is saved. Please try again.",
+    "err.name": "Please tell us your name.",
+    "err.phone": "Please enter a valid phone number so we can confirm your order.",
+    "err.area": "Please choose a delivery area from the list.",
+    "err.address": "Please add the delivery address.",
+    "err.email": "That email address does not look right.",
+    "err.delivery": "Please choose a delivery speed.",
+    "err.recipientPhone":
+      "Please add the recipient's phone number so our driver can reach them.",
+    "err.dayClosed": "We are not delivering on that date. Please choose another day.",
+    "err.dayFull": "That day is fully booked. Please choose another date.",
+    "err.windowFull": "That delivery window is fully booked. Please choose another time.",
+    "err.datePassed": "Please choose a delivery date that has not passed.",
+    "err.todayClosed":
+      "Today's deliveries have closed. Please choose tomorrow or a later date.",
+    "err.windowGone":
+      "That delivery time is no longer available. Please choose another window.",
+    "err.midnightClosed":
+      "Tonight's 11:59 orders closed at 6pm. Please choose tomorrow night or later.",
+    "err.midnightNotYet":
+      "Tonight's 11:59 orders open at 12pm. Please choose another night, or come back after 12.",
+    "err.emptyBag": "Your bag is empty.",
+    "err.payPage": "We couldn't open the payment page. Please try again.",
+    "err.soldOutInBag":
+      "Sorry — a flower in your bag has just sold out. Please remove it from your bag and choose another.",
+    "err.orderFailed": "We couldn't confirm that order. Please try again.",
+    "err.checkDetails": "We couldn't confirm that order. Please check your details.",
+    "err.soldOut": "Sorry, that flower has just sold out.",
+    "err.addFailed": "That didn't go in. Please try again.",
+    "err.notEnough": "Sorry, there aren't enough of that flower left.",
+    "err.bagFailed": "We couldn't update your bag. Please try again.",
+    "err.generic": "Something went wrong. Please try again.",
+    "err.offline": "We couldn't reach the shop. Check your connection and try again.",
     "order.whatsappHeadingPaid": "Paid. One last step: send it to us on WhatsApp",
     "order.whatsappBodyPaid":
       "Your payment went through and your order is placed. Tap below to send the details to us on WhatsApp, where we'll confirm your delivery. Please share your location there too.",
@@ -802,6 +834,35 @@ export const DICTIONARY = {
       "ستدفع بالبطاقة عبر صفحة SkipCash الآمنة، ويُسجَّل طلبك فور نجاح الدفع.",
     "checkout.paymentFailed":
       "لم تتم عملية الدفع، لذلك لم يُسجَّل أي طلب ولم يُخصم أي مبلغ. سلتك محفوظة، يُرجى المحاولة مرة أخرى.",
+    "err.name": "يُرجى كتابة اسمك.",
+    "err.phone": "يُرجى إدخال رقم هاتف صحيح لنتمكن من تأكيد طلبك.",
+    "err.area": "يُرجى اختيار منطقة التوصيل من القائمة.",
+    "err.address": "يُرجى إضافة عنوان التوصيل.",
+    "err.email": "يبدو أن البريد الإلكتروني غير صحيح.",
+    "err.delivery": "يُرجى اختيار نوع التوصيل.",
+    "err.recipientPhone": "يُرجى إضافة رقم هاتف المستلم ليتمكن السائق من الوصول إليه.",
+    "err.dayClosed": "لا نوصّل في هذا التاريخ. يُرجى اختيار يوم آخر.",
+    "err.dayFull": "هذا اليوم محجوز بالكامل. يُرجى اختيار تاريخ آخر.",
+    "err.windowFull": "فترة التوصيل هذه محجوزة بالكامل. يُرجى اختيار وقت آخر.",
+    "err.datePassed": "يُرجى اختيار تاريخ توصيل لم يمضِ بعد.",
+    "err.todayClosed": "انتهى التوصيل لهذا اليوم. يُرجى اختيار الغد أو تاريخ لاحق.",
+    "err.windowGone": "وقت التوصيل هذا لم يعد متاحاً. يُرجى اختيار فترة أخرى.",
+    "err.midnightClosed":
+      "أُغلقت طلبات ١١:٥٩ لهذه الليلة عند الساعة ٦ مساءً. يُرجى اختيار ليلة الغد أو ما بعدها.",
+    "err.midnightNotYet":
+      "تُفتح طلبات ١١:٥٩ لهذه الليلة الساعة ١٢ ظهراً. يُرجى اختيار ليلة أخرى أو العودة بعد الساعة ١٢.",
+    "err.emptyBag": "سلتك فارغة.",
+    "err.payPage": "تعذّر فتح صفحة الدفع. يُرجى المحاولة مرة أخرى.",
+    "err.soldOutInBag":
+      "عذراً، نفدت للتو إحدى الورود في سلتك. يُرجى إزالتها من السلة واختيار غيرها.",
+    "err.orderFailed": "تعذّر تأكيد الطلب. يُرجى المحاولة مرة أخرى.",
+    "err.checkDetails": "تعذّر تأكيد الطلب. يُرجى التحقق من بياناتك.",
+    "err.soldOut": "عذراً، نفدت هذه الوردة للتو.",
+    "err.addFailed": "لم تتم الإضافة. يُرجى المحاولة مرة أخرى.",
+    "err.notEnough": "عذراً، لا تتوفر كمية كافية من هذه الوردة.",
+    "err.bagFailed": "تعذّر تحديث سلتك. يُرجى المحاولة مرة أخرى.",
+    "err.generic": "حدث خطأ ما. يُرجى المحاولة مرة أخرى.",
+    "err.offline": "تعذّر الاتصال بالمتجر. تحقّق من اتصالك وحاول مرة أخرى.",
     "order.whatsappHeadingPaid": "تم الدفع. خطوة أخيرة: أرسل طلبك إلينا على واتساب",
     "order.whatsappBodyPaid":
       "تمت عملية الدفع وسُجّل طلبك. اضغط أدناه لإرسال التفاصيل إلينا عبر واتساب، وسنؤكد موعد التوصيل هناك. ويُرجى مشاركة موقعك أيضاً.",

@@ -8,6 +8,7 @@ import {
   updateCart,
 } from "./cart"
 import { listDeliveryAvailability } from "@lib/data/delivery-availability"
+import { getTranslations } from "@lib/i18n/dictionary"
 import {
   FIELD_LIMITS,
   isDeliveryArea,
@@ -109,21 +110,23 @@ export async function placeGuestOrder(
   // segment so a crafted value cannot turn the redirect into an open one.
   const rawSegment = get("segment", 8)
   const segment = /^[a-z]{2}-[a-z]{2}$/.test(rawSegment) ? rawSegment : undefined
+  // Every refusal is shown to the customer, in the language they ordered in.
+  const { t } = getTranslations(segment)
 
-  if (!name) return { error: "Please tell us your name." }
+  if (!name) return { error: t("err.name") }
   // Qatar mobile numbers are 8 digits; allow a country code and any spacing.
   if (phone.replace(/\D/g, "").length < 8) {
     return {
-      error: "Please enter a valid phone number so we can confirm your order.",
+      error: t("err.phone"),
     }
   }
   // Checked against the list the form offers, rather than accepted as free
   // text — the select is a convenience, not a constraint.
   if (!isDeliveryArea(area)) {
-    return { error: "Please choose a delivery area from the list." }
+    return { error: t("err.area") }
   }
   if (!address && !locationOnWhatsapp) {
-    return { error: "Please add the delivery address." }
+    return { error: t("err.address") }
   }
   // Written into the address itself, in English for the shopkeeper like the
   // area, so the label, the admin and the shop's alert email all carry it
@@ -136,16 +139,16 @@ export async function placeGuestOrder(
   // Optional, but if given it has to be usable — a typo means the
   // confirmation goes nowhere and the customer never learns it did not.
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-    return { error: "That email address does not look right." }
+    return { error: t("err.email") }
   }
-  if (!shippingOptionId) return { error: "Please choose a delivery speed." }
+  if (!shippingOptionId) return { error: t("err.delivery") }
   // The driver's number. The form requires it, but a form post is just an
   // HTTP request, and an order that reaches the door with no way to call the
   // recipient is the most expensive kind of failed delivery.
   if (recipientPhone.replace(/\D/g, "").length < 8) {
     return {
       error:
-        "Please add the recipient's phone number so our driver can reach them.",
+        t("err.recipientPhone"),
     }
   }
 
@@ -166,21 +169,21 @@ export async function placeGuestOrder(
   const [day] = await listDeliveryAvailability([deliveryDate])
   if (day?.closed) {
     return {
-      error: "We are not delivering on that date. Please choose another day.",
+      error: t("err.dayClosed"),
     }
   }
   if (day?.full) {
     return {
-      error: "That day is fully booked. Please choose another date.",
+      error: t("err.dayFull"),
     }
   }
   if (!isMidnight && day?.full_windows?.includes(rawWindow)) {
     return {
-      error: "That delivery window is fully booked. Please choose another time.",
+      error: t("err.windowFull"),
     }
   }
   if (!deliveryDate || deliveryDate < clock.date) {
-    return { error: "Please choose a delivery date that has not passed." }
+    return { error: t("err.datePassed") }
   }
 
   let deliveryWindow = rawWindow
@@ -189,13 +192,13 @@ export async function placeGuestOrder(
     if (!available.length) {
       return {
         error:
-          "Today's deliveries have closed. Please choose tomorrow or a later date.",
+          t("err.todayClosed"),
       }
     }
     if (!available.includes(rawWindow)) {
       return {
         error:
-          "That delivery time is no longer available. Please choose another window.",
+          t("err.windowGone"),
       }
     }
     deliveryWindow = rawWindow
@@ -209,19 +212,19 @@ export async function placeGuestOrder(
     if (availability === "closed") {
       return {
         error:
-          "Tonight's 11:59 orders closed at 6pm. Please choose tomorrow night or later.",
+          t("err.midnightClosed"),
       }
     }
     if (availability === "not-yet") {
       return {
         error:
-          "Tonight's 11:59 orders open at 12pm. Please choose another night, or come back after 12.",
+          t("err.midnightNotYet"),
       }
     }
   }
 
   const cart = await retrieveCart()
-  if (!cart) return { error: "Your bag is empty." }
+  if (!cart) return { error: t("err.emptyBag") }
 
   // The address belongs to whoever is receiving the flowers; the buyer's own
   // name and number stay on the order as the contact. Before this the label
@@ -283,7 +286,7 @@ export async function placeGuestOrder(
     })
 
     const refreshed = await retrieveCart()
-    if (!refreshed) return { error: "Your bag is empty." }
+    if (!refreshed) return { error: t("err.emptyBag") }
 
     if (ONLINE_PAYMENT) {
       // Pay first. The order is placed by /api/checkout/return once SkipCash
@@ -307,7 +310,7 @@ export async function placeGuestOrder(
       )
       const payUrl = (session?.data as { payUrl?: string } | undefined)?.payUrl
       if (!payUrl) {
-        return { error: "We couldn't open the payment page. Please try again." }
+        return { error: t("err.payPage") }
       }
       return { payUrl }
     }
@@ -318,11 +321,15 @@ export async function placeGuestOrder(
     // wait on a payment nobody was asked to make.
     await initiatePaymentSession(refreshed, { provider_id: "pp_system_default" })
   } catch (e) {
+    // Medusa's and SkipCash's own wording ("SkipCash refused the payment
+    // (403)…", ids and all) used to go straight to the customer, in English
+    // on both sites. They get a sentence; the detail goes to the Worker log.
+    const message = e instanceof Error ? e.message : String(e)
+    console.error("Checkout failed before payment:", message)
     return {
-      error:
-        e instanceof Error
-          ? e.message
-          : "We couldn't confirm that order. Please try again.",
+      error: /not enough stock|insufficient inventory|does not have the required inventory/i.test(message)
+        ? t("err.soldOutInBag")
+        : t("err.orderFailed"),
     }
   }
 
@@ -346,12 +353,12 @@ export async function placeGuestOrder(
     if (/not enough stock|insufficient inventory|does not have the required inventory/i.test(message)) {
       return {
         error:
-          "Sorry — a flower in your bag has just sold out. Please remove it from your bag and choose another.",
+          t("err.soldOutInBag"),
       }
     }
-    return { error: "We couldn't confirm that order. Please try again." }
+    return { error: t("err.orderFailed") }
   }
   return {
-    error: "We couldn't confirm that order. Please check your details.",
+    error: t("err.checkDetails"),
   }
 }

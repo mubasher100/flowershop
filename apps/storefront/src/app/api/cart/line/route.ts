@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { deleteLineItem, updateLineItem } from "@lib/data/cart"
+import { getTranslations } from "@lib/i18n/dictionary"
 
 /**
  * Change a bag line's quantity, or remove it (quantity 0).
@@ -12,6 +13,7 @@ import { deleteLineItem, updateLineItem } from "@lib/data/cart"
 export const dynamic = "force-dynamic"
 
 export async function POST(req: NextRequest) {
+  const { t } = getTranslations(req.headers.get("x-segment"))
   try {
     const body = await req.json()
     const lineId = String(body?.lineId ?? "")
@@ -27,8 +29,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error: /not enough stock|insufficient inventory|required inventory/i.test(message)
-          ? "Sorry, there aren't enough of that flower left."
-          : "We couldn't update your bag. Please try again.",
+          ? t("err.notEnough")
+          : t("err.bagFailed"),
       },
       { status: 400, headers: { "Cache-Control": "no-store" } }
     )

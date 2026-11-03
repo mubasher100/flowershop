@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { addToCart } from "@lib/data/cart"
+import { getTranslations } from "@lib/i18n/dictionary"
 
 /**
  * Add to bag, at an address that survives a deploy.
@@ -15,6 +16,9 @@ import { addToCart } from "@lib/data/cart"
 export const dynamic = "force-dynamic"
 
 export async function POST(req: NextRequest) {
+  // The page's locale, sent by lib/util/cart-api.ts, so a refusal reads in
+  // the customer's language.
+  const { t } = getTranslations(req.headers.get("x-segment"))
   try {
     const body = await req.json()
     const metadata =
@@ -42,8 +46,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error: /not enough stock|insufficient inventory|required inventory/i.test(message)
-          ? "Sorry, that flower has just sold out."
-          : "That didn't go in. Please try again.",
+          ? t("err.soldOut")
+          : t("err.addFailed"),
       },
       { status: 400, headers: { "Cache-Control": "no-store" } }
     )
