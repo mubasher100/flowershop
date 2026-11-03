@@ -11,6 +11,7 @@ import {
   MIDNIGHT_WINDOW,
   earliestStandardDate,
   isMidnightOption,
+  isStandardOption,
   midnightAvailability,
   qatarClock,
   windowsFor,
@@ -202,6 +203,17 @@ export default function GuestCheckout({
     const reason = new URLSearchParams(window.location.search).get("payment")
     if (reason) setOrderError(t("checkout.paymentFailed"))
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Back from SkipCash with the browser's back button: the page comes out of
+  // the back/forward cache exactly as it was left — mid-submit, the button
+  // still saying it is sending. Nothing is in flight any more, so free it.
+  useEffect(() => {
+    const restored = (event: PageTransitionEvent) => {
+      if (event.persisted) setPending(false)
+    }
+    window.addEventListener("pageshow", restored)
+    return () => window.removeEventListener("pageshow", restored)
   }, [])
 
   useEffect(() => {
@@ -488,7 +500,11 @@ export default function GuestCheckout({
                   className="mt-1 h-4 w-4 accent-blush-600" />
                 <span className="flex flex-col">
                   <span className="text-base text-ink-900">
-                    {isMidnightOption(option) ? t("midnight.name") : option.name}
+                    {isMidnightOption(option)
+                      ? t("midnight.name")
+                      : isStandardOption(option)
+                        ? t("delivery.standardName")
+                        : option.name}
                   </span>
                   {isMidnightOption(option) && (
                     <span className="text-sm text-ink-600">{t("midnight.pitch")}</span>

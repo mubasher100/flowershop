@@ -60,6 +60,7 @@ jobs:
           NEXT_PUBLIC_LEGAL_NAME: ${{ vars.LEGAL_NAME }}
           NEXT_PUBLIC_LEGAL_CR: ${{ vars.LEGAL_CR }}
           NEXT_PUBLIC_LEGAL_ADDRESS: ${{ vars.LEGAL_ADDRESS }}
+          NEXT_PUBLIC_LEGAL_ADDRESS_AR: ${{ vars.LEGAL_ADDRESS_AR }}
           NEXT_PUBLIC_LEGAL_EMAIL: ${{ vars.LEGAL_EMAIL }}
           # Google Analytics 4. Unset means no analytics script ships at all,
           # which is also why the site needs no cookie banner today.

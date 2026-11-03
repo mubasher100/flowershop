@@ -10,9 +10,11 @@ type ThumbnailProps = {
   size?: "small" | "medium" | "large" | "full" | "square"
   isFeatured?: boolean
   className?: string
-  /** What the photograph shows. Falls back to a generic word only when the
-      caller genuinely has no name for it — "Thumbnail" on every product
-      image is wasted on both screen readers and image search. */
+  /** What the photograph shows. Leave it out where the product's name is
+      already beside the image in the same link or row: the image is then
+      decorative, and an empty alt stops screen readers reading the name
+      twice. (It used to fall back to "Thumbnail" — English on the Arabic
+      site, and meaningless in either language.) */
   alt?: string
   "data-testid"?: string
 }
@@ -60,7 +62,7 @@ const ImageOrPlaceholder = ({
   return image ? (
     <Image
       src={image}
-      alt={alt || "Thumbnail"}
+      alt={alt ?? ""}
       className="absolute inset-0 object-cover object-center"
       draggable={false}
       quality={50}

@@ -23,6 +23,9 @@ export type HomepageSection = {
   image_url: string | null
   cta_label: string | null
   cta_href: string | null
+  // Optional: an older backend does not send them.
+  subtitle_ar?: string | null
+  cta_label_ar?: string | null
   rank: number
 }
 
@@ -35,3 +38,11 @@ export type HomepageSection = {
  */
 export const headingFor = (section: HomepageSection, locale: string) =>
   locale === "ar" && section.title_ar?.trim() ? section.title_ar : section.title
+
+/** A banner's or slide's line, in the visitor's language — English if unset. */
+export const subtitleFor = (section: HomepageSection, locale: string) =>
+  (locale === "ar" && section.subtitle_ar?.trim()) || section.subtitle
+
+/** A banner's or slide's button label, in the visitor's language. */
+export const ctaLabelFor = (section: HomepageSection, locale: string) =>
+  (locale === "ar" && section.cta_label_ar?.trim()) || section.cta_label

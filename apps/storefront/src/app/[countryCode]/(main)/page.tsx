@@ -13,7 +13,7 @@ import { getCategorySummary } from "@lib/data/categories"
 import { listCollections } from "@lib/data/collections"
 import { listHomepageSections } from "@lib/data/homepage"
 import { getRegion, listRegions } from "@lib/data/regions"
-import { headingFor } from "@lib/util/homepage"
+import { ctaLabelFor, headingFor, subtitleFor } from "@lib/util/homepage"
 import { BRAND_NAME } from "@modules/common/components/brand"
 import ProductRail from "@modules/home/components/featured-products/product-rail"
 import PromoBanner from "@modules/home/components/promo-banner"
@@ -176,10 +176,10 @@ export default async function Home(props: {
           // would be read twice. It is the best available description short
           // of a dedicated field, and better than an empty string here.
           alt: heading,
-          eyebrow: s.subtitle ?? "",
+          eyebrow: subtitleFor(s, locale) ?? "",
           title: heading,
-          body: s.subtitle ?? "",
-          ctaLabel: s.cta_label ?? t("nav.shopAll"),
+          body: subtitleFor(s, locale) ?? "",
+          ctaLabel: ctaLabelFor(s, locale) ?? t("nav.shopAll"),
           href: s.cta_href ?? "/store",
         }
       })
@@ -272,9 +272,9 @@ export default async function Home(props: {
               <PromoBanner
                 key={section.id}
                 title={heading}
-                body={section.subtitle ?? undefined}
+                body={subtitleFor(section, locale) ?? undefined}
                 image={section.image_url}
-                ctaLabel={section.cta_label ?? ""}
+                ctaLabel={ctaLabelFor(section, locale) ?? ""}
                 href={section.cta_href ?? "/store"}
                 // The first banner is likely above the fold on a phone.
                 size={index === 0 ? "tall" : "standard"}

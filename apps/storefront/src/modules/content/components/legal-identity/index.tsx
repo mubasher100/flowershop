@@ -1,4 +1,5 @@
 import { getTranslations } from "@lib/i18n/dictionary"
+import { localeOf } from "@lib/util/locale"
 import { BRAND_NAME } from "@modules/common/components/brand"
 
 /**
@@ -18,9 +19,15 @@ export const LEGAL = {
   name: process.env.NEXT_PUBLIC_LEGAL_NAME?.trim() || BRAND_NAME,
   cr: process.env.NEXT_PUBLIC_LEGAL_CR?.trim() || null,
   address: process.env.NEXT_PUBLIC_LEGAL_ADDRESS?.trim() || null,
+  /** The same address written in Arabic, for /ar-qa (LEGAL_ADDRESS_AR). */
+  addressAr: process.env.NEXT_PUBLIC_LEGAL_ADDRESS_AR?.trim() || null,
   email: process.env.NEXT_PUBLIC_LEGAL_EMAIL?.trim() || null,
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP?.replace(/\D/g, "") || null,
 }
+
+/** The address in the page's language, falling back to the English one. */
+export const legalAddress = (segment?: string) =>
+  (localeOf(segment) === "ar" && LEGAL.addressAr) || LEGAL.address
 
 export default function LegalIdentity({ segment }: { segment?: string }) {
   const { t } = getTranslations(segment)
@@ -29,7 +36,8 @@ export default function LegalIdentity({ segment }: { segment?: string }) {
     [t("legal.tradingName"), LEGAL.name],
   ]
   if (LEGAL.cr) rows.push([t("legal.cr"), <span key="cr" dir="ltr">{LEGAL.cr}</span>])
-  if (LEGAL.address) rows.push([t("legal.address"), LEGAL.address])
+  const address = legalAddress(segment)
+  if (address) rows.push([t("legal.address"), address])
   if (LEGAL.whatsapp) {
     rows.push([
       t("legal.whatsapp"),

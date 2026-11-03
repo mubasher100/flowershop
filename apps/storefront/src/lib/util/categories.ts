@@ -89,3 +89,41 @@ export function localizedCategoryName(
   }
   return name ?? ""
 }
+
+/**
+ * Arabic for the one-line category descriptions, each paired with the English
+ * it translates. The Arabic is used only while Medusa's description still
+ * reads exactly that: a description rewritten in the admin shows its new
+ * English on /ar-qa rather than an Arabic sentence that no longer matches.
+ */
+const ARABIC_DESCRIPTIONS: Record<string, [string, string]> = {
+  "hot-deals": [
+    "Every flower on offer, at its reduced price.",
+    "كل الورود المعروضة بسعرها المخفّض.",
+  ],
+  "big-bouquets": [
+    "50 to 300 roses, built as a single armful.",
+    "من ٥٠ إلى ٣٠٠ وردة في باقة واحدة تملأ الذراعين.",
+  ],
+  "50-roses": ["Fifty roses, in any of our colours.", "خمسون وردة، بأي لون من ألواننا."],
+  "100-roses": ["One hundred roses.", "مئة وردة."],
+  "200-roses": ["Two hundred roses and up.", "مئتا وردة فأكثر."],
+  "baby-roses": ["Spray roses in red, white and pink.", "ورود صغيرة متفرعة بالأحمر والأبيض والوردي."],
+  "table-arrangements": [
+    "Boxes, pots and vased arrangements, made to sit on a table.",
+    "صناديق وأصص وتنسيقات في مزهريات، مصمّمة لتزيّن الطاولة.",
+  ],
+}
+
+/** A category's description in the visitor's language. */
+export function localizedCategoryDescription(
+  handle: string | null | undefined,
+  description: string | null | undefined,
+  segment?: string | null
+): string {
+  const pair = handle ? ARABIC_DESCRIPTIONS[handle] : undefined
+  if (localeOf(segment) === "ar" && pair && description?.trim() === pair[0]) {
+    return pair[1]
+  }
+  return description ?? ""
+}

@@ -5,7 +5,7 @@ import { localizedCategoryName } from "@lib/util/categories"
 
 import Brand, { BRAND_NAME } from "@modules/common/components/brand"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import { LEGAL } from "@modules/content/components/legal-identity"
+import { LEGAL, legalAddress } from "@modules/content/components/legal-identity"
 
 /**
  * Site footer.
@@ -152,7 +152,7 @@ export default async function Footer({ segment }: { segment?: string }) {
                   {t("legal.cr")} <span dir="ltr">{LEGAL.cr}</span>
                 </>
               ),
-              LEGAL.address,
+              legalAddress(segment),
             ]
               .filter(Boolean)
               .map((part, i) => (

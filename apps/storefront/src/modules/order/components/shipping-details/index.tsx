@@ -1,5 +1,5 @@
 import { getTranslations } from "@lib/i18n/dictionary"
-import { isMidnightOption } from "@lib/util/delivery"
+import { isMidnightOption, isStandardOption } from "@lib/util/delivery"
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
 import { Heading, Text } from "@modules/common/components/ui"
@@ -20,7 +20,11 @@ const ShippingDetails = ({ order, segment }: ShippingDetailsProps) => {
   const fee = method?.total ?? 0
   // Named as checkout names it: 11:59 in the visitor's language, anything
   // else by its Medusa name.
-  const methodName = isMidnightOption(method) ? t("midnight.name") : method?.name
+  const methodName = isMidnightOption(method)
+    ? t("midnight.name")
+    : isStandardOption(method)
+      ? t("delivery.standardName")
+      : method?.name
 
   return (
     <div>

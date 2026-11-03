@@ -64,6 +64,8 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
             thumbnail={item.thumbnail}
             images={item.variant?.product?.images}
             size="square"
+            // The only thing inside this link, so it is the link's name.
+            alt={item.product_title ?? item.title ?? ""}
           />
         </LocalizedClientLink>
       </Table.Cell>

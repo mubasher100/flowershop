@@ -80,6 +80,14 @@ export const isMidnightOption = (option?: {
   option?.type?.code === MIDNIGHT_CODE ||
   /11[:.]59/.test(option?.name ?? "")
 
+/** Standard Delivery — named from the dictionary so it reads in Arabic. */
+export const isStandardOption = (option?: {
+  name?: string | null
+  type?: { code?: string | null } | null
+}): boolean =>
+  option?.type?.code === "standard" ||
+  /^standard delivery$/i.test(option?.name?.trim() ?? "")
+
 /**
  * 11:59 is pre-order only.
  *

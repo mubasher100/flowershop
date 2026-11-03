@@ -2,6 +2,7 @@
 
 import { clx } from "@modules/common/components/ui"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useTranslations } from "@lib/i18n/use-translations"
 
 export function Pagination({
   page,
@@ -12,6 +13,7 @@ export function Pagination({
   totalPages: number
   'data-testid'?: string
 }) {
+  const { t } = useTranslations()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -43,7 +45,7 @@ export function Pagination({
           : "text-ink-600 hover:bg-blush-100 hover:text-blush-700"
       )}
       aria-current={isCurrent ? "page" : undefined}
-      aria-label={`Page ${label}`}
+      aria-label={t("pagination.page", { n: label })}
       disabled={isCurrent}
       onClick={() => handlePageChange(p)}
     >
