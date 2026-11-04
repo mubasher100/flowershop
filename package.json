@@ -22,13 +22,13 @@
     }
   },
   "devDependencies": {
-    "@medusajs/eslint-plugin": "2.16.0",
+    "@medusajs/eslint-plugin": "2.21.2",
     "ajv": "^8.13.0",
-    "eslint": "^9.39.4",
+    "eslint": "^10.13.0",
     "exceljs": "^4.4.0",
     "jiti": "^2.7.0",
-    "prettier": "^3.2.5",
-    "turbo": "^2.0.14"
+    "prettier": "^3.9.10",
+    "turbo": "^2.11.8"
   },
   "workspaces": [
     "apps/**",
