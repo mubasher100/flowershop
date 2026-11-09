@@ -46,7 +46,7 @@ jobs:
           check "$SITE/ar-qa/store"
           # A real product, not a placeholder. If this one is ever retired,
           # point it at another — a 404 here fails the check on purpose.
-          check "$SITE/en-qa/products/twenty-five-red-roses-black-wrap"
+          check "$SITE/en-qa/products/fifty-shimmer-roses"
           check "$SITE/en-qa/cart"
           check "$SITE/en-qa/track"
           check "$SITE/en-qa/contact"
