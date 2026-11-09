@@ -2,7 +2,7 @@
 
 import { useTranslations } from "@lib/i18n/use-translations"
 import { unstable_isUnrecognizedActionError } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 /**
  * The last line of defence for a page that has gone wrong.
@@ -19,13 +19,15 @@ import { useEffect } from "react"
  */
 export default function Error({ error }: { error: Error & { digest?: string } }) {
   const { t } = useTranslations()
-  const stale = unstable_isUnrecognizedActionError(error)
+  const stale = unstable_isUnrecognizedActionError(error) || isMissingChunk(error)
+  // Decided once: deciding sets the marker, so asking again would say no.
+  const [reload] = useState(() => stale && !reloadedJustNow())
 
   useEffect(() => {
-    if (stale) window.location.reload()
-  }, [stale])
+    if (reload) window.location.reload()
+  }, [reload])
 
-  if (stale) return null
+  if (reload) return null
 
   return (
     <div className="content-container flex min-h-[50vh] flex-col items-center justify-center gap-4 py-16 text-center">
@@ -40,4 +42,29 @@ export default function Error({ error }: { error: Error & { digest?: string } })
       </button>
     </div>
   )
+}
+
+/**
+ * A page opened before a deploy still asks for the previous build's script
+ * files when the visitor moves to another page, and the deploy has removed
+ * them. Reloading puts the page on the current build.
+ */
+function isMissingChunk(error: Error) {
+  return (
+    error?.name === "ChunkLoadError" ||
+    /Loading (CSS )?chunk|Failed to load chunk|dynamically imported module|Importing a module script failed/i.test(
+      error?.message ?? ""
+    )
+  )
+}
+
+/** Reload once, not in a loop, if the reload does not cure it. */
+function reloadedJustNow() {
+  try {
+    const key = "tt-stale-reload"
+    const last = Number(sessionStorage.getItem(key) || 0)
+    if (Date.now() - last < 10_000) return true
+    sessionStorage.setItem(key, String(Date.now()))
+  } catch {}
+  return false
 }

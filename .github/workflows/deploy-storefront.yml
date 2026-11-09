@@ -87,6 +87,19 @@ jobs:
       # CPU allowance. Both locales returned Cloudflare 1102 on most requests
       # and could not recover, because the render that would have populated
       # the cache was the thing failing.
+      # Remember what is live, so a deploy that breaks the shop can be put back
+      # without anyone touching it (see "Check the live site" below).
+      - name: Record the live version
+        id: previous
+        working-directory: apps/storefront
+        run: |
+          id=$(npx wrangler deployments status --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const v=JSON.parse(s).versions||[];const top=v.sort((a,b)=>b.percentage-a.percentage)[0];process.stdout.write(top?top.version_id:"")})') || id=""
+          echo "Live before this deploy: ${id:-unknown}"
+          echo "version=$id" >> "$GITHUB_OUTPUT"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
       - name: Deploy (uploads the Worker and seeds the R2 cache)
         working-directory: apps/storefront
         run: npx opennextjs-cloudflare deploy
@@ -104,5 +117,37 @@ jobs:
         run: printf '%s' "$REVALIDATE_SECRET" | npx wrangler secret put REVALIDATE_SECRET
         env:
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # A Cloudflare deploy swaps versions atomically, so visitors never see a
+      # half-deployed site — but a broken build would reach every one of them.
+      # Walk the pages a customer uses, past the cache (?cb=), and if any fails
+      # put the previous version straight back.
+      - name: Check the live site (rolls back if it is broken)
+        working-directory: apps/storefront
+        run: |
+          SITE="${{ vars.STOREFRONT_BASE_URL || 'https://tulipsandtruffle.com' }}"
+          ok=1
+          for path in en-qa ar-qa en-qa/store ar-qa/store en-qa/products/fifty-shimmer-roses en-qa/cart en-qa/checkout api/search-index; do
+            code=000
+            for try in 1 2 3; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' -A 'Mozilla/5.0 deploy-check' "$SITE/$path?cb=$RANDOM$try") || code=000
+              [ "$code" = 200 ] && break
+              sleep 5
+            done
+            echo "$code  $SITE/$path"
+            [ "$code" = 200 ] || ok=0
+          done
+          if [ "$ok" = 1 ]; then exit 0; fi
+          if [ -n "$PREVIOUS" ]; then
+            echo "::error::The new version is failing; rolling back to $PREVIOUS"
+            npx wrangler rollback "$PREVIOUS" -y -m "Automatic rollback: deploy check failed"
+          else
+            echo "::error::The new version is failing and the previous version is unknown — roll back from the Cloudflare dashboard"
+          fi
+          exit 1
+        env:
+          PREVIOUS: ${{ steps.previous.outputs.version }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
