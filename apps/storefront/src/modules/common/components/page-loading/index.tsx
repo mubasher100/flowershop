@@ -10,7 +10,8 @@ import { useTranslations } from "@lib/i18n/use-translations"
  * on the network, so it paints on the tap itself — the point is that a tap
  * always answers at once, even when the Store API takes seconds behind it.
  *
- * `overlay` covers the page in place; without it the screen fills the space
+ * `overlay` covers the page in place, on solid white (a translucent tint
+ * left the form showing through, blurred, behind the text); without it the screen fills the space
  * the page is about to take.
  */
 export default function PageLoading({
@@ -29,7 +30,7 @@ export default function PageLoading({
       aria-live="polite"
       className={
         overlay
-          ? "fixed inset-0 z-[100] flex flex-col items-center justify-center gap-5 bg-blush-50/95 px-4 backdrop-blur-sm"
+          ? "fixed inset-0 z-[100] flex flex-col items-center justify-center gap-5 bg-white px-4"
           : "flex min-h-[60vh] flex-col items-center justify-center gap-5 px-4"
       }
     >
@@ -38,9 +39,9 @@ export default function PageLoading({
       <img
         src="/brand/logo-sm-320.webp"
         alt=""
-        width={160}
-        height={160}
-        className="h-24 w-24 animate-pulse object-contain motion-reduce:animate-none"
+        width={320}
+        height={55}
+        className="h-auto w-56 max-w-[70vw] animate-pulse object-contain motion-reduce:animate-none"
       />
       <span className="flex items-center gap-3 text-base text-ink-700">
         <span
