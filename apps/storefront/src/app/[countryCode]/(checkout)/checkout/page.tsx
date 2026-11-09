@@ -33,22 +33,27 @@ export async function generateMetadata(props: {
  * it's going; the shopkeeper confirms stock and payment afterwards.
  */
 export default async function Checkout() {
+  // The next four weeks, so the date picker can refuse a day the shop has
+  // closed or already filled instead of taking the order and apologising.
+  // Asked for first and awaited last: it does not depend on the cart, and it
+  // used to wait behind both cart calls, adding its round trip to every load.
+  const today = new Date()
+  const dates = Array.from({ length: 28 }, (_, i) => {
+    const d = new Date(today.getTime() + i * 86400000)
+    return d.toLocaleDateString("en-CA", { timeZone: "Asia/Qatar" })
+  })
+  const availabilityRequest = listDeliveryAvailability(dates)
+
   const cart = await retrieveCart()
 
   if (!cart) {
     return notFound()
   }
 
-  const shippingOptions = (await listCartShippingMethods(cart.id)) ?? []
-
-  // The next four weeks, so the date picker can refuse a day the shop has
-  // closed or already filled instead of taking the order and apologising.
-  const today = new Date()
-  const dates = Array.from({ length: 28 }, (_, i) => {
-    const d = new Date(today.getTime() + i * 86400000)
-    return d.toLocaleDateString("en-CA", { timeZone: "Asia/Qatar" })
-  })
-  const availability = await listDeliveryAvailability(dates)
+  const [shippingOptions, availability] = await Promise.all([
+    listCartShippingMethods(cart.id).then((o) => o ?? []),
+    availabilityRequest,
+  ])
 
   return (
     <div className="content-container grid grid-cols-1 gap-10 py-8 small:grid-cols-[1fr_24rem] small:gap-16 small:py-12">

@@ -50,6 +50,15 @@ export const addToBag = async (args: {
   if (!ok) throw new Error(data.error || say("err.generic"))
 }
 
+/**
+ * Creates the visitor's cart ahead of their first add (see
+ * app/api/cart/warm). Never throws: a failure only means the add makes the
+ * cart itself, as it always did.
+ */
+export const warmBag = async (countryCode: string) => {
+  await post("/api/cart/warm", JSON.stringify({ countryCode })).catch(() => undefined)
+}
+
 /** Quantity 0 removes the line. */
 export const setBagLine = async (lineId: string, quantity: number) => {
   const { ok, data } = await post("/api/cart/line", JSON.stringify({ lineId, quantity }))

@@ -1,11 +1,12 @@
 "use client"
 
-import { addToBag } from "@lib/util/cart-api"
+import { addToBag, warmBag } from "@lib/util/cart-api"
 import { useIntersection } from "@lib/hooks/use-in-view"
 import { useLiveStock } from "@lib/hooks/use-live-stock"
 import { useTranslations } from "@lib/i18n/use-translations"
 import { bumpCartCount, refreshCartCount } from "@lib/util/cart-events"
 import { enqueueCartMutation } from "@lib/util/cart-queue"
+import PageLoading from "@modules/common/components/page-loading"
 import { HttpTypes } from "@medusajs/types"
 import { Button } from "@modules/common/components/ui"
 import Divider from "@modules/common/components/divider"
@@ -137,6 +138,22 @@ export default function ProductActions({
     return false
   }, [stockVariant])
 
+  // Have a cart waiting before the first tap, so Add to bag and Checkout now
+  // pay only for the add (see app/api/cart/warm). On the first sign of a
+  // person — a touch, a scroll, a key — rather than on load, so a page view
+  // that never becomes a shopper does not leave a cart behind. Through the
+  // cart queue, so an add made meanwhile waits for it instead of racing it
+  // into a second cart.
+  useEffect(() => {
+    const events = ["pointerdown", "scroll", "keydown"] as const
+    const warm = () => {
+      events.forEach((e) => window.removeEventListener(e, warm))
+      enqueueCartMutation(() => warmBag(countryCode))
+    }
+    events.forEach((e) => window.addEventListener(e, warm, { passive: true, once: true }))
+    return () => events.forEach((e) => window.removeEventListener(e, warm))
+  }, [countryCode])
+
   const actionsRef = useRef<HTMLDivElement>(null)
 
   const inView = useIntersection(actionsRef, "0px")
@@ -187,7 +204,7 @@ export default function ProductActions({
 
     // Queued, not fired directly: concurrent adds each create their own cart
     // when none has the cookie yet. See lib/util/cart-queue.ts.
-    return (
+    const request = (
       enqueueCartMutation(() =>
         // A route, not a Server Action: its address survives a deploy, so a
         // page opened before a release can still add. See lib/util/cart-api.ts.
@@ -213,20 +230,35 @@ export default function ProductActions({
           return false
         })
     )
+    addedHere.current.set(selectedVariant.id, request)
+    return request
   }
 
   /**
-   * Adds the flower and goes straight to checkout.
+   * Adds made from this page, by size, so Checkout now can tell whether the
+   * flower is already in the bag. Tapping Add to bag and then Checkout now
+   * used to add it twice.
+   */
+  const addedHere = useRef(new Map<string, Promise<boolean>>())
+
+  /**
+   * Goes straight to checkout, adding the flower first unless this page has
+   * already put that size in the bag.
    *
-   * Unlike the bag button this one does wait for the add: checkout reads the
-   * cart from the server, so arriving before the item lands would show an
-   * empty bag. The ~2.8s is spent on a spinner the shopper asked for.
+   * It waits for the add to land — checkout reads the cart from the server,
+   * so arriving early would show an empty bag — behind a full-screen loading
+   * screen that appears on the tap itself, so the wait reads as progress.
    */
   const [checkingOut, setCheckingOut] = useState(false)
   const handleCheckoutNow = () => {
-    if (checkingOut) return
+    if (checkingOut || !selectedVariant?.id) return
     setCheckingOut(true)
-    handleAddToCart().then((added) => {
+    const earlier = addedHere.current.get(selectedVariant.id)
+    // An earlier add of this size that failed does not count.
+    const ready = earlier
+      ? earlier.then((ok) => ok || handleAddToCart())
+      : handleAddToCart()
+    ready.then((added) => {
       if (added) {
         router.push(`/${countryCode}/checkout`)
       } else {
@@ -240,6 +272,9 @@ export default function ProductActions({
 
   return (
     <>
+      {checkingOut && (
+        <PageLoading overlay message={t("product.preparingCheckout")} />
+      )}
       <div className="flex flex-col gap-y-2" ref={actionsRef}>
         <div>
           {(product.variants?.length ?? 0) > 1 && (

@@ -113,18 +113,35 @@ export default function GuestCheckout({
       return
     }
     setLocating(true)
+    const found = (pos: GeolocationPosition) => {
+      const lat = pos.coords.latitude.toFixed(6)
+      const lng = pos.coords.longitude.toFixed(6)
+      setPin(`https://www.google.com/maps?q=${lat},${lng}`)
+      setLocating(false)
+    }
+    const failed = (err: GeolocationPositionError) => {
+      setLocateError(
+        err.code === err.PERMISSION_DENIED
+          ? t("checkout.locateBlocked")
+          : t("checkout.locateUnavailable")
+      )
+      setLocating(false)
+    }
+    // A phone answers from GPS. A computer has none: it asks the operating
+    // system, which guesses from Wi-Fi — and asking it for GPS accuracy
+    // usually just times out. So a failed precise fix is retried at normal
+    // accuracy before giving up (it worked on phones and failed on PCs).
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude.toFixed(6)
-        const lng = pos.coords.longitude.toFixed(6)
-        setPin(`https://www.google.com/maps?q=${lat},${lng}`)
-        setLocating(false)
-      },
-      () => {
-        setLocateError(t("checkout.locateFailed"))
-        setLocating(false)
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+      found,
+      (err) =>
+        err.code === err.PERMISSION_DENIED
+          ? failed(err)
+          : navigator.geolocation.getCurrentPosition(found, failed, {
+              enableHighAccuracy: false,
+              timeout: 15000,
+              maximumAge: 300000,
+            }),
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
     )
   }
 

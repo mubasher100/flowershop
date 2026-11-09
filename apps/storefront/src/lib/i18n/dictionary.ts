@@ -49,6 +49,8 @@ export const DICTIONARY = {
     "product.addToBag": "Add to bag",
     "product.added": "Added to bag ✓",
     "product.checkoutNow": "Checkout now",
+    "product.preparingCheckout": "Getting your order ready…",
+    "loading.page": "Loading…",
     "product.addFailed": "That didn't go in — please try again.",
     "product.outOfStock": "Out of stock",
     "product.soldOutSize": "Sold out in this size",
@@ -378,6 +380,10 @@ export const DICTIONARY = {
     "checkout.viewOnMap": "View on map",
     "checkout.locateFailed":
       "We couldn't get your location. You can send it on WhatsApp after ordering instead.",
+    "checkout.locateBlocked":
+      "Location is blocked for this site. Allow it from the icon in your browser's address bar, or send your location on WhatsApp after ordering.",
+    "checkout.locateUnavailable":
+      "This device couldn't find where it is. On a computer, turn on location in your system settings — or send your location on WhatsApp after ordering.",
     "checkout.locationLater": "I'll send the location on WhatsApp",
     "checkout.locationLaterHint":
       "The address can be short or left blank. We'll use the location you send.",
@@ -578,6 +584,8 @@ export const DICTIONARY = {
     "product.addToBag": "أضف إلى السلة",
     "product.added": "أُضيف إلى السلة ✓",
     "product.checkoutNow": "اشترِ الآن",
+    "product.preparingCheckout": "جارٍ تجهيز طلبك…",
+    "loading.page": "جارٍ التحميل…",
     "product.addFailed": "لم تتم الإضافة — يرجى المحاولة مرة أخرى.",
     "product.outOfStock": "نفدت الكمية",
     "product.soldOutSize": "نفدت الكمية بهذا الحجم",
@@ -888,6 +896,10 @@ export const DICTIONARY = {
     "checkout.viewOnMap": "عرض على الخريطة",
     "checkout.locateFailed":
       "تعذّر تحديد موقعك. يمكنك إرساله عبر واتساب بعد الطلب بدلاً من ذلك.",
+    "checkout.locateBlocked":
+      "الموقع محظور لهذا الموقع الإلكتروني. اسمح به من الأيقونة في شريط العنوان، أو أرسل موقعك عبر واتساب بعد الطلب.",
+    "checkout.locateUnavailable":
+      "تعذّر على هذا الجهاز تحديد مكانه. على الكمبيوتر، فعّل خدمة الموقع من إعدادات النظام، أو أرسل موقعك عبر واتساب بعد الطلب.",
     "checkout.locationLater": "سأرسل الموقع عبر واتساب",
     "checkout.locationLaterHint":
       "يمكن أن يكون العنوان مختصراً أو فارغاً، وسنعتمد على الموقع الذي ترسله.",
