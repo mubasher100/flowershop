@@ -56,7 +56,7 @@ export default async function Checkout() {
   ])
 
   return (
-    <div className="content-container grid grid-cols-1 gap-10 py-8 small:grid-cols-[1fr_24rem] small:gap-16 small:py-12">
+    <div className="content-container grid grid-cols-1 gap-10 [&>*]:min-w-0 py-8 small:grid-cols-[1fr_24rem] small:gap-16 small:py-12">
       <GuestCheckout
         cart={cart}
         shippingOptions={shippingOptions}

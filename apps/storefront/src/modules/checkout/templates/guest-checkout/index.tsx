@@ -75,6 +75,10 @@ const DRAFT_FIELDS = [
 const labelClass = "text-sm font-medium text-ink-800"
 const legalLinkClass =
   "font-medium text-blush-700 underline underline-offset-2 hover:text-blush-800"
+const cardClass =
+  "flex flex-col gap-4 rounded-2xl border border-ink-100 bg-white p-4 shadow-sm small:p-6"
+const choiceClass =
+  "flex min-h-[3.25rem] cursor-pointer items-start gap-3 rounded-xl border border-ink-200 bg-white px-4 py-3 has-[:checked]:border-blush-500 has-[:checked]:ring-2 has-[:checked]:ring-blush-200"
 const fieldClass =
   "min-h-[3rem] w-full rounded-xl border border-ink-200 bg-white px-4 text-base text-ink-900 placeholder:text-ink-500 focus:border-blush-500 focus:outline-none focus:ring-2 focus:ring-blush-200"
 
@@ -156,6 +160,7 @@ export default function GuestCheckout({
   const selectedOption = shippingOptions.find((o) => o.id === shippingId)
   const midnight = isMidnightOption(selectedOption)
   const [paymentRef, setPaymentRef] = useState<string | null>(null)
+  const [noteLength, setNoteLength] = useState(0)
 
   // Today, in Qatar, as a yyyy-mm-dd bound for the date picker.
   const clock = qatarClock()
@@ -401,19 +406,69 @@ export default function GuestCheckout({
     })
   }
 
+  /**
+   * The next fortnight as tappable days, the way delivery apps offer them.
+   * The native date input this replaced was also what pushed the page wider
+   * than an iPhone's screen: iOS gives it an intrinsic width a grid will not
+   * shrink.
+   */
+  // Named here rather than through Intl: the server's and the browser's
+  // Arabic date data differ, and the mismatch broke hydration on /ar-qa.
+  const names = segment.startsWith("ar") ? AR_DATE_NAMES : EN_DATE_NAMES
+  const days = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(`${today}T00:00:00Z`)
+    d.setUTCDate(d.getUTCDate() + i)
+    const value = d.toISOString().slice(0, 10)
+    return {
+      value,
+      top:
+        i === 0
+          ? t("checkout.today")
+          : i === 1
+            ? t("checkout.tomorrow")
+            : names.days[d.getUTCDay()],
+      bottom: `${names.digits(d.getUTCDate())} ${names.months[d.getUTCMonth()]}`,
+      off: value < minDate || unavailable(value),
+    }
+  })
+
+  /**
+   * Each step shows a tick once everything required in it is filled in,
+   * read straight from the browser's own validity so it can never disagree
+   * with what the form will accept.
+   */
+  const detailsRef = useRef<HTMLElement>(null)
+  const whereRef = useRef<HTMLElement>(null)
+  const [done, setDone] = useState({ details: false, where: false })
+  const recheck = () => {
+    const ok = (el: HTMLElement | null) =>
+      !!el &&
+      Array.from(
+        el.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+          "input, select, textarea"
+        )
+      ).every((f) => f.checkValidity())
+    setDone({ details: ok(detailsRef.current), where: ok(whereRef.current) })
+  }
+  useEffect(() => {
+    recheck()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forSomeoneElse, draftFields])
+
+  const deliveryAmount = selectedOption?.amount ?? 0
+  const total = (cart.total ?? 0) - (cart.shipping_subtotal ?? 0) + deliveryAmount
+
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-8">
+    <form ref={formRef} onSubmit={handleSubmit} onInput={recheck} onChange={recheck}
+      className="flex flex-col gap-5">
       {/* So the confirmation page opens in the language they ordered in. */}
       <input type="hidden" name="segment" value={segment} />
-      <section className="flex flex-col gap-4">
-        <div>
-          <h2 className="font-display text-2xl text-ink-900">
-            {t("checkout.yourDetails")}
-          </h2>
-          <p className="mt-1 text-sm text-ink-600">
-            {t("checkout.detailsHelp")}
-          </p>
-        </div>
+
+      <section ref={detailsRef} className={cardClass} aria-labelledby="step-details">
+        <StepHeading id="step-details" n={1} done={done.details} doneLabel={t("checkout.stepDone")}>
+          {t("checkout.yourDetails")}
+        </StepHeading>
+        <p className="-mt-2 text-sm text-ink-600">{t("checkout.detailsHelp")}</p>
 
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="name">
@@ -456,21 +511,21 @@ export default function GuestCheckout({
         </div>
       </section>
 
-      <section className="flex flex-col gap-4">
-        <h2 className="font-display text-2xl text-ink-900">
-          {t("checkout.delivery")}
-        </h2>
+      <section ref={whereRef} className={cardClass} aria-labelledby="step-where">
+        <StepHeading id="step-where" n={2} done={done.where} doneLabel={t("checkout.stepDone")}>
+          {t("checkout.whereTo")}
+        </StepHeading>
 
         {/* Who it goes to, behind a checkbox (the shop's request, 2 Nov 2026).
             Unticked, the order is delivered to the person placing it and the
             driver calls their number; ticked, the recipient's name and phone
             appear. The server applies the same rule, so an unticked form never
             needs a second phone number. */}
-        <label className="flex min-h-[3.25rem] cursor-pointer items-start gap-3 rounded-xl border border-ink-200 bg-white px-4 py-3 has-[:checked]:border-blush-500 has-[:checked]:ring-2 has-[:checked]:ring-blush-200">
+        <label className={choiceClass}>
           <input type="checkbox" name="for_someone_else" value="true"
             checked={forSomeoneElse}
             onChange={(e) => setForSomeoneElse(e.target.checked)}
-            className="mt-1 h-4 w-4 accent-blush-600" />
+            className="mt-1 h-5 w-5 shrink-0 accent-blush-600" />
           <span className="flex flex-col">
             <span className="text-base text-ink-900">{t("checkout.forSomeoneElse")}</span>
             <span className="text-sm text-ink-600">{t("checkout.forSomeoneElseHint")}</span>
@@ -478,7 +533,7 @@ export default function GuestCheckout({
         </label>
 
         {forSomeoneElse && (
-          <>
+          <div className="flex flex-col gap-4 border-s-2 border-blush-200 ps-4">
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} htmlFor="recipient">
                 {t("checkout.recipient")}{" "}
@@ -503,8 +558,39 @@ export default function GuestCheckout({
                 placeholder={t("checkout.phonePlaceholder")} />
               <p className="text-xs text-ink-500">{t("checkout.recipientPhoneHelp")}</p>
             </div>
-          </>
+          </div>
         )}
+
+        {/* The pin first: one tap, and the shop has the exact spot. */}
+        <div className="flex flex-col gap-1.5">
+          <button type="button" onClick={locateMe} disabled={locating}
+            className={`flex min-h-[3.5rem] w-full items-center gap-3 rounded-xl border px-4 text-start transition-colors disabled:opacity-60 ${
+              pin
+                ? "border-sage-400 bg-sage-50"
+                : "border-blush-300 bg-blush-50 hover:border-blush-500"
+            }`}>
+            <span aria-hidden="true" className="text-xl">{pin ? "✅" : "📍"}</span>
+            <span className="flex flex-col">
+              <span className="text-base font-semibold text-ink-900">
+                {locating ? t("checkout.locating") : pin ? t("checkout.located") : t("checkout.locateMe")}
+              </span>
+              {pin && !locating && (
+                <span className="text-sm text-blush-700 underline underline-offset-2">
+                  {t("checkout.relocate")}
+                </span>
+              )}
+            </span>
+          </button>
+          {pin && (
+            <a href={pin} target="_blank" rel="noopener noreferrer"
+              className={`${legalLinkClass} self-start text-sm`}>
+              {t("checkout.viewOnMap")}
+            </a>
+          )}
+          {locateError && (
+            <p role="alert" className="text-sm text-blush-700">{locateError}</p>
+          )}
+        </div>
 
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="area">
@@ -535,7 +621,7 @@ export default function GuestCheckout({
               {t("checkout.optional")}
             </span>
           </label>
-          <textarea id="address" name="address" rows={3}
+          <textarea id="address" name="address" rows={2}
             maxLength={FIELD_LIMITS.address}
             aria-describedby="location-note"
             className={`${fieldClass} py-3`}
@@ -544,70 +630,6 @@ export default function GuestCheckout({
             {t("checkout.locationNote")}
           </p>
         </div>
-
-        <div className="flex flex-col gap-1.5">
-          <button type="button" onClick={locateMe} disabled={locating}
-            className="inline-flex min-h-[3rem] items-center justify-center gap-2 rounded-full border border-ink-200 bg-white px-5 text-base font-medium text-ink-900 hover:border-blush-500 disabled:opacity-60">
-            <span aria-hidden="true">📍</span>
-            {locating ? t("checkout.locating") : pin ? t("checkout.relocate") : t("checkout.locateMe")}
-          </button>
-          {pin && (
-            <p role="status" className="text-sm text-sage-800">
-              {t("checkout.located")}{" "}
-              <a href={pin} target="_blank" rel="noopener noreferrer" className={legalLinkClass}>
-                {t("checkout.viewOnMap")}
-              </a>
-            </p>
-          )}
-          {locateError && (
-            <p role="alert" className="text-sm text-blush-700">{locateError}</p>
-          )}
-        </div>
-
-        {/* Delivery choice comes before date and time because choosing 11:59
-            rewrites both — the date becomes "the night before" and the time
-            is fixed. Put after them, the change happened off-screen. */}
-        <fieldset className="flex flex-col gap-2">
-          <legend className={`${labelClass} mb-1.5`}>
-            {t("checkout.speed")}
-          </legend>
-          {shippingOptions.map((option) => (
-            <label
-              key={option.id}
-              className="flex min-h-[3.25rem] cursor-pointer items-center justify-between gap-3 rounded-xl border border-ink-200 bg-white px-4 py-3 has-[:checked]:border-blush-500 has-[:checked]:ring-2 has-[:checked]:ring-blush-200"
-            >
-              <span className="flex items-start gap-3">
-                <input type="radio" name="shipping_option_id"
-                  value={option.id} required
-                  checked={shippingId === option.id}
-                  onChange={() => chooseDelivery(option)}
-                  className="mt-1 h-4 w-4 accent-blush-600" />
-                <span className="flex flex-col">
-                  <span className="text-base text-ink-900">
-                    {isMidnightOption(option)
-                      ? t("midnight.name")
-                      : isStandardOption(option)
-                        ? t("delivery.standardName")
-                        : option.name}
-                  </span>
-                  {isMidnightOption(option) && (
-                    <span className="text-sm text-ink-600">{t("midnight.pitch")}</span>
-                  )}
-                </span>
-              </span>
-              <span className="tabular-nums text-ink-700">
-                {/* Delivery is free for now (1 Nov 2026), and "QAR 0.00"
-                    reads as a missing price rather than a free one. */}
-                {option.amount
-                  ? convertToLocale({
-                      amount: option.amount,
-                      currency_code: cart.currency_code,
-                    })
-                  : t("checkout.free")}
-              </span>
-            </label>
-          ))}
-        </fieldset>
 
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="delivery_notes">
@@ -624,85 +646,165 @@ export default function GuestCheckout({
             className={fieldClass}
             placeholder={t("checkout.instructionsPlaceholder")} />
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 gap-4 xsmall:grid-cols-2">
-          <div className="flex flex-col gap-1.5">
-            <label className={labelClass} htmlFor="delivery_date">
-              {midnight ? t("midnight.dateLabel") : t("checkout.date")}
-            </label>
-            <input id="delivery_date" name="delivery_date" type="date"
-              min={minDate} value={deliveryDate}
-              onChange={(e) => setDeliveryDate(e.target.value)}
-              required
-              className={fieldClass} />
-            {dayClosed && (
-              <p className="text-xs font-medium text-blush-700">
-                {t("checkout.dayClosed")}
-              </p>
-            )}
-            {!midnight && !dayClosed && sameDayClosed && (
-              <p className="text-xs text-ink-500">{t("checkout.sameDayClosed")}</p>
-            )}
-            {midnight && (
-              <p className="text-xs text-ink-500">
-                {midnightStatus === "not-yet"
-                  ? t("midnight.notYetTonight")
-                  : minDate !== today
-                    ? t("midnight.closedTonight")
-                    : t("midnight.dateHint")}
-              </p>
-            )}
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className={labelClass} htmlFor="delivery_window">
-              {t("checkout.time")}
-            </label>
-            {midnight ? (
-              <>
-                {/* The time is the whole point of 11:59, so it is shown as a
-                    fact rather than offered as a choice — and still submitted,
-                    so the label and receipt print it. */}
-                <div className={`${fieldClass} flex flex-col justify-center gap-0.5 bg-blush-50 py-2`}>
-                  <span className="font-semibold text-blush-700">
-                    {t("midnight.window")}
-                  </span>
-                  <span className="text-xs text-ink-600">
-                    {t("midnight.preorder")}
-                  </span>
-                </div>
-                <p className="text-xs text-ink-500">{t("midnight.preorderHint")}</p>
-                <input type="hidden" name="delivery_window" value={MIDNIGHT_WINDOW} />
-              </>
-            ) : (
-              <select id="delivery_window" name="delivery_window"
-                value={deliveryWindow} onChange={(e) => setDeliveryWindow(e.target.value)}
-                className={fieldClass}>
-                {windows.map((w) => <option key={w} value={w}>{w}</option>)}
-              </select>
-            )}
-          </div>
-        </div>
+      <section className={cardClass} aria-labelledby="step-when">
+        <StepHeading id="step-when" n={3}
+          done={!dayClosed && (midnight || windows.length > 0)}
+          doneLabel={t("checkout.stepDone")}>
+          {t("checkout.when")}
+        </StepHeading>
 
+        {/* Delivery choice comes before date and time because choosing 11:59
+            rewrites both — the date becomes "the night before" and the time
+            is fixed. Put after them, the change happened off-screen. */}
+        <fieldset className="flex flex-col gap-2">
+          <legend className={`${labelClass} mb-1.5`}>
+            {t("checkout.speed")}
+          </legend>
+          {shippingOptions.map((option) => (
+            <label key={option.id}
+              className={`${choiceClass} items-center justify-between`}>
+              <span className="flex items-start gap-3">
+                <input type="radio" name="shipping_option_id"
+                  value={option.id} required
+                  checked={shippingId === option.id}
+                  onChange={() => chooseDelivery(option)}
+                  className="mt-1 h-5 w-5 shrink-0 accent-blush-600" />
+                <span className="flex flex-col">
+                  <span className="text-base text-ink-900">
+                    {isMidnightOption(option)
+                      ? t("midnight.name")
+                      : isStandardOption(option)
+                        ? t("delivery.standardName")
+                        : option.name}
+                  </span>
+                  {isMidnightOption(option) && (
+                    <span className="text-sm text-ink-600">{t("midnight.pitch")}</span>
+                  )}
+                </span>
+              </span>
+              <span className="shrink-0 tabular-nums text-ink-700">
+                {/* Delivery is free for now (1 Nov 2026), and "QAR 0.00"
+                    reads as a missing price rather than a free one. */}
+                {option.amount
+                  ? convertToLocale({
+                      amount: option.amount,
+                      currency_code: cart.currency_code,
+                    })
+                  : t("checkout.free")}
+              </span>
+            </label>
+          ))}
+        </fieldset>
+
+        <fieldset className="flex min-w-0 flex-col gap-1.5">
+          <legend className={`${labelClass} mb-1.5`}>
+            {midnight ? t("midnight.dateLabel") : t("checkout.date")}
+          </legend>
+          {/* A sideways-scrolling row inside the card; the page itself never
+              scrolls sideways. Each day is a real radio, so it submits and is
+              announced like one. */}
+          <div className="flex snap-x gap-2 overflow-x-auto pb-2 [scrollbar-width:none]">
+            {days.map((d) => (
+              <label key={d.value}
+                className={`flex min-h-[3.75rem] w-[4.5rem] shrink-0 snap-start flex-col items-center justify-center rounded-xl border text-center transition-colors ${
+                  d.off
+                    ? "cursor-not-allowed border-ink-100 bg-ink-50 text-ink-500 line-through"
+                    : "cursor-pointer border-ink-200 bg-white text-ink-900 has-[:checked]:border-blush-600 has-[:checked]:bg-blush-600 has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blush-300"
+                }`}>
+                <input type="radio" name="delivery_date" value={d.value}
+                  required disabled={d.off}
+                  checked={deliveryDate === d.value}
+                  onChange={() => setDeliveryDate(d.value)}
+                  className="sr-only" />
+                <span className="text-xs font-medium">{d.top}</span>
+                <span className="text-sm font-semibold">{d.bottom}</span>
+                {d.off && <span className="sr-only">{t("checkout.dayUnavailable")}</span>}
+              </label>
+            ))}
+          </div>
+          {dayClosed && (
+            <p className="text-sm font-medium text-blush-700">
+              {t("checkout.dayClosed")}
+            </p>
+          )}
+          {!midnight && !dayClosed && sameDayClosed && (
+            <p className="text-sm text-ink-600">{t("checkout.sameDayClosed")}</p>
+          )}
+          {midnight && (
+            <p className="text-sm text-ink-600">
+              {midnightStatus === "not-yet"
+                ? t("midnight.notYetTonight")
+                : minDate !== today
+                  ? t("midnight.closedTonight")
+                  : t("midnight.dateHint")}
+            </p>
+          )}
+        </fieldset>
+
+        {midnight ? (
+          <div className="flex flex-col gap-1.5">
+            <p className={labelClass}>{t("checkout.time")}</p>
+            {/* The time is the whole point of 11:59, so it is shown as a
+                fact rather than offered as a choice — and still submitted,
+                so the label and receipt print it. */}
+            <div className="flex flex-col gap-0.5 rounded-xl border border-blush-300 bg-blush-50 px-4 py-3">
+              <span className="font-semibold text-blush-700">{t("midnight.window")}</span>
+              <span className="text-sm text-ink-600">{t("midnight.preorder")}</span>
+            </div>
+            <p className="text-sm text-ink-600">{t("midnight.preorderHint")}</p>
+            <input type="hidden" name="delivery_window" value={MIDNIGHT_WINDOW} />
+          </div>
+        ) : (
+          windows.length > 0 && (
+            <fieldset className="flex flex-col gap-1.5">
+              <legend className={`${labelClass} mb-1.5`}>{t("checkout.time")}</legend>
+              <div className="grid grid-cols-2 gap-2">
+                {windows.map((w) => (
+                  <label key={w}
+                    className="flex min-h-[3rem] cursor-pointer items-center justify-center rounded-xl border border-ink-200 bg-white px-2 text-center text-sm font-medium text-ink-900 transition-colors has-[:checked]:border-blush-600 has-[:checked]:bg-blush-600 has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blush-300">
+                    <input type="radio" name="delivery_window" value={w} required
+                      checked={deliveryWindow === w}
+                      onChange={() => setDeliveryWindow(w)}
+                      className="sr-only" />
+                    <span dir="ltr">{w}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )
+        )}
+      </section>
+
+      <section className={cardClass} aria-labelledby="step-card">
+        <StepHeading id="step-card" n={4} done={false} doneLabel={t("checkout.stepDone")}>
+          {t("checkout.cardMessage")}{" "}
+          <span className="font-sans text-base font-normal text-ink-500">
+            {t("checkout.optional")}
+          </span>
+        </StepHeading>
 
         <div className="flex flex-col gap-1.5">
-          <label className={labelClass} htmlFor="gift_note">
-            {t("checkout.giftNote")}{" "}
-            <span className="font-normal text-ink-500">
-              {t("checkout.optional")}
-            </span>
+          <label className="sr-only" htmlFor="gift_note">
+            {t("checkout.giftNote")}
           </label>
           <textarea id="gift_note" name="gift_note" rows={3}
             maxLength={FIELD_LIMITS.giftNote}
+            onInput={(e) => setNoteLength(e.currentTarget.value.length)}
             className={`${fieldClass} py-3`}
             placeholder={t("checkout.giftNotePlaceholder")} />
+          <p className="text-end text-xs tabular-nums text-ink-500" aria-hidden="true">
+            {noteLength}/{FIELD_LIMITS.giftNote}
+          </p>
         </div>
 
         {/* Sending without a name is a normal thing to want from a flower
             shop. The florist still sees who ordered — this only keeps the
             name off the card and the delivery label. */}
-        <label className="flex min-h-[3.25rem] cursor-pointer items-start gap-3 rounded-xl border border-ink-200 bg-white px-4 py-3 has-[:checked]:border-blush-500 has-[:checked]:ring-2 has-[:checked]:ring-blush-200">
+        <label className={choiceClass}>
           <input type="checkbox" name="anonymous" value="true"
-            className="mt-1 h-4 w-4 accent-blush-600" />
+            className="mt-1 h-5 w-5 shrink-0 accent-blush-600" />
           <span className="flex flex-col">
             <span className="text-base text-ink-900">{t("checkout.anonymous")}</span>
             <span className="text-sm text-ink-600">{t("checkout.anonymousHint")}</span>
@@ -730,9 +832,9 @@ export default function GuestCheckout({
 
       {/* Payment. The card path is a simulation, shown only when
           NEXT_PUBLIC_DEMO_PAYMENT is set, so it cannot appear on a real
-          storefront by accident. SkipCash replaces it in phase 8. */}
+          storefront by accident. */}
       {DEMO_PAYMENT_ENABLED && (
-        <section className="flex flex-col gap-4">
+        <section className={cardClass}>
           <h2 className="font-display text-2xl text-ink-900">
             {t("pay.heading")}
           </h2>
@@ -746,10 +848,7 @@ export default function GuestCheckout({
                 ["card", "pay.card", "pay.cardHint"],
               ] as const
             ).map(([value, label, hint]) => (
-              <label
-                key={value}
-                className="flex min-h-[3.25rem] cursor-pointer items-start gap-3 rounded-xl border border-ink-200 bg-white px-4 py-3 has-[:checked]:border-blush-500 has-[:checked]:ring-2 has-[:checked]:ring-blush-200"
-              >
+              <label key={value} className={choiceClass}>
                 <input
                   type="radio"
                   name="payment_method"
@@ -759,7 +858,7 @@ export default function GuestCheckout({
                     setPayMethod(value)
                     setPaymentRef(null)
                   }}
-                  className="mt-1 h-4 w-4 accent-blush-600"
+                  className="mt-1 h-5 w-5 shrink-0 accent-blush-600"
                 />
                 <span className="flex flex-col">
                   <span className="text-base text-ink-900">{t(label)}</span>
@@ -793,7 +892,11 @@ export default function GuestCheckout({
         </section>
       )}
 
-      <div className="flex flex-col gap-3">
+      {/* The total and the button ride along the bottom of a phone screen
+          while the form scrolls, like a delivery app's basket bar, and settle
+          into place at the end. The safe-area padding keeps it clear of the
+          iPhone's home bar. */}
+      <div className="sticky bottom-0 z-20 -mx-4 border-t border-ink-100 bg-white/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur small:static small:mx-0 small:border-0 small:bg-transparent small:p-0 small:backdrop-blur-none">
         <button
           type="submit"
           // Card selected means the simulated authorisation has to succeed
@@ -807,13 +910,21 @@ export default function GuestCheckout({
             (!midnight && !windows.length) ||
             (DEMO_PAYMENT_ENABLED && payMethod === "card" && !paymentRef)
           }
-          className="inline-flex min-h-[3.25rem] items-center justify-center rounded-full bg-blush-600 px-8 text-base font-semibold text-white transition-colors hover:bg-blush-700 disabled:opacity-60">
-          {pending
-            ? t("checkout.placing")
-            : ONLINE_PAYMENT
-              ? t("checkout.payAndPlace")
-              : t("checkout.place")}
+          className="flex min-h-[3.5rem] w-full items-center justify-between gap-3 rounded-full bg-blush-600 px-6 text-base font-semibold text-white transition-colors hover:bg-blush-700 disabled:opacity-60">
+          <span>
+            {pending
+              ? t("checkout.placing")
+              : ONLINE_PAYMENT
+                ? t("checkout.payAndPlace")
+                : t("checkout.place")}
+          </span>
+          <span className="tabular-nums" dir="ltr">
+            {convertToLocale({ amount: total, currency_code: cart.currency_code })}
+          </span>
         </button>
+      </div>
+
+      <div className="flex flex-col gap-3">
         <p className="text-center text-sm text-ink-600">
           {ONLINE_PAYMENT ? t("checkout.payNote") : t("checkout.noCharge")}
         </p>
@@ -842,6 +953,65 @@ export default function GuestCheckout({
           {t("checkout.pricesNote")}
         </p>
       </div>
+
+      {/* For someone who came from "Checkout now" and wants another bouquet
+          — the bag keeps what is already in it. It used to sit in the
+          header, beside the logo (moved 9 Nov 2026, the shop's request). */}
+      <div className="flex flex-col items-center gap-1 border-t border-ink-100 pt-5">
+        <LocalizedClientLink
+          href="/store"
+          className="inline-flex min-h-[3rem] items-center justify-center rounded-full border border-blush-600 px-8 text-base font-semibold text-blush-700 transition-colors hover:bg-blush-50"
+          data-testid="shop-more-link"
+        >
+          {t("checkout.shopMore")}
+        </LocalizedClientLink>
+        <p className="text-center text-xs text-ink-600">{t("checkout.shopMoreHint")}</p>
+      </div>
     </form>
+  )
+}
+
+const EN_DATE_NAMES = {
+  days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+  digits: (n: number) => String(n),
+}
+// Gulf usage: Gregorian month names, Arabic-Indic digits.
+const AR_DATE_NAMES = {
+  days: ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"],
+  months: [
+    "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+    "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر",
+  ],
+  digits: (n: number) => String(n).replace(/\d/g, (c) => "٠١٢٣٤٥٦٧٨٩"[Number(c)]),
+}
+
+/** A step's heading: its number, turning into a tick once it is complete. */
+function StepHeading({
+  id,
+  n,
+  done,
+  doneLabel,
+  children,
+}: {
+  id: string
+  n: number
+  done: boolean
+  doneLabel: string
+  children: React.ReactNode
+}) {
+  return (
+    <h2 id={id} className="flex items-center gap-3 font-display text-2xl text-ink-900">
+      <span
+        aria-hidden="true"
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-sans text-sm font-semibold transition-colors ${
+          done ? "bg-sage-600 text-white" : "bg-blush-100 text-blush-700"
+        }`}
+      >
+        {done ? "✓" : n}
+      </span>
+      <span>{children}</span>
+      {done && <span className="sr-only">({doneLabel})</span>}
+    </h2>
   )
 }

@@ -89,6 +89,9 @@ export default function RootLayout(props: { children: React.ReactNode }) {
       // URL before first paint.
       lang="en"
       dir="ltr"
+      // ...so on /ar-qa the two differ by design, and React should not
+      // report it (it only checks this one element's own attributes).
+      suppressHydrationWarning
       data-mode="light"
       className={`${googleSans.variable} ${cormorant.variable}`}
     >

@@ -7,9 +7,9 @@ import ChevronDown from "@modules/common/icons/chevron-down"
  * Checkout chrome.
  *
  * Deliberately stripped back — no nav, no rails, nothing to wander off into
- * once someone has decided to buy. The ways out are back to the bag, and
- * "Shop more" for someone who came straight from a product page's "Checkout
- * now" and wants to add another bouquet — the bag keeps what is already in it.
+ * once someone has decided to buy. The way out is back to the bag; "Shop
+ * more", for someone who came from "Checkout now" and wants another bouquet,
+ * is at the foot of the form.
  *
  * The starter footed this page with "Powered by Medusa & Next.js" linking to
  * both projects. That is someone else's branding on the last screen before a
@@ -44,21 +44,18 @@ export default async function CheckoutLayout({
 
           <Brand className="text-xl" />
 
-          <div className="flex flex-1 basis-0 justify-end">
-            <LocalizedClientLink
-              href="/store"
-              className="flex min-h-[2.75rem] items-center text-sm font-medium text-blush-700 underline-offset-4 transition-colors hover:text-blush-800 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blush-700"
-              data-testid="shop-more-link"
-            >
-              {t("checkout.shopMore")}
-            </LocalizedClientLink>
-          </div>
+          {/* Balances the back link so the logo stays centred. "Shop more"
+              moved to the foot of the form (9 Nov 2026, the shop's request):
+              up here it competed with the logo on a phone. */}
+          <div className="flex-1 basis-0" aria-hidden="true" />
         </nav>
       </div>
 
+      {/* overflow-x-clip: a guard, not the fix — nothing on this page may
+          make the phone's screen scroll sideways. */}
       <main
         id="main-content"
-        className="relative"
+        className="relative overflow-x-clip"
         data-testid="checkout-container"
       >
         {children}
