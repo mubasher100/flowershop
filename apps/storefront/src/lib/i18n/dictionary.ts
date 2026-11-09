@@ -274,6 +274,7 @@ export const DICTIONARY = {
     "pay.payNow": "Pay {amount}",
 
     "checkout.placing": "Sending your order…",
+    "checkout.toPayment": "Taking you to secure payment…",
     "checkout.place": "Place order",
     "product.substitution":
       "Flowers are seasonal. If a variety or colour is unavailable we substitute one of equal or greater value in the same style, and tell you before we change the look of an arrangement.",
@@ -801,6 +802,7 @@ export const DICTIONARY = {
     "pay.payNow": "ادفع {amount}",
 
     "checkout.placing": "جارٍ إرسال طلبك…",
+    "checkout.toPayment": "جارٍ تحويلك إلى صفحة الدفع الآمنة…",
     "checkout.place": "إتمام الطلب",
     "product.substitution":
       "الورود موسمية. إذا لم يتوفر نوع أو لون معيّن نستبدله بآخر من القيمة نفسها أو أعلى وبالأسلوب نفسه، ونخبرك قبل تغيير شكل التنسيق.",

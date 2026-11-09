@@ -29,6 +29,7 @@ import {
 } from "@lib/util/whatsapp-order"
 import { useTranslations } from "@lib/i18n/use-translations"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import PageLoading from "@modules/common/components/page-loading"
 
 /**
  * The demo card gateway is opt-in. Without this flag the checkout is exactly
@@ -461,6 +462,15 @@ export default function GuestCheckout({
   return (
     <form ref={formRef} onSubmit={handleSubmit} onInput={recheck} onChange={recheck}
       className="flex flex-col gap-5">
+      {/* Covers the page from the tap until the card page (or the
+          confirmation) takes over — saving the order and opening the payment
+          take a few seconds, and a button that only changes its words did
+          not read as "something is happening". Back from SkipCash, the
+          pageshow handler clears pending and with it this. */}
+      {pending && (
+        <PageLoading overlay
+          message={ONLINE_PAYMENT ? t("checkout.toPayment") : t("checkout.placing")} />
+      )}
       {/* So the confirmation page opens in the language they ordered in. */}
       <input type="hidden" name="segment" value={segment} />
 
