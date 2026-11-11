@@ -41,7 +41,7 @@ function publishableKey() {
   return m?.[1].trim().replace(/^["']|["']$/g, "") ?? null
 }
 
-/** Seasonal first, then kinds of arrangement, then occasions. */
+/** Seasonal first, then kinds of arrangement. */
 async function liveCategories() {
   const key = publishableKey()
   if (!key) throw new Error("No publishable key: set NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY.")
@@ -55,7 +55,11 @@ async function liveCategories() {
     "anniversary", "birthday", "congratulations", "get-well-soon", "new-baby",
     "thank-you", "love", "sympathy",
   ])
-  const all = product_categories.filter((c) => c.handle !== "hot-deals")
+  // Occasions are left out for now (11 Nov 2026, the shop's instruction);
+  // drop them from this filter to bring their tick columns back.
+  const all = product_categories.filter(
+    (c) => c.handle !== "hot-deals" && !OCCASIONS.has(c.handle)
+  )
   const rank = (c) => (c.handle === "black-friday" ? 0 : OCCASIONS.has(c.handle) ? 2 : 1)
   return all.sort((a, b) => rank(a) - rank(b)).map((c) => c.name)
 }
@@ -302,7 +306,6 @@ ex.values = {
     "Fifty long-stem red roses, hand-tied and wrapped in black. The one to send when the message matters.",
   ...tickFor("50 Roses"),
   ...tickFor("Black Friday"),
-  ...tickFor("Anniversary"),
   stock: 10,
   publish: "Yes",
 }
