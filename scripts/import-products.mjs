@@ -150,11 +150,24 @@ const HEADINGS = {
   stock: "stock",
   "in stock": "stock",
   publish: "publish",
+  // The simple sheet (scripts/make-simple-template.mjs). Its headings carry
+  // the Arabic on a second line, which normaliseHeading drops.
+  name: "name",
+  "price (qar)": "price",
+  "on offer?": "onOffer",
+  "offer price (qar)": "offerPrice",
+  category: "cat1",
+  "second category": "cat2",
+  "show on website?": "publish",
 }
 
-/** "Product name *" and "  PRODUCT NAME" are the same column. */
+/**
+ * "Product name *", "  PRODUCT NAME" and "Name *\nالاسم" are the same column:
+ * only the first line counts, without its star.
+ */
 const normaliseHeading = (v) =>
-  String(v ?? "")
+  cellText({ value: v })
+    .split(/\r?\n/)[0]
     .replace(/\*/g, "")
     .trim()
     .toLowerCase()
@@ -245,6 +258,7 @@ async function readSheet() {
   const unknown = []
   ws.getRow(1).eachCell((cell, col) => {
     const key = HEADINGS[normaliseHeading(cell.value)]
+    if (key && byKey[key]) return // first column of a meaning wins
     if (key) byKey[key] = col
     else if (normaliseHeading(cell.value)) unknown.push(cellText(cell))
   })
@@ -289,12 +303,36 @@ async function readSheet() {
     if (!name) continue
     if (/^example\b/i.test(name.replace(/^\W+/, ""))) continue
 
+    /* What a customer pays, and the struck-through figure when on offer.
+     * The simple sheet says it plainly: Price, On offer?, Offer price. The
+     * original template said Price (what they pay) and Was price (the old
+     * figure). Both come out as `base` (the variant's own price) and `sale`
+     * (the sale price list's), which is how Medusa shows a crossed-out
+     * price — see apps/backend/src/admin/components/shop/prices.ts. */
+    const listed = num("price")
+    const offer = num("offerPrice")
+    const was = num("wasPrice")
+    const saysOffer = /^(yes|y|نعم)$/i.test(get("onOffer"))
+    let base = listed
+    let sale = null
+    if (saysOffer && offer != null && listed != null && offer < listed) sale = offer
+    else if (!byKey.onOffer && was != null && listed != null && was > listed) {
+      base = was
+      sale = listed
+    }
+
     rows.push({
       rowNumber: r,
       name,
       size: get("size"),
-      price: num("price"),
-      wasPrice: num("wasPrice"),
+      price: base,
+      sale,
+      offerProblem:
+        saysOffer && sale == null
+          ? offer == null
+            ? "says it is on offer but has no offer price"
+            : "offer price is not below the price"
+          : null,
       stock: num("stock"),
       categories: [get("cat1"), get("cat2"), get("cat3")].filter(Boolean),
       variety: get("variety"),
@@ -402,6 +440,14 @@ async function main() {
   // Offers was called Hot Deal until 31 Oct 2026; sheets made from the old
   // template still say so.
   if (catIdByName.has("offers")) catIdByName.set("hot deal", catIdByName.get("offers"))
+  const offersCategoryId =
+    (cats.product_categories ?? []).find((c) => c.handle === "hot-deals")?.id ?? null
+
+  // The active sale list holds offer prices; with none active, discounts are
+  // switched off shop-wide and an offer imports at its full price.
+  const shopPrices = await admin("GET", "/admin/shop-prices")
+  const saleListId = shopPrices.sale_price_list_id ?? null
+
   const tagIdByValue = new Map((tags.product_tags ?? []).map((t) => [t.value, t.id]))
   const salesChannelId = channels.sales_channels?.[0]?.id
   const shippingProfileId = profiles.shipping_profiles?.[0]?.id
@@ -452,6 +498,54 @@ async function main() {
     }
   }
 
+  /**
+   * Each size's price and offer, written the way the Shop screen writes them
+   * (admin/components/shop/prices.ts): the variant's own price is the full
+   * one, and an offer is a price on the sale list, which the storefront shows
+   * with the full price struck through. A size no longer on offer has its
+   * sale price removed — left behind, it would keep overriding the price.
+   *
+   * Runs on updates too, so the sheet works as a price list: an existing
+   * product's sizes are matched by name and repriced.
+   */
+  async function setPrices(productId, rows) {
+    const { product } = await admin(
+      "GET",
+      `/admin/products/${productId}?fields=variants.id,variants.title,variants.prices.id,variants.prices.amount,variants.prices.currency_code`
+    )
+    for (const v of product.variants ?? []) {
+      const row = rows.find((r) => (r.size || "One size") === v.title)
+      if (!row) continue
+      const current = shopPrices.prices?.[v.id]
+      const own = (v.prices ?? []).find((p) => p.currency_code === "qar")
+      if (Number(own?.amount) !== row.price) {
+        await admin("POST", `/admin/products/${productId}/variants/${v.id}`, {
+          prices: [{ ...(own ? { id: own.id } : {}), amount: row.price, currency_code: "qar" }],
+        })
+      }
+      if (!saleListId) continue
+      if (row.sale != null) {
+        if (current?.sale_price_id) {
+          if (current.sale !== row.sale) {
+            await admin("POST", `/admin/price-lists/${saleListId}/prices/batch`, {
+              update: [
+                { id: current.sale_price_id, variant_id: v.id, amount: row.sale, currency_code: "qar" },
+              ],
+            })
+          }
+        } else {
+          await admin("POST", `/admin/price-lists/${saleListId}/prices/batch`, {
+            create: [{ variant_id: v.id, amount: row.sale, currency_code: "qar" }],
+          })
+        }
+      } else if (current?.sale_price_id) {
+        await admin("POST", `/admin/price-lists/${saleListId}/prices/batch`, {
+          delete: [current.sale_price_id],
+        })
+      }
+    }
+  }
+
   /** Tags are created on demand so a new colour does not need a code change. */
   async function tagIdFor(value) {
     if (!value) return null
@@ -492,6 +586,23 @@ async function main() {
         `${where} "${lead.name}": none of its categories exist — skipped`
       )
       continue
+    }
+
+    for (const r of variantRows) {
+      if (r.offerProblem) {
+        problems.push(`${where} "${lead.name}": ${r.offerProblem} — imported at full price`)
+      }
+    }
+    // A flower on offer sits in Offers too, so the Offers page and the
+    // homepage's Offers rail pick it up; one that is not, comes out of it.
+    const onOffer = !!saleListId && variantRows.some((r) => r.sale != null)
+    if (variantRows.some((r) => r.sale != null) && !saleListId) {
+      problems.push(
+        `${where} "${lead.name}": discounts are switched off in the shop (no active sale price list) — imported at full price`
+      )
+    }
+    if (onOffer && offersCategoryId && !catIds.includes(offersCategoryId)) {
+      catIds.push(offersCategoryId)
     }
 
     /* ---- photo -------------------------------------------------------- */
@@ -553,10 +664,9 @@ async function main() {
         // at the warehouse is set once the product exists (setStock below).
         manage_inventory: true,
         options: { Size: r.size || "One size" },
+        // The variant's own price is the full ("was") one; an offer price is
+        // set on the sale list once the variant exists (setPrices below).
         prices: [{ amount: r.price, currency_code: "qar" }],
-        ...(r.wasPrice
-          ? { metadata: { original_price: String(r.wasPrice) } }
-          : {}),
       })),
     }
 
@@ -566,8 +676,9 @@ async function main() {
     if (!APPLY) {
       console.log(
         `would ${verb.padEnd(6)} ${lead.name}  —  QAR ${variantRows
-          .map((r) => r.price)
+          .map((r) => (r.sale != null && saleListId ? `${r.sale} (was ${r.price})` : r.price))
           .join("/")}, ${catIds.length} categor${catIds.length === 1 ? "y" : "ies"}` +
+          `${onOffer ? ", on offer" : ""}` +
           `${hasSizes ? `, ${variantRows.length} sizes` : ""}` +
           `${imageSource ? `, photo ${imageSource}` : ", NO PHOTO"}` +
           `${lead.publish ? "" : ", draft"}`
@@ -597,6 +708,7 @@ async function main() {
       // level anywhere reads as sold out. On an update only a Stock cell that
       // was filled in changes anything — a blank one leaves the count alone.
       await setStock(productId, variantRows, !existingId)
+      await setPrices(productId, variantRows)
 
       // Now that the product exists, the photo has somewhere to go. A failure
       // here leaves a product without a photo, which is reported and fixable
