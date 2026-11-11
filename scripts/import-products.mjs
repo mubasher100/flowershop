@@ -252,18 +252,24 @@ async function readSheet() {
   if (!ws) throw new Error("No Products sheet in that workbook.")
 
   // Column letters by meaning, so a reordered or renamed-with-a-star sheet
-  // still imports. A heading we do not recognise is reported, not ignored:
-  // silently dropping a column is how a price column goes missing.
+  // still imports. Any other heading is a category tick column (the simple
+  // sheet has one per category): a filled cell puts the flower in the
+  // category of that name. They are listed before anything happens, and a
+  // tick under a heading that is not a real category is reported per row —
+  // so a mistyped heading still surfaces rather than vanishing.
   const byKey = {}
-  const unknown = []
+  const tickColumns = []
   ws.getRow(1).eachCell((cell, col) => {
     const key = HEADINGS[normaliseHeading(cell.value)]
     if (key && byKey[key]) return // first column of a meaning wins
     if (key) byKey[key] = col
-    else if (normaliseHeading(cell.value)) unknown.push(cellText(cell))
+    else if (normaliseHeading(cell.value)) {
+      const name = cellText(cell).split(/\r?\n/)[0].replace(/\*/g, "").trim()
+      tickColumns.push({ name, col })
+    }
   })
 
-  for (const required of ["name", "price", "cat1"]) {
+  for (const required of ["name", "price"]) {
     if (!byKey[required]) {
       throw new Error(
         `The sheet has no "${required}" column. Headings found: ${ws
@@ -273,8 +279,11 @@ async function readSheet() {
       )
     }
   }
-  if (unknown.length) {
-    console.log(`Note: ignoring unrecognised column(s): ${unknown.join(", ")}`)
+  if (!byKey.cat1 && !tickColumns.length) {
+    throw new Error("The sheet has no Category column and no category tick columns.")
+  }
+  if (tickColumns.length) {
+    console.log(`Category tick columns: ${tickColumns.map((t) => t.name).join(", ")}\n`)
   }
 
   /* Photos pasted into cells.
@@ -334,7 +343,18 @@ async function readSheet() {
             : "offer price is not below the price"
           : null,
       stock: num("stock"),
-      categories: [get("cat1"), get("cat2"), get("cat3")].filter(Boolean),
+      categories: [
+        get("cat1"),
+        get("cat2"),
+        get("cat3"),
+        // ✓, x, yes — anything but an empty cell or an explicit no.
+        ...tickColumns
+          .filter((t) => {
+            const v = cellText(row.getCell(t.col))
+            return v && !/^(no|n|false|0|-)$/i.test(v)
+          })
+          .map((t) => t.name),
+      ].filter(Boolean),
       variety: get("variety"),
       colour: get("colour").toLowerCase(),
       stems: num("stems"),
@@ -582,8 +602,11 @@ async function main() {
         )
     }
     if (!catIds.length) {
+      const named = variantRows.some((r) => r.categories.length)
       problems.push(
-        `${where} "${lead.name}": none of its categories exist — skipped`
+        `${where} "${lead.name}": ${
+          named ? "none of its categories exist" : "no category ticked"
+        } — skipped`
       )
       continue
     }

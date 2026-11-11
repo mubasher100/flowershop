@@ -42,6 +42,15 @@ export const TYPE_CATEGORIES: TypeCategory[] = [
     match: () => false,
   },
   {
+    // Added 11 Nov 2026 for the shop's Black Friday. Curated like Offers:
+    // a flower is ticked into it in the product sheet or the admin. Listed
+    // here so seed-catalog's prune does not delete it.
+    name: "Black Friday",
+    handle: "black-friday",
+    description: "Our Black Friday flowers, at their Black Friday prices.",
+    match: () => false,
+  },
+  {
     name: "Hand-Tied Bouquets",
     handle: "bouquets",
     description: "Hand-tied and wrapped, from 3 to 100 roses.",
