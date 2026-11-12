@@ -150,6 +150,10 @@ const SECURITY_HEADERS: [string, string][] = [
   // needs it, and only our own pages may ask. It was geolocation=(), which
   // made the browser refuse the button on every phone without even asking.
   ["Permissions-Policy", "camera=(), microphone=(), geolocation=(self), payment=()"],
+  // The staging copy stays out of search results even if a link to it leaks.
+  ...(process.env.NEXT_PUBLIC_STAGING === "true"
+    ? ([["X-Robots-Tag", "noindex, nofollow"]] as [string, string][])
+    : []),
 ]
 
 const withSecurityHeaders = (response: NextResponse) => {

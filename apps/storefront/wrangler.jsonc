@@ -75,5 +75,43 @@
 
   "observability": {
     "enabled": true
+  },
+
+  /**
+   * The test copy of the shop, deployed from the `staging` branch with
+   * `--env staging`. Its own Worker, cache bucket and Durable Objects, so
+   * nothing it caches or purges can reach the live shop, and the deploy
+   * workflow builds it against the staging backend, never the live one.
+   * Bindings are not inherited by an environment, so each is repeated.
+   */
+  "env": {
+    "staging": {
+      "name": "flowershop-storefront-staging",
+      "r2_buckets": [
+        {
+          "binding": "NEXT_INC_CACHE_R2_BUCKET",
+          "bucket_name": "flowershop-cache-staging"
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          { "name": "NEXT_TAG_CACHE_DO_SHARDED", "class_name": "DOShardedTagCache" },
+          { "name": "NEXT_CACHE_DO_QUEUE", "class_name": "DOQueueHandler" }
+        ]
+      },
+      "routes": [
+        { "pattern": "staging.tulipsandtruffle.com", "custom_domain": true }
+      ],
+      "workers_dev": true,
+      "services": [
+        {
+          "binding": "WORKER_SELF_REFERENCE",
+          "service": "flowershop-storefront-staging"
+        }
+      ],
+      "observability": {
+        "enabled": true
+      }
+    }
   }
 }

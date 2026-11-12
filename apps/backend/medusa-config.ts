@@ -78,6 +78,10 @@ const fileModule =
                   secret_access_key: process.env.S3_SECRET_ACCESS_KEY,
                   // R2 has no regions, but the S3 client insists on one.
                   region: process.env.S3_REGION || 'auto',
+                  // Staging sets S3_PREFIX=staging/ so its uploads land in
+                  // their own folder of the media bucket, apart from the
+                  // live shop's photos.
+                  prefix: process.env.S3_PREFIX || '',
                 },
               },
             ],

@@ -1,23 +1,26 @@
 name: Deploy storefront (Cloudflare)
 
+# main is the live shop. staging is the test copy: push there first, check
+# it at the staging address, and merge to main only once it looks right.
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
     paths:
       - "apps/storefront/**"
       - ".github/workflows/deploy-storefront.yml"
   workflow_dispatch:
 
-# Never let two deploys race to the same Worker.
+# Never let two deploys race to the same Worker. Staging and the live shop
+# are different Workers, so they may deploy side by side.
 concurrency:
-  group: deploy-storefront
+  group: deploy-storefront-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
   deploy:
     name: Build & deploy to Cloudflare Workers
     runs-on: ubuntu-latest
-    environment: production
+    environment: ${{ github.ref_name == 'staging' && 'staging' || 'production' }}
     # Off until Cloudflare and the Railway backend exist. The storefront build
     # fetches the Store API for static generation, so without a live backend
     # this job burns ~25 minutes and fails on every push.
@@ -33,6 +36,56 @@ jobs:
 
       - run: npm ci
 
+      # Every value that differs between the live shop and staging is picked
+      # here. Staging refuses to build until its own backend is set, and
+      # refuses the live backend outright, so a test copy can never be built
+      # against the real shop and take real orders.
+      - name: Pick the target (live shop or staging)
+        run: |
+          if [ "$GITHUB_REF_NAME" = staging ]; then
+            if [ -z "$S_BACKEND" ] || [ -z "$S_KEY" ] || [ -z "$S_SITE" ]; then
+              echo "::error::Staging is not set up: needs the STAGING_MEDUSA_BACKEND_URL and STAGING_STOREFRONT_BASE_URL variables and the STAGING_MEDUSA_PUBLISHABLE_KEY secret"
+              exit 1
+            fi
+            if [ "${S_BACKEND%/}" = "${P_BACKEND%/}" ]; then
+              echo "::error::STAGING_MEDUSA_BACKEND_URL is the live backend"
+              exit 1
+            fi
+            {
+              echo "WRANGLER_ENV=staging"
+              echo "BACKEND_URL=$S_BACKEND"
+              echo "PUBLISHABLE_KEY=$S_KEY"
+              echo "SITE_URL=$S_SITE"
+              echo "REVALIDATE=$S_REVALIDATE"
+              echo "ONLINE=$S_ONLINE"
+              echo "STAGING=true"
+              echo "GA_ID="
+            } >> "$GITHUB_ENV"
+          else
+            {
+              echo "WRANGLER_ENV="
+              echo "BACKEND_URL=$P_BACKEND"
+              echo "PUBLISHABLE_KEY=$P_KEY"
+              echo "SITE_URL=$P_SITE"
+              echo "REVALIDATE=$P_REVALIDATE"
+              echo "ONLINE=$P_ONLINE"
+              echo "STAGING="
+              echo "GA_ID=$P_GA"
+            } >> "$GITHUB_ENV"
+          fi
+        env:
+          S_BACKEND: ${{ vars.STAGING_MEDUSA_BACKEND_URL }}
+          S_KEY: ${{ secrets.STAGING_MEDUSA_PUBLISHABLE_KEY }}
+          S_SITE: ${{ vars.STAGING_STOREFRONT_BASE_URL }}
+          S_REVALIDATE: ${{ secrets.STAGING_REVALIDATE_SECRET }}
+          S_ONLINE: ${{ vars.STAGING_ONLINE_PAYMENT }}
+          P_BACKEND: ${{ vars.MEDUSA_BACKEND_URL }}
+          P_KEY: ${{ secrets.MEDUSA_PUBLISHABLE_KEY }}
+          P_SITE: ${{ vars.STOREFRONT_BASE_URL || 'https://tulipsandtruffle.com' }}
+          P_REVALIDATE: ${{ secrets.REVALIDATE_SECRET }}
+          P_ONLINE: ${{ vars.ONLINE_PAYMENT }}
+          P_GA: ${{ vars.GA_MEASUREMENT_ID }}
+
       - name: Build with OpenNext
         working-directory: apps/storefront
         # Next 15 left the Next.js team's two-year support window on
@@ -41,13 +94,16 @@ jobs:
         # setting in open-next.config.ts revisited first (see CLAUDE.md).
         run: npx opennextjs-cloudflare build --dangerouslyUseUnsupportedNextVersion
         env:
-          NEXT_PUBLIC_MEDUSA_BACKEND_URL: ${{ vars.MEDUSA_BACKEND_URL }}
-          NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${{ secrets.MEDUSA_PUBLISHABLE_KEY }}
-          NEXT_PUBLIC_BASE_URL: ${{ vars.STOREFRONT_BASE_URL }}
+          # Picked above: the live shop's values on main, staging's on staging.
+          NEXT_PUBLIC_MEDUSA_BACKEND_URL: ${{ env.BACKEND_URL }}
+          NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${{ env.PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_BASE_URL: ${{ env.SITE_URL }}
+          # The staging banner, robots.txt disallow-all and noindex header.
+          NEXT_PUBLIC_STAGING: ${{ env.STAGING }}
           # "skipcash" makes customers pay by card before the order is placed.
           # Unset, checkout places orders without payment, as before. Turn it
           # on only once the backend has live SkipCash keys (see CLAUDE.md).
-          NEXT_PUBLIC_ONLINE_PAYMENT: ${{ vars.ONLINE_PAYMENT }}
+          NEXT_PUBLIC_ONLINE_PAYMENT: ${{ env.ONLINE }}
           # NEXT_PUBLIC_DEMO_PAYMENT is deliberately not set: the simulated
           # card gateway came off the live site on 1 Nov 2026, and orders
           # are confirmed on WhatsApp only until SkipCash is live.
@@ -64,7 +120,8 @@ jobs:
           NEXT_PUBLIC_LEGAL_EMAIL: ${{ vars.LEGAL_EMAIL }}
           # Google Analytics 4. Unset means no analytics script ships at all,
           # which is also why the site needs no cookie banner today.
-          NEXT_PUBLIC_GA_ID: ${{ vars.GA_MEASUREMENT_ID }}
+          # Never on staging, so test visits do not count as customers.
+          NEXT_PUBLIC_GA_ID: ${{ env.GA_ID }}
           # The store name in the header, footer and page titles. Set the
           # BRAND_NAME repo variable once the real name is decided; it falls
           # back to the "Flowershop" placeholder.
@@ -93,16 +150,26 @@ jobs:
         id: previous
         working-directory: apps/storefront
         run: |
-          id=$(npx wrangler deployments status --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const v=JSON.parse(s).versions||[];const top=v.sort((a,b)=>b.percentage-a.percentage)[0];process.stdout.write(top?top.version_id:"")})') || id=""
+          id=$(npx wrangler deployments status --json ${WRANGLER_ENV:+--env $WRANGLER_ENV} | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const v=JSON.parse(s).versions||[];const top=v.sort((a,b)=>b.percentage-a.percentage)[0];process.stdout.write(top?top.version_id:"")})') || id=""
           echo "Live before this deploy: ${id:-unknown}"
           echo "version=$id" >> "$GITHUB_OUTPUT"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
+      # Staging's cache bucket is made on its first deploy; on later ones
+      # this says it already exists, which is fine.
+      - name: Make sure staging's cache bucket exists
+        if: env.WRANGLER_ENV == 'staging'
+        working-directory: apps/storefront
+        run: npx wrangler r2 bucket create flowershop-cache-staging --location apac || true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
       - name: Deploy (uploads the Worker and seeds the R2 cache)
         working-directory: apps/storefront
-        run: npx opennextjs-cloudflare deploy
+        run: npx opennextjs-cloudflare deploy ${WRANGLER_ENV:+--env $WRANGLER_ENV}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -114,9 +181,9 @@ jobs:
       # deploy so a fresh Worker (a new account, a renamed script) has it.
       - name: Set the revalidation secret on the Worker
         working-directory: apps/storefront
-        run: printf '%s' "$REVALIDATE_SECRET" | npx wrangler secret put REVALIDATE_SECRET
+        if: env.REVALIDATE != ''
+        run: printf '%s' "$REVALIDATE" | npx wrangler secret put REVALIDATE_SECRET ${WRANGLER_ENV:+--env $WRANGLER_ENV}
         env:
-          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
@@ -127,7 +194,7 @@ jobs:
       - name: Check the live site (rolls back if it is broken)
         working-directory: apps/storefront
         run: |
-          SITE="${{ vars.STOREFRONT_BASE_URL || 'https://tulipsandtruffle.com' }}"
+          SITE="$SITE_URL"
           ok=1
           for path in en-qa ar-qa en-qa/store ar-qa/store en-qa/products/fifty-shimmer-roses en-qa/cart en-qa/checkout api/search-index; do
             code=000
@@ -142,7 +209,7 @@ jobs:
           if [ "$ok" = 1 ]; then exit 0; fi
           if [ -n "$PREVIOUS" ]; then
             echo "::error::The new version is failing; rolling back to $PREVIOUS"
-            npx wrangler rollback "$PREVIOUS" -y -m "Automatic rollback: deploy check failed"
+            npx wrangler rollback "$PREVIOUS" -y -m "Automatic rollback: deploy check failed" ${WRANGLER_ENV:+--env $WRANGLER_ENV}
           else
             echo "::error::The new version is failing and the previous version is unknown — roll back from the Cloudflare dashboard"
           fi
