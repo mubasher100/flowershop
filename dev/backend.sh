@@ -13,8 +13,14 @@ set -euo pipefail
 cd "$(dirname "$0")/../apps/backend"
 
 export NODE_ENV=development
-export DATABASE_URL="postgres://medusa:medusa@localhost:5441/flowershop"
-export REDIS_URL="redis://localhost:6391"
+# TARGET_DATABASE_URL points it at the staging database instead (to migrate
+# and seed it). The live database is refused.
+export DATABASE_URL="${TARGET_DATABASE_URL:-postgres://medusa:medusa@localhost:5441/flowershop}"
+case "$DATABASE_URL" in
+  *moawqiebddyqfahnvoax*) echo "Refusing: that is the live database." >&2; exit 1 ;;
+esac
+# A second Redis database for a second backend, so two never share queues.
+export REDIS_URL="${TARGET_REDIS_URL:-redis://localhost:6391}"
 export JWT_SECRET="local-dev-only" COOKIE_SECRET="local-dev-only" AUTH_MFA_ENCRYPTION_KEY="local-dev-only-key-0123456789abcd"
 export STORE_CORS="http://localhost:8000,http://localhost:5174"
 export ADMIN_CORS="http://localhost:9000,http://localhost:5174"
