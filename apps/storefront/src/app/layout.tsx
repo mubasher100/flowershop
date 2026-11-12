@@ -99,6 +99,14 @@ export default function RootLayout(props: { children: React.ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: DIR_SCRIPT }} />
       </head>
       <body className={googleSans.className}>
+        {/* The staging copy says so on every page, so a test order is never
+            mistaken for the live shop. A build-time constant: the live
+            build renders nothing here. */}
+        {process.env.NEXT_PUBLIC_STAGING === "true" && (
+          <div className="bg-blush-700 px-4 py-1.5 text-center text-xs font-medium text-white">
+            Staging: test copy. Orders here are not real.
+          </div>
+        )}
         {/* A plain wrapper, not <main>. This element wraps the whole document
             including the nav and footer, so calling it "main" put the site
             navigation inside the main landmark and left the page with no

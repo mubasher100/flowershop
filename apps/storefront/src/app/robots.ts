@@ -18,6 +18,11 @@ export const dynamic = "force-static"
 export default function robots(): MetadataRoute.Robots {
   const base = getBaseURL()
 
+  // The staging copy must never be indexed beside the real shop.
+  if (process.env.NEXT_PUBLIC_STAGING === "true") {
+    return { rules: [{ userAgent: "*", disallow: "/" }] }
+  }
+
   return {
     rules: [
       {

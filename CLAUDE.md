@@ -410,6 +410,15 @@ CI never touches Supabase.
 - Backend → Railway, watching `apps/backend/**` on `main`. Config lives in [`railway.json`](railway.json) at the **repo root** (not `apps/backend/`) — the build must run from the root so npm workspaces resolve. Migrations run as a pre-deploy step, not at boot.
 - Storefront → `.github/workflows/deploy-storefront.yml`, watching `apps/storefront/**` on `main`. Gated behind the `CLOUDFLARE_ENABLED` repo variable until Cloudflare is set up.
 
+### Staging (the test copy)
+
+**Big changes go to `staging` first, never straight to `main`** (set up 12 Nov 2026). Staging is a whole second shop: its own Worker (`flowershop-storefront-staging`, at **staging.tulipsandtruffle.com**), its own Railway environment (backend + Redis), its own database (a second, free Supabase project) and SkipCash's **sandbox**, so nothing done there can touch a live order, a live price or a customer. The flow: branch → merge to `staging` → test at the staging address and its admin → merge `staging` into `main`.
+
+- **The storefront picks its target from the branch** (`deploy-storefront.yml`, step *Pick the target*). Staging reads `STAGING_MEDUSA_BACKEND_URL`, `STAGING_STOREFRONT_BASE_URL`, `STAGING_ONLINE_PAYMENT` (variables) and `STAGING_MEDUSA_PUBLISHABLE_KEY`, `STAGING_REVALIDATE_SECRET` (secrets), and **refuses to build** if they are missing or if the backend is the live one. It deploys with `--env staging` (bindings in `wrangler.jsonc`), makes its own R2 cache bucket `flowershop-cache-staging`, and gets the same post-deploy check and rollback as the live shop.
+- `NEXT_PUBLIC_STAGING=true` puts a "Staging: test copy" bar on every page, disallows everything in robots.txt and sends `X-Robots-Tag: noindex`. Analytics is never on there.
+- **Railway staging overrides that matter:** `DATABASE_URL` (the staging Supabase, session pooler), `MEDUSA_BACKEND_URL`, the three CORS variables and `STOREFRONT_URL` (staging addresses), new `JWT_SECRET` / `COOKIE_SECRET`, all five `SKIPCASH_*` from the portal's **Sandbox** tab, `S3_PREFIX=staging/` (its uploads sit in their own folder of the media bucket), and **`RESEND_API_KEY` and `SHOP_ORDER_ALERT_EMAILS` removed**, or every test order emails the shop as if it were real.
+- Migrations reach staging first, so a migration that fails there never got to the live database.
+
 ### Live environment
 
 | | |
