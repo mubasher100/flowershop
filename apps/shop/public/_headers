@@ -1,0 +1,15 @@
+# The shop's private tools: never in a search engine, never in someone
+# else's frame.
+/*
+  X-Robots-Tag: noindex, nofollow
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(self), geolocation=(), microphone=()
+
+# Hashed bundles never change; the page itself must always be fresh, or a
+# deploy would leave the florist on the old app.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+/index.html
+  Cache-Control: no-cache

@@ -1,0 +1,93 @@
+name: Deploy shop app (Cloudflare)
+
+# The florist's phone app (apps/shop). main → shop.tulipsandtruffle.com
+# against the live backend; staging → shop-staging.tulipsandtruffle.com
+# against the staging backend.
+on:
+  push:
+    branches: [main, staging]
+    paths:
+      - "apps/shop/**"
+      - "apps/backend/src/admin/lib/**"
+      - ".github/workflows/deploy-shop.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-shop-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Test, build & deploy
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'staging' && 'staging' || 'production' }}
+    if: vars.CLOUDFLARE_ENABLED == 'true'
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      # Staging refuses the live backend outright, as the storefront does.
+      - name: Pick the target (live shop or staging)
+        run: |
+          if [ "$GITHUB_REF_NAME" = staging ]; then
+            if [ -z "$S_BACKEND" ] || [ "${S_BACKEND%/}" = "${P_BACKEND%/}" ]; then
+              echo "::error::STAGING_MEDUSA_BACKEND_URL is missing or is the live backend"
+              exit 1
+            fi
+            {
+              echo "WRANGLER_ENV=staging"
+              echo "VITE_MEDUSA_BACKEND_URL=$S_BACKEND"
+              echo "VITE_STOREFRONT_URL=$S_SITE"
+              echo "VITE_TARGET=staging"
+              echo "APP_URL=https://shop-staging.tulipsandtruffle.com"
+            } >> "$GITHUB_ENV"
+          else
+            {
+              echo "WRANGLER_ENV="
+              echo "VITE_MEDUSA_BACKEND_URL=$P_BACKEND"
+              echo "VITE_STOREFRONT_URL=$P_SITE"
+              echo "VITE_TARGET=live"
+              echo "APP_URL=https://shop.tulipsandtruffle.com"
+            } >> "$GITHUB_ENV"
+          fi
+        env:
+          S_BACKEND: ${{ vars.STAGING_MEDUSA_BACKEND_URL }}
+          S_SITE: ${{ vars.STAGING_STOREFRONT_BASE_URL }}
+          P_BACKEND: ${{ vars.MEDUSA_BACKEND_URL }}
+          P_SITE: ${{ vars.STOREFRONT_BASE_URL }}
+
+      - name: Typecheck and unit tests
+        working-directory: apps/shop
+        run: |
+          npx tsc --noEmit -p .
+          npx vitest run
+
+      - name: Build
+        working-directory: apps/shop
+        run: npx vite build
+
+      - name: Deploy
+        working-directory: apps/shop
+        run: npx wrangler deploy ${WRANGLER_ENV:+--env $WRANGLER_ENV}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # A new custom domain takes a minute or two for its certificate, so
+      # this waits rather than failing the first deploy.
+      - name: Check it answers
+        run: |
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$APP_URL/flowers" || true)
+            echo "$APP_URL/flowers -> $code"
+            [ "$code" = 200 ] && exit 0
+            sleep 15
+          done
+          echo "::error::$APP_URL did not answer 200"
+          exit 1
