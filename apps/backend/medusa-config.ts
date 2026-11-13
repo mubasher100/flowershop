@@ -210,6 +210,12 @@ module.exports = defineConfig({
       adminCors: process.env.ADMIN_CORS!,
       authCors: process.env.AUTH_CORS!,
       jwtSecret: process.env.JWT_SECRET,
+      // The shop app (apps/shop) signs in with a JWT, and Medusa's default
+      // lifetime of one day had the florist typing the password every
+      // morning on a phone. Thirty days, like most phone apps; signing out
+      // in the app ends it sooner. The admin dashboard uses its session
+      // cookie and is unaffected.
+      jwtExpiresIn: process.env.JWT_EXPIRES_IN || '30d',
       cookieSecret: process.env.COOKIE_SECRET,
     },
 

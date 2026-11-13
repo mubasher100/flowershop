@@ -75,8 +75,8 @@ const deleteQuietly = (id: string) => api("DELETE", `/admin/products/${id}`).cat
 
 test("signs in with email and password, and lands on Orders", async ({ page }) => {
   await page.goto("/")
-  await page.getByLabel("Email").fill(EMAIL)
-  await page.getByLabel("Password").fill(PASSWORD)
+  await page.getByLabel("Email", { exact: true }).fill(EMAIL)
+  await page.getByLabel("Password", { exact: true }).fill(PASSWORD)
   await page.getByRole("button", { name: "Sign in" }).click()
   await expect(page.getByRole("heading", { name: "Orders" })).toBeVisible()
   await noSidewaysScroll(page)
@@ -84,8 +84,8 @@ test("signs in with email and password, and lands on Orders", async ({ page }) =
 
 test("a wrong password says so", async ({ page }) => {
   await page.goto("/")
-  await page.getByLabel("Email").fill(EMAIL)
-  await page.getByLabel("Password").fill("wrong-password")
+  await page.getByLabel("Email", { exact: true }).fill(EMAIL)
+  await page.getByLabel("Password", { exact: true }).fill("wrong-password")
   await page.getByRole("button", { name: "Sign in" }).click()
   await expect(page.getByRole("alert")).toContainText("don't match")
 })
