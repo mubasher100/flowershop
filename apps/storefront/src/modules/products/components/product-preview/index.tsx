@@ -61,7 +61,9 @@ export default async function ProductPreview({
               catalogue the grid sits directly under the page h1, where a
               hardcoded h3 skipped a level. */}
           <Heading
-            className="text-sm leading-snug text-ink-900 small:text-base"
+            // Two lines, always: a one-line name left its price higher than
+            // its neighbours', so a row's prices did not line up.
+            className="line-clamp-2 min-h-[2.75em] text-sm leading-snug text-ink-900 small:text-base"
             data-testid="product-title"
           >
             {product.title}

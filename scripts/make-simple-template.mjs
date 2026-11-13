@@ -98,7 +98,7 @@ const FIELDS = [
     key: "onOffer",
     width: 11,
     list: "yesno",
-    note: "Yes = on offer: the normal price shows crossed out and the flower appears under Offers.",
+    note: "Yes = on offer: the normal price shows crossed out and the flower appears under Black Friday.",
   },
   {
     header: "Offer price (QAR)",
@@ -320,7 +320,7 @@ const LINES = [
   ["p", "2.  Paste the photo into the Photo cell: copy the picture, click the cell, paste. It only has to start in the right row."],
   ["p", "3.  Type the name and the price (a number ending in 9, like 279), and a short description."],
   ["p", `4.  Tick the categories it belongs in: click the cell under each one and choose ${TICK} (typing x works too). Tick as many as fit — at least one. A ticked cell turns green; a name with nothing ticked turns pink.`],
-  ["p", "5.  On offer? Choose Yes and type the offer price. The website shows the normal price crossed out and puts the flower under Offers. For Black Friday, put it on offer and tick Black Friday too."],
+  ["p", "5.  On offer? Choose Yes and type the offer price. The website shows the normal price crossed out and puts the flower under Black Friday."],
   ["p", "Save and send the file back. Columns with * are required; the rest can stay empty."],
   ["h2", "Good to know"],
   ["p", "•  The product code, web address and stock records are made automatically — don't add them."],

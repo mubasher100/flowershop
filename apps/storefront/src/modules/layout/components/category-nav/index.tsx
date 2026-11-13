@@ -36,7 +36,12 @@ export default async function CategoryNav({ segment }: { segment?: string }) {
           the element itself grow past the viewport instead of scrolling
           inside it, so the whole page scrolled sideways on phones. */}
       <div className="no-scrollbar w-full max-w-full overflow-x-auto">
-        <ul className="content-container flex w-max min-w-full snap-x gap-1 small:w-auto small:justify-center">
+        {/* Always exactly as wide as its items (w-max), at least the screen
+            (min-w-full), centred only within spare room. It used to be the
+            capped-width content-container with justify-center, so once the
+            row outgrew it — Table Arrangements did that at 1280px — it spilled
+            out of both sides and the first category could not be reached. */}
+        <ul className="mx-auto flex w-max min-w-full snap-x justify-start gap-1 px-4 small:justify-center small:px-6">
         {ordered.map((category) => (
           <li key={category.id} className="flex-none snap-start">
             <LocalizedClientLink
