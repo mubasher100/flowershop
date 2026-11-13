@@ -238,6 +238,43 @@ test("download the sample sheet, fill it in, see the check, apply it", async ({ 
   }
 })
 
+/* ---------------------------------------------------------- photo sizes */
+
+test("a photo added on the phone gets its website sizes recorded", async ({ page }) => {
+  const title = `E2E Photo ${stamp()}`
+  const { product_categories } = await api("GET", "/admin/product-categories?limit=50&fields=id,handle")
+  const { product } = await api("POST", "/admin/quick-products", {
+    title,
+    price: 279,
+    stock: 10,
+    categoryIds: product_categories.filter((c: any) => c.handle === "bouquets").map((c: any) => c.id),
+    publish: false,
+  })
+  try {
+    // A phone-sized photo: wider than every rung of the ladder after shrinking.
+    const { default: sharp } = await import("sharp")
+    const photo = await sharp({ create: { width: 2000, height: 2500, channels: 3, background: "#e8a0b4" } }).jpeg().toBuffer()
+
+    await open(page, "/flowers")
+    await page.getByLabel("Search flowers").fill(title)
+    await page.getByRole("button", { name: new RegExp(title) }).first().click()
+    await page.getByLabel("Photo", { exact: true }).setInputFiles({ name: "bouquet.jpg", mimeType: "image/jpeg", buffer: photo })
+    await expect(page.getByAltText("Current photo")).toBeVisible({ timeout: 30_000 })
+    await page.getByRole("button", { name: "Save", exact: true }).click()
+    await expect(page.getByText(`Changed ${title}`, { exact: false }).or(page.getByText("Saved.", { exact: false }))).toBeVisible()
+
+    const { product: saved } = await api("GET", `/admin/products/${product.id}?fields=thumbnail,metadata`)
+    const ladder = saved.metadata?.image_variants?.[saved.thumbnail]
+    expect(ladder, "sizes recorded for the new photo").toBeTruthy()
+    // Shrunk to 1600px tall, so 1280px wide: 320, 640 and 960 below it.
+    expect(Object.keys(ladder).sort((a, b) => +a - +b)).toEqual(["320", "640", "960", "1280"])
+    expect(ladder["1280"]).toBe(saved.thumbnail)
+    for (const w of ["320", "640", "960"]) expect((await fetch(ladder[w])).ok, `${w}px copy is there`).toBe(true)
+  } finally {
+    await api("DELETE", `/admin/products/${product.id}`).catch(() => undefined)
+  }
+})
+
 /* --------------------------------------------------------------- printing */
 
 test("print a sample gift card with any message", async ({ page }) => {

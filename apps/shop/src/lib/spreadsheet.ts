@@ -29,6 +29,7 @@ import type ExcelJSNamespace from "exceljs"
 
 import { messageOf } from "./bulk"
 import { sdk } from "./sdk"
+import { recordVariants } from "./variants"
 import {
   OFFER_HANDLE,
   applyPrice,
@@ -1102,6 +1103,7 @@ export async function applyFlower(
     try {
       const url = await ctx.upload(imageFile(f.photo.image, f.name))
       await sdk.admin.product.update(productId, { thumbnail: url, images: [{ url }] })
+      await recordVariants(productId, url)
       notes.push("photo")
     } catch (err) {
       return `${notes.join(", ")} — but the photo did not upload: ${messageOf(err)}`

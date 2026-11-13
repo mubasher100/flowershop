@@ -9,11 +9,11 @@ import { useQuery } from "@tanstack/react-query"
 import { useRef, useState, type ReactNode } from "react"
 import { Link } from "react-router-dom"
 
-import { shrink } from "../components/photo"
 import { Button, Spinner, cx, toast } from "../components/ui"
 import { messageOf, runLimited } from "../lib/bulk"
 import { useAfterSave, useCatalogue } from "../lib/data"
 import { sdk } from "../lib/sdk"
+import { uploadPhoto } from "../lib/variants"
 import {
   FILE_NAME,
   applyFlower,
@@ -47,13 +47,8 @@ function save(data: ArrayBuffer, name: string) {
   setTimeout(() => URL.revokeObjectURL(url), 60_000)
 }
 
-async function upload(file: File) {
-  const small = await shrink(file).catch(() => file)
-  const { files } = await sdk.admin.upload.create({ files: [small] })
-  const url = files?.[0]?.url
-  if (!url) throw new Error("The upload did not return a link.")
-  return url
-}
+/** Shrunk to 1600px, with the website's smaller sizes made too. */
+const upload = uploadPhoto
 
 type Progress = { state: "waiting" | "working" | "done" | "failed"; note?: string }
 

@@ -8,6 +8,7 @@ import { useEffect, useState, type FormEvent } from "react"
 import { messageOf } from "../lib/bulk"
 import { useAfterSave } from "../lib/data"
 import { STOREFRONT, sdk } from "../lib/sdk"
+import { recordVariants } from "../lib/variants"
 import {
   applyPrice,
   pickableCategories,
@@ -158,6 +159,7 @@ export default function FlowerSheet({
           const target = num(s.canSell) + stock.held
           if (stock.tracked && target !== stock.stocked) await setStock(variant, target)
         }
+        if (photo !== product.thumbnail) await recordVariants(product.id, photo)
         await afterSave(`Changed ${title.trim()}`)
       } else {
         const s = sizes[0]
@@ -182,6 +184,7 @@ export default function FlowerSheet({
             })
           }
         }
+        await recordVariants(created.id, photo)
         await afterSave(`Added ${title.trim()}`, `${title.trim()} added.`)
       }
       onClose()
@@ -229,7 +232,7 @@ export default function FlowerSheet({
       }
     >
       <form id={formId} onSubmit={save} noValidate className="flex flex-col gap-5">
-        <PhotoField value={photo} onChange={setPhoto} onBusy={setUploading} />
+        <PhotoField value={photo} onChange={setPhoto} onBusy={setUploading} withSizes />
 
         <Field label="Name">
           <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass} placeholder="Fifty Shimmer Roses" required />
