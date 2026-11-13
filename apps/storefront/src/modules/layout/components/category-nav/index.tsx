@@ -1,7 +1,7 @@
 import { listCategories } from "@lib/data/categories"
 import { getTranslations } from "@lib/i18n/dictionary"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import { localizedCategoryName, TYPE_HANDLES } from "@lib/util/categories"
+import { localizedCategoryName, typeCategories } from "@lib/util/categories"
 
 /**
  * Category strip under the header.
@@ -18,9 +18,7 @@ export default async function CategoryNav({ segment }: { segment?: string }) {
   const { t } = getTranslations(segment)
   const categories = await listCategories({ limit: 50 })
 
-  const ordered = TYPE_HANDLES.map((h) =>
-    categories?.find((c) => c.handle === h)
-  ).filter(Boolean) as NonNullable<typeof categories>
+  const ordered = typeCategories(categories)
 
   if (!ordered.length) {
     return null
@@ -48,7 +46,7 @@ export default async function CategoryNav({ segment }: { segment?: string }) {
               href={`/categories/${category.handle}`}
               className="inline-flex min-h-[2.75rem] items-center whitespace-nowrap px-3 text-[0.72rem] font-medium uppercase tracking-[0.16em] text-ink-700 rtl:tracking-normal transition-colors hover:text-blush-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blush-700 small:px-4 small:text-xs"
             >
-              {localizedCategoryName(category.handle, category.name, segment)}
+              {localizedCategoryName(category.handle, category.name, segment, category.metadata)}
             </LocalizedClientLink>
           </li>
         ))}

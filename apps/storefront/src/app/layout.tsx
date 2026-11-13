@@ -31,6 +31,39 @@ const cormorant = localFont({
 })
 
 /**
+ * The gift card's faces, for the "Show a sample card" preview only.
+ *
+ * The shop prints card messages in Cormorant Garamond italic 500, and Arabic
+ * ones in Noto Naskh Arabic 500 (apps/backend/src/admin/lib/gift-card.ts). The
+ * upright Cormorant above has no italic, and a browser's slanted fake of it
+ * looks nothing like the real cursive italic, so the preview would lie.
+ *
+ * preload: false and used nowhere else, so neither file is downloaded until a
+ * sample card is opened — and the Arabic one only when the message has Arabic
+ * letters in it (the browser fetches a fallback face only for characters the
+ * first face lacks). Fontsource, SIL OFL; ~22 KB and ~36 KB.
+ */
+const cardLatin = localFont({
+  src: [{ path: "../fonts/cormorant-garamond-latin-500-italic.woff2", weight: "500", style: "italic" }],
+  display: "swap",
+  preload: false,
+  variable: "--font-card-latin",
+  // No fallbacks of its own, metric-adjusted or generic: they would cover
+  // Arabic letters before the Naskh face is reached. The preview writes the
+  // whole stack itself.
+  adjustFontFallback: false,
+  fallback: [],
+})
+const cardArabic = localFont({
+  src: [{ path: "../fonts/noto-naskh-arabic-500.woff2", weight: "500", style: "normal" }],
+  display: "swap",
+  preload: false,
+  variable: "--font-card-arabic",
+  adjustFontFallback: false,
+  fallback: [],
+})
+
+/**
  * Google Sans.
  *
  * Google released this under the SIL Open Font License in 2025 — it was
@@ -93,7 +126,7 @@ export default function RootLayout(props: { children: React.ReactNode }) {
       // report it (it only checks this one element's own attributes).
       suppressHydrationWarning
       data-mode="light"
-      className={`${googleSans.variable} ${cormorant.variable}`}
+      className={`${googleSans.variable} ${cormorant.variable} ${cardLatin.variable} ${cardArabic.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: DIR_SCRIPT }} />

@@ -1,7 +1,72 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 
-import { BACKEND, STOREFRONT } from "../lib/sdk"
+import { Button, toast } from "../components/ui"
+import { messageOf } from "../lib/bulk"
+import { STOREFRONT, sdk } from "../lib/sdk"
 import { clock, countdown, liveBy, pending, readChanges } from "../lib/live"
+
+type Publish = {
+  available: boolean
+  last: { running: boolean; started_at: string; finished_at: string | null; ok: boolean | null } | null
+}
+
+/**
+ * "Make it live now": a fresh website deploy, which clears every cached copy
+ * at once (about five minutes) instead of waiting out the half hour. Shown
+ * only once the backend has a GitHub token to start the deploy with.
+ */
+function MakeLiveNow() {
+  const qc = useQueryClient()
+  const status = useQuery({
+    queryKey: ["publish-now"],
+    queryFn: () => sdk.client.fetch<Publish>("/admin/publish-now"),
+    refetchInterval: (q) => (q.state.data?.last?.running ? 15_000 : false),
+  })
+  const [busy, setBusy] = useState(false)
+  const last = status.data?.last
+  if (!status.data?.available) return null
+
+  async function go() {
+    setBusy(true)
+    try {
+      const r = await sdk.client.fetch<{ started: boolean }>("/admin/publish-now", { method: "POST" })
+      toast(r.started ? "Refreshing the website. Everything is live in about 5 minutes." : "Already refreshing. It finishes in a few minutes.")
+      // GitHub takes a moment to list the new run.
+      setTimeout(() => qc.invalidateQueries({ queryKey: ["publish-now"] }), 5000)
+    } catch (err) {
+      toast(messageOf(err), "error")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <section className="flex flex-col gap-2 rounded-2xl border border-ink-200 bg-white p-4">
+      <b>Can't wait?</b>
+      <p className="text-[15px] text-ink-600">
+        Make it live now refreshes the whole website, so every change shows in about 5 minutes. The website keeps working
+        while it does.
+      </p>
+      {last?.running ? (
+        <p className="text-[15px] font-medium text-champagne-800" aria-live="polite">
+          Refreshing since {clock(new Date(last.started_at))}…
+        </p>
+      ) : (
+        <Button busy={busy} onClick={go}>
+          Make it live now
+        </Button>
+      )}
+      {last && !last.running && last.finished_at && (
+        <p className="text-sm text-ink-600">
+          Last refresh {last.ok ? "finished" : "did not finish"} at {clock(new Date(last.finished_at))}
+          {last.ok ? "." : ". The website is still on the version before it."}
+        </p>
+      )}
+    </section>
+  )
+}
 
 /** Re-render every second while something is counting down. */
 function useNow(active: boolean) {
@@ -51,6 +116,8 @@ export default function Website() {
         </section>
       )}
 
+      {waiting.length > 0 && <MakeLiveNow />}
+
       {changes.length > 0 && (
         <section className="flex flex-col gap-2">
           <h2 className="font-semibold">Today's changes</h2>
@@ -76,12 +143,12 @@ export default function Website() {
         <a href={STOREFRONT} target="_blank" rel="noreferrer" className="flex min-h-[48px] items-center justify-between rounded-2xl border border-ink-200 bg-white px-4">
           Open the website <span aria-hidden>↗</span>
         </a>
-        <a href={`${BACKEND}/app/homepage-sections`} target="_blank" rel="noreferrer" className="flex min-h-[48px] items-center justify-between rounded-2xl border border-ink-200 bg-white px-4">
-          Homepage sections <span aria-hidden>↗</span>
-        </a>
-        <a href={`${BACKEND}/app/categories`} target="_blank" rel="noreferrer" className="flex min-h-[48px] items-center justify-between rounded-2xl border border-ink-200 bg-white px-4">
-          Categories <span aria-hidden>↗</span>
-        </a>
+        <Link to="/website/homepage" className="flex min-h-[48px] items-center justify-between rounded-2xl border border-ink-200 bg-white px-4">
+          Homepage <span aria-hidden>›</span>
+        </Link>
+        <Link to="/more/categories" className="flex min-h-[48px] items-center justify-between rounded-2xl border border-ink-200 bg-white px-4">
+          Categories <span aria-hidden>›</span>
+        </Link>
       </section>
     </div>
   )

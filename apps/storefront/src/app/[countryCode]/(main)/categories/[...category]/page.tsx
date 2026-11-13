@@ -58,7 +58,8 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     const title = `${localizedCategoryName(
       productCategory.handle,
       productCategory.name,
-      params.countryCode
+      params.countryCode,
+      productCategory.metadata
     )} | ${BRAND_NAME}`
 
     const description = productCategory.description || title

@@ -4,8 +4,13 @@ import { NavLink, Navigate, Route, Routes } from "react-router-dom"
 import { Toasts, cx } from "./components/ui"
 import { IS_STAGING, sdk } from "./lib/sdk"
 import Flowers from "./screens/flowers"
+import Categories from "./screens/categories"
+import DeliveryDays from "./screens/delivery-days"
+import Homepage from "./screens/homepage"
 import Login from "./screens/login"
 import More from "./screens/more"
+import Printing from "./screens/printing"
+import Spreadsheet from "./screens/spreadsheet"
 import Orders from "./screens/orders"
 import Website from "./screens/website"
 
@@ -50,7 +55,12 @@ export default function App() {
           <Route path="/orders/*" element={<Orders />} />
           <Route path="/flowers/*" element={<Flowers />} />
           <Route path="/website" element={<Website />} />
+          <Route path="/website/homepage" element={<Homepage />} />
           <Route path="/more" element={<More />} />
+          <Route path="/more/categories" element={<Categories />} />
+          <Route path="/more/delivery-days" element={<DeliveryDays />} />
+          <Route path="/more/printing" element={<Printing />} />
+          <Route path="/more/spreadsheet" element={<Spreadsheet />} />
           <Route path="*" element={<Navigate to="/orders" replace />} />
         </Routes>
       </main>

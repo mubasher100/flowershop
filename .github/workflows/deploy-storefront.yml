@@ -86,6 +86,14 @@ jobs:
           P_ONLINE: ${{ vars.ONLINE_PAYMENT }}
           P_GA: ${{ vars.GA_MEASUREMENT_ID }}
 
+      # Smaller copies of photos added from the shop app (recorded on each
+      # product), so they are served small without anyone running
+      # build-image-variants.mjs. Read-only, and allowed to fail: a photo
+      # missing from the manifest is served at its uploaded size.
+      - name: Add the shop app's photo sizes
+        continue-on-error: true
+        run: node scripts/merge-image-variants.mjs
+
       - name: Build with OpenNext
         working-directory: apps/storefront
         # Next 15 left the Next.js team's two-year support window on

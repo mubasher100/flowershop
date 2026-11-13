@@ -36,7 +36,16 @@ export type ShopProduct = {
   variants?: ShopVariant[]
 }
 
-export type ShopCategory = { id: string; name: string; handle: string }
+export type ShopCategory = {
+  id: string
+  name: string
+  handle: string
+  description?: string | null
+  rank?: number | null
+  is_active?: boolean
+  parent_category_id?: string | null
+  metadata?: Record<string, unknown> | null
+}
 
 /** Prices are stored as-is in Medusa: 279 is 279.00, never 27900. */
 export const money = (amount: number | undefined | null) =>
@@ -120,7 +129,7 @@ export function withOfferCategory(ids: Iterable<string>, categories: ShopCategor
 
 export const fetchCategories = () =>
   sdk.client.fetch<{ product_categories: ShopCategory[] }>(
-    "/admin/product-categories?limit=200&fields=id,name,handle"
+    "/admin/product-categories?limit=200&fields=id,name,handle,description,rank,is_active,parent_category_id,metadata"
   )
 
 /* ------------------------------------------------------------- prices */

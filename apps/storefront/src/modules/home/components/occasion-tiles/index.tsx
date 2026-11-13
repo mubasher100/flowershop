@@ -2,7 +2,7 @@ import Image from "next/image"
 
 import { listCategories } from "@lib/data/categories"
 import { getTranslations } from "@lib/i18n/dictionary"
-import { localizedCategoryName, OCCASION_HANDLES } from "@lib/util/categories"
+import { localizedCategoryName, occasionCategories } from "@lib/util/categories"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 /**
@@ -48,11 +48,9 @@ export default async function OccasionTiles({
 
   // A handle from the admin narrows this to one tile; the shadowed parameter
   // in the map below was renamed so it cannot collide with it.
-  const wanted = handle?.trim() ? [handle.trim()] : OCCASION_HANDLES
-
-  const occasions = wanted
-    .map((h) => categories?.find((c) => c.handle === h))
-    .filter(Boolean) as NonNullable<typeof categories>
+  const occasions = handle?.trim()
+    ? (categories ?? []).filter((c) => c.handle === handle.trim())
+    : occasionCategories(categories)
 
   if (!occasions.length) {
     return null
@@ -77,7 +75,11 @@ export default async function OccasionTiles({
               <div className="relative aspect-square w-full overflow-hidden rounded-full ring-1 ring-inset ring-ink-200/60 transition-transform duration-200 group-hover:-translate-y-1 group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-blush-700">
                 <Image
                   src={
-                    TILE_IMAGE[occasion.handle ?? ""] ?? "/occasions/birthday.webp"
+                    TILE_IMAGE[occasion.handle ?? ""] ??
+                    // A photo chosen for an occasion added in the shop app.
+                    (typeof occasion.metadata?.image_url === "string"
+                      ? occasion.metadata.image_url
+                      : "/occasions/birthday.webp")
                   }
                   alt=""
                   fill
@@ -86,7 +88,7 @@ export default async function OccasionTiles({
                 />
               </div>
               <span className="text-sm font-medium leading-snug text-ink-800">
-                {localizedCategoryName(occasion.handle, occasion.name, segment)}
+                {localizedCategoryName(occasion.handle, occasion.name, segment, occasion.metadata)}
               </span>
             </LocalizedClientLink>
           </li>

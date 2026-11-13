@@ -2,36 +2,20 @@ import { useRef, useState } from "react"
 
 import { messageOf } from "../lib/bulk"
 import { sdk } from "../lib/sdk"
+import { shrink, uploadPhoto } from "../lib/variants"
 import { Spinner, toast } from "./ui"
-
-const MAX_EDGE = 1600
-
-/**
- * Shrink a phone photo (3–8 MB, ~4000px) to 1600px WebP before uploading, as
- * the admin's photo picker does. createImageBitmap honours the camera's
- * orientation, so a portrait does not arrive on its side.
- */
-async function shrink(file: File): Promise<File> {
-  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" })
-  const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height))
-  const canvas = document.createElement("canvas")
-  canvas.width = Math.round(bitmap.width * scale)
-  canvas.height = Math.round(bitmap.height * scale)
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
-  bitmap.close()
-  const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/webp", 0.82))
-  if (!blob) return file
-  return new File([blob], `${file.name.replace(/\.[^.]+$/, "") || "photo"}.webp`, { type: "image/webp" })
-}
 
 export function PhotoField({
   value,
   onChange,
   onBusy,
+  withSizes,
 }: {
   value: string | null
   onChange: (url: string | null) => void
   onBusy?: (busy: boolean) => void
+  /** A flower photo: also make the website's smaller sizes (lib/variants.ts). */
+  withSizes?: boolean
 }) {
   const input = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
@@ -47,6 +31,10 @@ export function PhotoField({
     setBusy(true)
     onBusy?.(true)
     try {
+      if (withSizes) {
+        onChange(await uploadPhoto(file))
+        return
+      }
       const small = await shrink(file).catch(() => file)
       const { files } = await sdk.admin.upload.create({ files: [small] })
       const url = files?.[0]?.url

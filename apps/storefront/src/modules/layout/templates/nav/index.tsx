@@ -11,23 +11,19 @@ import CategoryNav from "@modules/layout/components/category-nav"
 import SideMenu, { MenuLink } from "@modules/layout/components/side-menu"
 import {
   localizedCategoryName,
-  OCCASION_HANDLES,
-  TYPE_HANDLES,
+  occasionCategories,
+  typeCategories,
 } from "@lib/util/categories"
 
 
-const pick = (
-  all: { name?: string; handle?: string }[] | null,
-  handles: string[],
+const links = (
+  list: { name?: string; handle?: string; metadata?: Record<string, unknown> | null }[],
   segment?: string
 ): MenuLink[] =>
-  handles
-    .map((h) => all?.find((c) => c.handle === h))
-    .filter(Boolean)
-    .map((c) => ({
-      name: localizedCategoryName(c!.handle, c!.name, segment),
-      handle: c!.handle ?? "",
-    }))
+  list.map((c) => ({
+    name: localizedCategoryName(c.handle, c.name, segment, c.metadata),
+    handle: c.handle ?? "",
+  }))
 
 export default async function Nav({ segment }: { segment?: string }) {
   const categories = await listCategories({ limit: 50 })
@@ -58,8 +54,8 @@ export default async function Nav({ segment }: { segment?: string }) {
         <nav className="content-container flex h-full w-full items-center justify-between text-sm text-ink-700 small:text-base">
           <div className="flex h-full flex-1 basis-0 items-center">
             <SideMenu
-              categories={pick(categories, TYPE_HANDLES, segment)}
-              occasions={pick(categories, OCCASION_HANDLES, segment)}
+              categories={links(typeCategories(categories), segment)}
+              occasions={links(occasionCategories(categories), segment)}
             />
           </div>
 

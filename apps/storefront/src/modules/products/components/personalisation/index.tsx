@@ -1,6 +1,7 @@
 "use client"
 
 import { useTranslations } from "@lib/i18n/use-translations"
+import SampleCardButton from "@modules/common/components/sample-card"
 
 /**
  * The gift message, written on the product page.
@@ -64,6 +65,9 @@ export default function Personalisation({
         <p className="text-xs text-ink-500" aria-live="polite">
           {t("personalise.noteRemaining", { count: NOTE_MAX - note.length })}
         </p>
+
+        {/* The printed card itself, scaled down: logo side and message side. */}
+        <SampleCardButton message={note} />
 
         {/* What the florist will hand-write onto the card. Shown only once
             something has been typed, so an empty product page stays quiet —

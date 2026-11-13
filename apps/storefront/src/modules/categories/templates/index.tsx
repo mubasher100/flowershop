@@ -63,13 +63,13 @@ export default function CategoryTemplate({
                   href={`/categories/${parent.handle}`}
                   data-testid="sort-by-link"
                 >
-                  {localizedCategoryName(parent.handle, parent.name, countryCode)}
+                  {localizedCategoryName(parent.handle, parent.name, countryCode, parent.metadata)}
                 </LocalizedClientLink>
                 /
               </span>
             ))}
           <h1 data-testid="category-page-title">
-            {localizedCategoryName(category.handle, category.name, countryCode)}
+            {localizedCategoryName(category.handle, category.name, countryCode, category.metadata)}
           </h1>
         </div>
         {category.description && (
@@ -78,7 +78,8 @@ export default function CategoryTemplate({
               {localizedCategoryDescription(
                 category.handle,
                 category.description,
-                countryCode
+                countryCode,
+                category.metadata
               )}
             </p>
           </div>
@@ -89,7 +90,7 @@ export default function CategoryTemplate({
               {category.category_children?.map((c) => (
                 <li key={c.id}>
                   <InteractiveLink href={`/categories/${c.handle}`}>
-                    {localizedCategoryName(c.handle, c.name, countryCode)}
+                    {localizedCategoryName(c.handle, c.name, countryCode, c.metadata)}
                   </InteractiveLink>
                 </li>
               ))}
