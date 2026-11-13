@@ -107,7 +107,13 @@ export default function FlowerSheet({
           })
         : [{ id: null, title: "One size", price: "", onOffer: false, offer: "", canSell: "10", held: 0 }]
     )
-  }, [open, product, prices])
+    // Filled once per opening, keyed on which flower — not on the product or
+    // price objects themselves. Those are refetched in the background (after
+    // any save, on refocus), and each refetch is a new object, which reset
+    // the form under the florist's fingers and wiped what they had typed.
+    // Found on staging, where the refetch lands while the sheet is open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, product?.id])
 
   const patchSize = (i: number, patch: Partial<SizeDraft>) =>
     setSizes((all) => all.map((s, j) => (j === i ? { ...s, ...patch } : s)))
