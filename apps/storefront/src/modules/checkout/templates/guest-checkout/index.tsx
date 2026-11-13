@@ -30,6 +30,7 @@ import {
 import { useTranslations } from "@lib/i18n/use-translations"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import PageLoading from "@modules/common/components/page-loading"
+import SampleCardButton from "@modules/common/components/sample-card"
 
 /**
  * The demo card gateway is opt-in. Without this flag the checkout is exactly
@@ -810,6 +811,9 @@ export default function GuestCheckout({
           <p className="text-end text-xs tabular-nums text-ink-500" aria-hidden="true">
             {noteLength}/{FIELD_LIMITS.giftNote}
           </p>
+          {/* Reads the field when tapped: it is uncontrolled, and a restored
+              draft fills it without an input event. */}
+          <SampleCardButton sourceId="gift_note" />
         </div>
 
         {/* Sending without a name is a normal thing to want from a flower

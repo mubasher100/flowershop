@@ -84,13 +84,63 @@ const ARABIC_NAMES: Record<string, string> = {
 export function localizedCategoryName(
   handle: string | null | undefined,
   name: string | null | undefined,
-  segment?: string | null
+  segment?: string | null,
+  metadata?: Record<string, unknown> | null
 ): string {
-  if (localeOf(segment) === "ar" && handle && ARABIC_NAMES[handle]) {
-    return ARABIC_NAMES[handle]
+  if (localeOf(segment) === "ar") {
+    // Typed in the shop app beside the English name (metadata.name_ar) wins
+    // over the table, so a category added there arrives already translated.
+    const own = metadata?.name_ar
+    if (typeof own === "string" && own.trim()) return own.trim()
+    if (handle && ARABIC_NAMES[handle]) return ARABIC_NAMES[handle]
   }
   return name ?? ""
 }
+
+type CategoryLike = {
+  handle?: string | null
+  rank?: number | null
+  parent_category_id?: string | null
+  metadata?: Record<string, unknown> | null
+}
+
+const isOccasion = (c: CategoryLike) =>
+  OCCASION_HANDLES.includes(c.handle ?? "") || c.metadata?.kind === "occasion"
+
+/**
+ * The categories to present, in order.
+ *
+ * Until 13 Nov 2026 only the handles listed above ever appeared, so a
+ * category created in the shop app existed in Medusa but never reached the
+ * nav, the side menu or the catalogue filter. Now every top-level category
+ * the Store API returns (it never returns a hidden one) is shown, ordered by
+ * `metadata.position` — which the shop app writes when the florist reorders —
+ * then by the lists above, then by Medusa's rank. The shop app sorts with the
+ * same rule (apps/shop/src/lib/categories.ts), so its order is the site's.
+ */
+function present<T extends CategoryLike>(
+  all: T[] | null | undefined,
+  known: string[],
+  want: (c: T) => boolean
+): T[] {
+  const key = (c: T) => {
+    const pos = c.metadata?.position
+    if (typeof pos === "number") return pos
+    const i = known.indexOf(c.handle ?? "")
+    return i >= 0 ? 1000 + i : 2000 + (c.rank ?? 0)
+  }
+  return (all ?? [])
+    .filter((c) => !c.parent_category_id && want(c))
+    .sort((a, b) => key(a) - key(b))
+}
+
+/** What it is: bouquets, vases, roses by the count. */
+export const typeCategories = <T extends CategoryLike>(all: T[] | null | undefined) =>
+  present(all, TYPE_HANDLES, (c) => !isOccasion(c))
+
+/** What it is for: birthday, anniversary and the rest. */
+export const occasionCategories = <T extends CategoryLike>(all: T[] | null | undefined) =>
+  present(all, OCCASION_HANDLES, isOccasion)
 
 /**
  * Arabic for the one-line category descriptions, each paired with the English
@@ -121,11 +171,14 @@ const ARABIC_DESCRIPTIONS: Record<string, [string, string]> = {
 export function localizedCategoryDescription(
   handle: string | null | undefined,
   description: string | null | undefined,
-  segment?: string | null
+  segment?: string | null,
+  metadata?: Record<string, unknown> | null
 ): string {
   const pair = handle ? ARABIC_DESCRIPTIONS[handle] : undefined
-  if (localeOf(segment) === "ar" && pair && description?.trim() === pair[0]) {
-    return pair[1]
+  if (localeOf(segment) === "ar") {
+    const own = metadata?.description_ar
+    if (typeof own === "string" && own.trim()) return own.trim()
+    if (pair && description?.trim() === pair[0]) return pair[1]
   }
   return description ?? ""
 }

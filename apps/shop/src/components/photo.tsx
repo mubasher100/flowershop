@@ -11,7 +11,7 @@ const MAX_EDGE = 1600
  * the admin's photo picker does. createImageBitmap honours the camera's
  * orientation, so a portrait does not arrive on its side.
  */
-async function shrink(file: File): Promise<File> {
+export async function shrink(file: File): Promise<File> {
   const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" })
   const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height))
   const canvas = document.createElement("canvas")

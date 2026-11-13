@@ -15,6 +15,8 @@
   "dependencies": {
     "@medusajs/js-sdk": "2.18.0",
     "@tanstack/react-query": "5.64.2",
+    "exceljs": "^4.4.0",
+    "jszip": "^3.10.2",
     "react": "19.0.5",
     "react-dom": "19.0.5",
     "react-router-dom": "6.30.4"

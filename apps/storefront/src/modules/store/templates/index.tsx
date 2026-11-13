@@ -11,7 +11,7 @@ import FilterPanel, {
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 
 import PaginatedProducts, { CatalogueFilters } from "./paginated-products"
-import { localizedCategoryName, TYPE_HANDLES } from "@lib/util/categories"
+import { localizedCategoryName, typeCategories } from "@lib/util/categories"
 
 
 /**
@@ -87,14 +87,12 @@ const StoreTemplate = async ({
   const [{ colours, tagIdByValue, maxPrice }, allCategories] =
     await Promise.all([getFacets(countryCode), listCategories({ limit: 50 })])
 
-  const categoryOptions: FilterOption[] = TYPE_HANDLES.map((h) =>
-    allCategories?.find((c) => c.handle === h)
+  const categoryOptions: FilterOption[] = typeCategories(allCategories).map(
+    (c) => ({
+      label: localizedCategoryName(c.handle, c.name, countryCode, c.metadata),
+      value: c.handle ?? "",
+    })
   )
-    .filter(Boolean)
-    .map((c) => ({
-      label: localizedCategoryName(c!.handle, c!.name, countryCode),
-      value: c!.handle ?? "",
-    }))
 
   const categoryIdByHandle = new Map(
     (allCategories ?? []).map((c) => [c.handle, c.id])

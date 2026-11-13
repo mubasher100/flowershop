@@ -76,7 +76,7 @@ export default async function Footer({ segment }: { segment?: string }) {
                         href={`/categories/${c.handle}`}
                         data-testid="category-link"
                       >
-                        {localizedCategoryName(c.handle, c.name, segment)}
+                        {localizedCategoryName(c.handle, c.name, segment, c.metadata)}
                       </LocalizedClientLink>
                     </li>
                   ))}
