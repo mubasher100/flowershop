@@ -32,22 +32,17 @@ export type TypeCategory = {
 /** Order here is the order they appear in the nav and the catalogue filter. */
 export const TYPE_CATEGORIES: TypeCategory[] = [
   {
-    // Shown as "Offers" since 31 Oct 2026; the handle keeps its old name so
-    // links to /categories/hot-deals still work.
-    name: "Offers",
+    // The offers category. Hot Deal until 31 Oct 2026, Offers until 13 Nov,
+    // Black Friday since (the shop's instruction); the handle keeps its old
+    // name so links to /categories/hot-deals still work. A separate, empty
+    // black-friday category made on 11 Nov was deleted the same day, so
+    // there is one place a discounted flower goes.
+    name: "Black Friday",
     handle: "hot-deals",
-    description: "Every flower on offer, at its reduced price.",
+    description:
+      "Black Friday prices, now. Order today and choose a delivery day after Black Friday.",
     // Deliberately rule-free: what is on offer is a decision the shop makes
     // week to week, so it is curated in the admin, not derived from a price.
-    match: () => false,
-  },
-  {
-    // Added 11 Nov 2026 for the shop's Black Friday. Curated like Offers:
-    // a flower is ticked into it in the product sheet or the admin. Listed
-    // here so seed-catalog's prune does not delete it.
-    name: "Black Friday",
-    handle: "black-friday",
-    description: "Our Black Friday flowers, at their Black Friday prices.",
     match: () => false,
   },
   {

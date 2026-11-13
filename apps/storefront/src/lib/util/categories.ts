@@ -46,7 +46,9 @@ export const OCCASION_HANDLES = [
  */
 const ARABIC_NAMES: Record<string, string> = {
   // Types
-  "hot-deals": "العروض",
+  // Shown as Black Friday since 13 Nov 2026 (it was Offers). "White Friday"
+  // is the Gulf's own name for it.
+  "hot-deals": "الجمعة البيضاء",
   bouquets: "باقات منسقة يدوياً",
   "big-bouquets": "باقات كبيرة",
   vases: "ورود في مزهريات",
@@ -98,8 +100,8 @@ export function localizedCategoryName(
  */
 const ARABIC_DESCRIPTIONS: Record<string, [string, string]> = {
   "hot-deals": [
-    "Every flower on offer, at its reduced price.",
-    "كل الورود المعروضة بسعرها المخفّض.",
+    "Black Friday prices, now. Order today and choose a delivery day after Black Friday.",
+    "أسعار الجمعة البيضاء الآن. اطلب اليوم واختر يوم التوصيل بعد الجمعة البيضاء.",
   ],
   "big-bouquets": [
     "50 to 300 roses, built as a single armful.",

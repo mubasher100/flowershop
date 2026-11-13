@@ -416,7 +416,10 @@ export default function GuestCheckout({
   // Named here rather than through Intl: the server's and the browser's
   // Arabic date data differ, and the mismatch broke hydration on /ar-qa.
   const names = segment.startsWith("ar") ? AR_DATE_NAMES : EN_DATE_NAMES
-  const days = Array.from({ length: 14 }, (_, i) => {
+  // Four weeks, matching the availability the page asks for: Black Friday
+  // shoppers order early and reserve a day after it, which a fortnight from
+  // mid-November did not reach.
+  const days = Array.from({ length: 28 }, (_, i) => {
     const d = new Date(`${today}T00:00:00Z`)
     d.setUTCDate(d.getUTCDate() + i)
     const value = d.toISOString().slice(0, 10)

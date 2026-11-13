@@ -40,7 +40,11 @@ const Thumbnail: React.FC<ThumbnailProps> = ({
           // 390px phone — roughly 40% of the viewport for one product — so a
           // rail showed barely one item and the page felt endless.
           "aspect-[1/1]": isFeatured || size === "square",
-          "aspect-[9/16]": !isFeatured && size !== "square",
+          // 4:5 on the catalogue grids. The shop's photos come in 3:4, 1:1
+          // and ~11:10; a 9:16 frame cut the sides off every square and wide
+          // one, each by a different amount, so no two cards were framed
+          // alike (13 Nov 2026, "fix frames").
+          "aspect-[4/5]": !isFeatured && size !== "square",
           "w-[180px]": size === "small",
           "w-[290px]": size === "medium",
           "w-[440px]": size === "large",

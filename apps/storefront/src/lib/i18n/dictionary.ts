@@ -23,6 +23,11 @@ export const DICTIONARY = {
     "nav.occasions": "Occasions",
     "nav.allFlowers": "All flowers",
     "nav.shopAll": "Shop all flowers",
+    "bf.eyebrow": "Black Friday",
+    "bf.title": "Can't wait for Black Friday?",
+    "bf.body": "Shop Black Friday prices now and reserve your delivery for any day after Black Friday.",
+    "bf.cta": "Shop now",
+    "bf.close": "Close",
     "nav.close": "Close menu",
     "nav.open": "Open menu",
 
@@ -570,6 +575,11 @@ export const DICTIONARY = {
     "nav.occasions": "المناسبات",
     "nav.allFlowers": "كل الورود",
     "nav.shopAll": "تسوق كل الورود",
+    "bf.eyebrow": "الجمعة البيضاء",
+    "bf.title": "لا تستطيع انتظار الجمعة البيضاء؟",
+    "bf.body": "تسوّق بأسعار الجمعة البيضاء الآن واحجز التوصيل لأي يوم بعد الجمعة البيضاء.",
+    "bf.cta": "تسوّق الآن",
+    "bf.close": "إغلاق",
     "nav.close": "إغلاق القائمة",
     "nav.open": "فتح القائمة",
 

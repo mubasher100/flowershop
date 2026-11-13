@@ -183,7 +183,7 @@ function SectionForm({
             {isRail
               ? "The handle of the collection whose products this rail shows."
               : isCategoryRail
-                ? "The handle of the category whose products this rail shows — hot-deals for Offers."
+                ? "The handle of the category whose products this rail shows — hot-deals for Black Friday (the offers)."
                 : "Leave blank to show every occasion category."}
           </Text>
         </div>
