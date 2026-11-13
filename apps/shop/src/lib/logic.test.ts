@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import { endIn9, nextStocked, offerPrice, runLimited } from "./bulk"
 import { countdown, liveBy, LIVE_DELAY_MINUTES } from "./live"
 import { groupByDay, matchesOrder, stageOf, windowRank, type ShopOrder } from "./orders"
-import { sellingOf } from "./shop"
+import { pickableCategories, sellingOf, withOfferCategory } from "./shop"
 import { priceHint, sizeProblem } from "../components/flower-sheet"
 
 describe("prices end in 9", () => {
@@ -132,5 +132,24 @@ describe("orders", () => {
     expect(groups.map(([d]) => d)).toEqual(["2026-11-12", "2026-11-13", "unscheduled"])
     expect(groups[1][1].map((o) => o.display_id)).toEqual([1, 3])
     expect(windowRank("4pm - 6pm")).toBeGreaterThan(windowRank("10am - 12pm"))
+  })
+})
+
+describe("the offers category follows the offer switch", () => {
+  const cats = [
+    { id: "c_offer", name: "Black Friday", handle: "hot-deals" },
+    { id: "c_vase", name: "Flowers in Vases", handle: "vases" },
+  ]
+  it("adds it when a flower goes on offer", () => {
+    expect(withOfferCategory(["c_vase"], cats, true).sort()).toEqual(["c_offer", "c_vase"])
+  })
+  it("removes it when the offer ends", () => {
+    expect(withOfferCategory(["c_vase", "c_offer"], cats, false)).toEqual(["c_vase"])
+  })
+  it("leaves the florist's own picks alone where there is no offers category", () => {
+    expect(withOfferCategory(["c_vase"], [cats[1]], true)).toEqual(["c_vase"])
+  })
+  it("is never offered as a tick box", () => {
+    expect(pickableCategories(cats).map((c) => c.handle)).toEqual(["vases"])
   })
 })

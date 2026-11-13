@@ -131,7 +131,9 @@ test("add a flower, on offer, and it is saved with an offer price", async ({ pag
   await sheet.getByLabel("Can sell").fill("6")
   await sheet.getByRole("switch", { name: "On offer" }).click()
   await sheet.getByLabel("Offer price (QAR)").fill("249")
-  await sheet.getByRole("button", { name: /Black Friday/ }).click()
+  // The offers category is not a tick box any more; it follows the switch.
+  await expect(sheet.getByRole("button", { name: /^(Offers|Black Friday)$/ })).toHaveCount(0)
+  await sheet.getByRole("button", { name: "Flowers in Vases" }).click()
   await noSidewaysScroll(page)
   await sheet.getByRole("button", { name: "Save and put on sale" }).click()
   await expect(page.getByRole("status")).toContainText(`${title} added`)
@@ -139,7 +141,9 @@ test("add a flower, on offer, and it is saved with an offer price", async ({ pag
   const { products } = await api("GET", `/admin/products?q=${encodeURIComponent(title)}&fields=id,title,categories.handle`)
   const created = products.find((p: any) => p.title === title)
   try {
-    expect(created.categories.map((c: any) => c.handle)).toContain("black-friday")
+    const handles = created.categories.map((c: any) => c.handle)
+    expect(handles).toContain("vases")
+    expect(handles).toContain("hot-deals")
     const prices = await api("GET", "/admin/shop-prices")
     const { product } = await api("GET", `/admin/products/${created.id}?fields=variants.id`)
     const p = prices.prices[product.variants[0].id]
@@ -167,7 +171,7 @@ test("select several flowers: set stock, put on offer, add to a category, delete
   const ids = [await makeFlower(`E2E Bulk A ${stamp}`, 279), await makeFlower(`E2E Bulk B ${stamp}`, 399)]
   try {
     await open(page, "/flowers")
-    await page.getByLabel("Search flowers").fill(`E2E Bulk`)
+    await page.getByLabel("Search flowers").fill(`${stamp}`)
     await page.getByRole("button", { name: "Select", exact: true }).click()
     await page.getByRole("button", { name: /Select all 2/ }).click()
     await expect(page.getByText("2 selected")).toBeVisible()
@@ -201,18 +205,27 @@ test("select several flowers: set stock, put on offer, add to a category, delete
       sales.push(prices.prices[product.variants[0].id].sale)
     }
     expect(sales.sort()).toEqual([219, 319])
+    // On offer is the one switch: both are now in the offers category
+    // (Black Friday on the website) without anyone ticking it.
+    for (const id of ids) {
+      await expect
+        .poll(async () => (await productOf(id)).categories.map((c: any) => c.handle))
+        .toContain("hot-deals")
+    }
 
-    // Category: add both to Black Friday.
+    // Category: add both to Table Arrangements. The offers category is not
+    // offered as a choice; it follows the offer.
     await page.getByRole("button", { name: "Select", exact: true }).click()
     await page.getByRole("button", { name: /Select all 2/ }).click()
     await bar.getByRole("button", { name: "Category" }).click()
     sheet = page.getByRole("dialog")
-    await sheet.getByRole("radio", { name: "Black Friday" }).click()
+    await expect(sheet.getByRole("radio", { name: /Offers|Black Friday/ })).toHaveCount(0)
+    await sheet.getByRole("radio", { name: "Table Arrangements" }).click()
     await sheet.getByRole("button", { name: "Apply to 2 flowers" }).click()
     for (const id of ids) {
       await expect
         .poll(async () => (await productOf(id)).categories.map((c: any) => c.handle))
-        .toContain("black-friday")
+        .toContain("table-arrangements")
     }
 
     // Delete both.

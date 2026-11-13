@@ -16,7 +16,15 @@ import {
   type StockMode,
 } from "../lib/bulk"
 import { useAfterSave } from "../lib/data"
-import { money, sellingOf, type ShopCategory, type ShopPrices, type ShopProduct } from "../lib/shop"
+import {
+  money,
+  offerCategoryOf,
+  pickableCategories,
+  sellingOf,
+  type ShopCategory,
+  type ShopPrices,
+  type ShopProduct,
+} from "../lib/shop"
 import { Button, Field, Sheet, cx, inputClass } from "./ui"
 
 export type BulkAction = "stock" | "offer" | "category" | "visibility" | "delete"
@@ -85,7 +93,7 @@ export default function BulkSheet({
       } else if (action === "offer") {
         const p = Number(percent)
         if (!Number.isFinite(p) || p <= 0 || p >= 90) throw new Error("Choose a discount between 1% and 89%.")
-        results = await bulkOffer(selected, prices, p)
+        results = await bulkOffer(selected, prices, p, offerCategoryOf(categories)?.id ?? null)
         what = `${p}% offer on ${names}`
       } else if (action === "category") {
         if (!categoryId) throw new Error("Choose a category.")
@@ -111,7 +119,7 @@ export default function BulkSheet({
   async function runEndOffer() {
     setBusy(true)
     try {
-      finish(await bulkOffer(selected, prices, null), `Offer ended on ${names}`)
+      finish(await bulkOffer(selected, prices, null, offerCategoryOf(categories)?.id ?? null), `Offer ended on ${names}`)
     } catch (err) {
       setError(messageOf(err))
       setBusy(false)
@@ -240,7 +248,7 @@ export default function BulkSheet({
                 ))}
               </div>
               <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Category">
-                {categories.map((c) => (
+                {pickableCategories(categories).map((c) => (
                   <button key={c.id} type="button" role="radio" aria-checked={categoryId === c.id} onClick={() => setCategoryId(c.id)} className={cx("min-h-[44px] rounded-full border px-4", categoryId === c.id ? "border-blush-600 bg-blush-100 font-medium text-blush-700" : "border-ink-200")}>
                     {c.name}
                   </button>

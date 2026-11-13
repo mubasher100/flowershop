@@ -11,8 +11,8 @@ type Filter = "all" | "on-sale" | "hidden" | "offers" | "low" | "sold-out"
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: "all", label: "All" },
-  { id: "on-sale", label: "On sale" },
-  { id: "offers", label: "Offers" },
+  { id: "on-sale", label: "Showing" },
+  { id: "offers", label: "On offer" },
   { id: "low", label: "Low stock" },
   { id: "sold-out", label: "Sold out" },
   { id: "hidden", label: "Hidden" },
@@ -89,7 +89,7 @@ export default function Flowers() {
         <div className="flex items-center justify-between gap-2">
           <h1 className="font-display text-3xl font-semibold">Flowers</h1>
           <div className="flex items-center gap-2">
-            <span className="rounded-full bg-sage-100 px-3 py-1 text-sm font-medium text-sage-700">{onSaleCount} on sale</span>
+            <span className="rounded-full bg-sage-100 px-3 py-1 text-sm font-medium text-sage-700">{onSaleCount} showing</span>
             <Button variant="secondary" onClick={() => (selecting ? stopSelecting() : setSelecting(true))} aria-pressed={selecting}>
               {selecting ? "Done" : "Select"}
             </Button>

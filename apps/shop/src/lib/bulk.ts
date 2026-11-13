@@ -98,12 +98,14 @@ export async function bulkStock(products: ShopProduct[], mode: StockMode, value:
 export async function bulkOffer(
   products: ShopProduct[],
   prices: ShopPrices,
-  percent: number | null
+  percent: number | null,
+  /** The offers category, which follows the offer (see OFFER_HANDLE). */
+  offerCategoryId: string | null = null
 ): Promise<Outcome[]> {
   if (percent != null && !prices.sale_price_list_id) {
     throw new Error("Offers are switched off in the shop (no active sale price list).")
   }
-  return asOutcomes(
+  const outcomes = asOutcomes(
     await runLimited(products, 3, async (p) => {
       for (const v of p.variants ?? []) {
         const current = prices.prices[v.id]
@@ -121,6 +123,20 @@ export async function bulkOffer(
       }
     })
   )
+  // Only the flowers whose prices actually changed move, in one call.
+  const moved = outcomes.filter((o) => o.ok).map((o) => o.product.id)
+  if (offerCategoryId && moved.length) {
+    try {
+      await sdk.admin.productCategory.updateProducts(
+        offerCategoryId,
+        percent == null ? { remove: moved } : { add: moved }
+      )
+    } catch (err) {
+      const note = `Price changed, but not moved ${percent == null ? "out of" : "into"} Black Friday: ${messageOf(err)}`
+      return outcomes.map((o) => (o.ok ? { ...o, ok: false, error: note } : o))
+    }
+  }
+  return outcomes
 }
 
 export async function bulkCategory(

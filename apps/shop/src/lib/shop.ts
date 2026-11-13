@@ -92,6 +92,32 @@ export const fetchProducts = () =>
     `/admin/products?limit=500&order=title&fields=${PRODUCT_FIELDS}`
   )
 
+/**
+ * The offers category — shown on the website as Black Friday since 13 Nov
+ * 2026 (Offers before; the handle never changed). It is not something the
+ * florist ticks: a flower is in it exactly while it is on offer, so the offer
+ * switch is a plain yes/no and this follows it (the shop's request).
+ */
+export const OFFER_HANDLE = "hot-deals"
+
+export const offerCategoryOf = (categories: ShopCategory[]) =>
+  categories.find((c) => c.handle === OFFER_HANDLE) ?? null
+
+/** The categories the florist chooses from: everything but the offers one. */
+export const pickableCategories = (categories: ShopCategory[]) =>
+  categories.filter((c) => c.handle !== OFFER_HANDLE)
+
+/** A flower's category ids with the offers category set to match its offer. */
+export function withOfferCategory(ids: Iterable<string>, categories: ShopCategory[], onOffer: boolean) {
+  const offer = offerCategoryOf(categories)
+  const set = new Set(ids)
+  if (offer) {
+    if (onOffer) set.add(offer.id)
+    else set.delete(offer.id)
+  }
+  return [...set]
+}
+
 export const fetchCategories = () =>
   sdk.client.fetch<{ product_categories: ShopCategory[] }>(
     "/admin/product-categories?limit=200&fields=id,name,handle"

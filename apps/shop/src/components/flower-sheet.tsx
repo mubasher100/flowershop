@@ -10,9 +10,11 @@ import { useAfterSave } from "../lib/data"
 import { STOREFRONT, sdk } from "../lib/sdk"
 import {
   applyPrice,
+  pickableCategories,
   sellingOf,
   setStock,
   stockOf,
+  withOfferCategory,
   type ShopCategory,
   type ShopPrices,
   type ShopProduct,
@@ -123,13 +125,16 @@ export default function FlowerSheet({
     }
     setBusy(true)
     setError("")
+    // On offer is the one switch: it also puts the flower in (or takes it
+    // out of) the offers category, so nobody has to remember to tick it.
+    const categoryIds = withOfferCategory(cats, categories, sizes.some((s) => s.onOffer))
     try {
       if (product) {
         await sdk.admin.product.update(product.id, {
           title: title.trim(),
           description: description.trim(),
           status: visible ? "published" : "draft",
-          categories: [...cats].map((id) => ({ id })),
+          categories: categoryIds.map((id) => ({ id })),
           ...(photo !== product.thumbnail ? { thumbnail: photo, images: photo ? [{ url: photo }] : [] } : {}),
         })
         for (const s of sizes) {
@@ -158,7 +163,7 @@ export default function FlowerSheet({
             stock: num(s.canSell),
             image: photo,
             description: description.trim() || null,
-            categoryIds: [...cats],
+            categoryIds,
             publish: visible,
           },
         })
@@ -250,7 +255,7 @@ export default function FlowerSheet({
         <div className="flex flex-col gap-2">
           <span className="text-sm font-medium text-ink-700">Categories · tap all that fit</span>
           <div className="flex flex-wrap gap-2">
-            {categories.map((c) => {
+            {pickableCategories(categories).map((c) => {
               const on = cats.has(c.id)
               return (
                 <button
