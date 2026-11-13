@@ -13,6 +13,28 @@ import { sdk } from "../lib/sdk"
  * site its Passwords bar offers it in one tap, and the sign-in then lasts 30
  * days (jwtExpiresIn in medusa-config.ts).
  */
+/**
+ * The email survives a reload. Opened from the home screen, iOS reloads the
+ * app every time the florist switches away to copy something (13 Nov 2026),
+ * which emptied the form between copying the email and the password. The
+ * password is deliberately never stored: pasted last, it needs no leaving.
+ */
+const EMAIL_KEY = "tt_shop_email"
+function savedEmail() {
+  try {
+    return localStorage.getItem(EMAIL_KEY) ?? ""
+  } catch {
+    return ""
+  }
+}
+function rememberEmail(value: string) {
+  try {
+    localStorage.setItem(EMAIL_KEY, value.trim())
+  } catch {
+    /* private mode: nothing to keep it in */
+  }
+}
+
 export default function Login({ onSignedIn }: { onSignedIn: () => void }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
@@ -28,6 +50,7 @@ export default function Login({ onSignedIn }: { onSignedIn: () => void }) {
       if (into.current && text) {
         into.current.value = text
         into.current.focus()
+        if (into === email) rememberEmail(text)
       }
     } catch {
       setError("The phone didn't allow pasting. Tap and hold in the box, then Paste.")
@@ -87,6 +110,8 @@ export default function Login({ onSignedIn }: { onSignedIn: () => void }) {
               autoCorrect="off"
               spellCheck={false}
               required
+              defaultValue={savedEmail()}
+              onInput={(e) => rememberEmail(e.currentTarget.value)}
               className={inputClass}
             />
             {pasteButton(email, "Paste email")}
@@ -127,7 +152,10 @@ export default function Login({ onSignedIn }: { onSignedIn: () => void }) {
         <Button type="submit" busy={busy} className="mt-2">
           Sign in
         </Button>
-        <p className="text-center text-sm text-ink-600">You stay signed in on this phone for 30 days.</p>
+        <p className="text-center text-sm text-ink-600">
+          Copying from another app? Your email is kept here, so paste the password last.
+          You stay signed in on this phone for 30 days.
+        </p>
       </form>
     </main>
   )
