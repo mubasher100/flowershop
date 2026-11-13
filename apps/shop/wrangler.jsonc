@@ -1,0 +1,26 @@
+// The shop app: a static single-page app served by a Worker's static assets
+// (free, no server code). The admin API is the Railway backend; this domain
+// only serves HTML, JS and icons.
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "flowershop-shop",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    // Every path (/orders, /flowers, …) is the app; React Router takes it
+    // from there. Without this a refresh on /flowers is a 404.
+    "not_found_handling": "single-page-application"
+  },
+  "routes": [{ "pattern": "shop.tulipsandtruffle.com", "custom_domain": true }],
+  "workers_dev": true,
+
+  // The test copy, deployed from the staging branch against the staging
+  // backend (deploy-shop.yml picks the build settings).
+  "env": {
+    "staging": {
+      "name": "flowershop-shop-staging",
+      "routes": [{ "pattern": "shop-staging.tulipsandtruffle.com", "custom_domain": true }],
+      "workers_dev": true
+    }
+  }
+}

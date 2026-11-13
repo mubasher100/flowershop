@@ -76,3 +76,8 @@ Thumbs.db
 # the template anyway.
 /product-import-*.xlsx
 !/product-import-template.xlsx
+
+# Shop app: Vite build and Playwright output
+apps/shop/dist/
+apps/shop/test-results/
+apps/shop/playwright-report/

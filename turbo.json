@@ -22,7 +22,8 @@
         "MEDUSA_WORKER_MODE",
         "DISABLE_MEDUSA_ADMIN",
         "REDIS_URL",
-        "NEXT_PUBLIC_*"
+        "NEXT_PUBLIC_*",
+        "VITE_*"
       ]
     },
     "dev": {
