@@ -49,7 +49,17 @@ export default function BlackFridayPopup() {
 
   useEffect(() => {
     if (onDealPage || Date.now() >= SHOW_UNTIL || dismissed()) return
-    const timer = setTimeout(() => setOpen(true), 1500)
+    // Never over something the visitor opened themselves — the sample card,
+    // the photo viewer, the menu. It used to open on top of them, and Escape
+    // then closed this instead of what they were looking at. Wait until
+    // nothing else is open, checking again every couple of seconds.
+    let timer: ReturnType<typeof setTimeout>
+    const tryOpen = () => {
+      const busy = document.querySelector('dialog[open], [aria-modal="true"], [role="dialog"][data-state="open"]')
+      if (busy) timer = setTimeout(tryOpen, 2000)
+      else setOpen(true)
+    }
+    timer = setTimeout(tryOpen, 1500)
     return () => clearTimeout(timer)
   }, [onDealPage])
 
