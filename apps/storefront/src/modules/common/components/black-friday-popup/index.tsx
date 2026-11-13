@@ -87,7 +87,14 @@ export default function BlackFridayPopup() {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blush-200 rtl:tracking-normal">
           {t("bf.eyebrow")}
         </p>
-        <h2 id="bf-title" className="font-display text-3xl leading-tight text-blush-100">
+        {/* Focus starts on the heading, so a screen reader reads the offer
+            and no focus ring sits on the close button as if pressed. */}
+        <h2
+          id="bf-title"
+          tabIndex={-1}
+          autoFocus
+          className="font-display text-3xl leading-tight text-blush-100 focus:outline-none"
+        >
           {t("bf.title")}
         </h2>
         <p className="text-base leading-relaxed text-white/90">{t("bf.body")}</p>
