@@ -6,16 +6,15 @@ import type {
 /**
  * "Make it live now", from the shop app.
  *
- * A saved change normally reaches customers within about half an hour: each
- * Cloudflare datacentre serves its cached copy for that long without checking
- * (see CLAUDE.md, Caching & performance). The one thing that clears every
- * datacentre at once is a fresh storefront deploy, because cache keys carry
+ * A saved change normally reaches customers within a minute (see CLAUDE.md,
+ * Caching & performance). This is the fallback for one that has not: a fresh
+ * storefront deploy clears every datacentre at once, because cache keys carry
  * the build id — so this starts the storefront's deploy workflow on GitHub.
  *
  * It changes no Medusa data, so there is no workflow behind it: it is a call
  * to GitHub on the shop's behalf. Needs GITHUB_DEPLOY_TOKEN on Railway — a
  * fine-grained token for this one repository with "Actions: read and write".
- * Without it the route says so, and the app keeps its half-hour countdown.
+ * Without it the route says so, and the app hides the button.
  */
 const REPO = process.env.GITHUB_DEPLOY_REPO || "mubasher100/flowershop"
 const REF = process.env.GITHUB_DEPLOY_REF || "main"
@@ -83,7 +82,7 @@ export async function POST(
   if (!process.env.GITHUB_DEPLOY_TOKEN) {
     return res.status(501).json({
       message:
-        "Make it live now is not switched on yet. Changes still reach the website within 30 minutes.",
+        "Make it live now is not switched on yet.",
     })
   }
 
@@ -100,7 +99,7 @@ export async function POST(
   })
   if (!dispatched.ok) {
     return res.status(502).json({
-      message: `The website could not be refreshed (GitHub answered ${dispatched.status}). Changes still go live within 30 minutes.`,
+      message: `The website could not be refreshed (GitHub answered ${dispatched.status}).`,
     })
   }
   res.json({ started: true, last: null })

@@ -125,7 +125,7 @@ function AddFlower({
     onSuccess: () => {
       toast.success(
         draft.publish
-          ? `"${draft.title.trim()}" is on the shop. It can take up to 30 minutes to appear on the website.`
+          ? `"${draft.title.trim()}" is on the shop. It appears on the website in about a minute.`
           : `"${draft.title.trim()}" is saved, hidden. Show it when you are ready.`
       )
       setDraft(blank)
@@ -425,7 +425,7 @@ function EditFlower({
     },
     onSuccess: () => {
       toast.success(
-        "Saved. Stock updates on the website straight away; other changes can take up to 30 minutes."
+        "Saved. Stock updates on the website straight away; other changes take about a minute."
       )
       refresh()
       queryClient.invalidateQueries({ queryKey: SHOP_PRICES_KEY })
@@ -767,8 +767,8 @@ export default function FlowersPanel() {
     onSuccess: (_d, p) => {
       toast.success(
         p.status === "published"
-          ? `"${p.title}" is hidden. It can take up to 30 minutes to leave the website.`
-          : `"${p.title}" is back on the shop. It can take up to 30 minutes to reappear.`
+          ? `"${p.title}" is hidden. It leaves the website in about a minute.`
+          : `"${p.title}" is back on the shop. It reappears in about a minute.`
       )
       queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY })
     },

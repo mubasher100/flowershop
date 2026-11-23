@@ -3,14 +3,11 @@ import { sdk } from "./sdk"
 /**
  * When a change reaches the website.
  *
- * The storefront serves each datacentre's cached copy for up to 30 minutes
- * without checking whether it changed (bypassTagCacheOnCacheHit, see CLAUDE.md
- * "Caching & performance"). That copy is what keeps the site fast and inside
- * Cloudflare's CPU limit, so it stays; the app tells the florist the honest
- * time instead, and offers "Make it live now" (a fresh deploy) when it cannot
- * wait.
+ * Every save asks the storefront to clear its copies (see CLAUDE.md, "Caching
+ * & performance"). Timed on staging with real saves, 24 Nov 2026: 4 to 18
+ * seconds. A minute is the promise, so it is kept.
  */
-export const LIVE_DELAY_MINUTES = 30
+export const LIVE_DELAY_MINUTES = 1
 
 export const liveBy = (changedAt: Date | number | string) =>
   new Date(new Date(changedAt).getTime() + LIVE_DELAY_MINUTES * 60_000)

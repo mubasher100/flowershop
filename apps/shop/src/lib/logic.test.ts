@@ -84,7 +84,7 @@ describe("runLimited", () => {
 describe("live-by timer", () => {
   it(`is ${LIVE_DELAY_MINUTES} minutes after the change`, () => {
     const at = new Date("2026-11-12T10:00:00Z")
-    expect(liveBy(at).toISOString()).toBe("2026-11-12T10:30:00.000Z")
+    expect(liveBy(at).toISOString()).toBe("2026-11-12T10:01:00.000Z")
   })
   it("counts down in minutes and seconds, then stops", () => {
     const target = new Date("2026-11-12T10:30:00Z")
