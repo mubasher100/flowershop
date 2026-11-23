@@ -14,7 +14,7 @@ type Publish = {
 
 /**
  * "Make it live now": a fresh website deploy, which clears every cached copy
- * at once (about five minutes) instead of waiting out the half hour. Shown
+ * at once (about five minutes), for when a change has not shown by itself. Shown
  * only once the backend has a GitHub token to start the deploy with.
  */
 function MakeLiveNow() {
@@ -44,9 +44,9 @@ function MakeLiveNow() {
 
   return (
     <section className="flex flex-col gap-2 rounded-2xl border border-ink-200 bg-white p-4">
-      <b>Can't wait?</b>
+      <b>Not showing yet?</b>
       <p className="text-[15px] text-ink-600">
-        Make it live now refreshes the whole website, so every change shows in about 5 minutes. The website keeps working
+        If a change is still missing after a few minutes, this refreshes the whole website in about 5 minutes. It keeps working
         while it does.
       </p>
       {last?.running ? (
@@ -112,11 +112,11 @@ export default function Website() {
       ) : (
         <section className="rounded-2xl bg-sage-100 p-4 text-sage-900">
           <b>Everything is live.</b>
-          <p className="text-[15px]">Changes reach the website within 30 minutes of saving.</p>
+          <p className="text-[15px]">Changes reach the website within about a minute of saving.</p>
         </section>
       )}
 
-      {waiting.length > 0 && <MakeLiveNow />}
+      {changes.length > 0 && <MakeLiveNow />}
 
       {changes.length > 0 && (
         <section className="flex flex-col gap-2">
