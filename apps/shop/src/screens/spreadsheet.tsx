@@ -32,7 +32,7 @@ type SheetCategory = ShopCategory & { is_active?: boolean; is_internal?: boolean
 /** The categories customers can see — what the Store API gives the Node script. */
 const fetchSheetCategories = () =>
   sdk.client.fetch<{ product_categories: SheetCategory[] }>(
-    "/admin/product-categories?limit=200&fields=id,name,handle,is_active,is_internal,rank"
+    "/admin/product-categories?limit=200&fields=id,name,handle,is_active,is_internal,rank,metadata"
   )
 
 function save(data: ArrayBuffer, name: string) {
@@ -67,22 +67,27 @@ export default function Spreadsheet() {
   const [applying, setApplying] = useState(false)
   const [progress, setProgress] = useState<Record<string, Progress> | null>(null)
 
-  const tickNames = () =>
-    sheetCategories((sheetCats.data?.product_categories ?? []).filter((c) => c.is_active !== false && !c.is_internal)).map(
-      (c) => c.name
-    )
+  const tickNames = (all: SheetCategory[]) =>
+    sheetCategories(all.filter((c) => c.is_active !== false && !c.is_internal)).map((c) => c.name)
 
   async function download(kind: "blank" | "all") {
     setMaking(kind)
     try {
-      if (!sheetCats.data) await sheetCats.refetch()
-      const names = tickNames()
+      // Build from what the refetch returns, never from the hooks' data: that
+      // is what this render saw, and a tap before the screen had loaded made a
+      // sheet with no category columns, or no flowers (found 23 Nov 2026).
+      const cats = await sheetCats.refetch()
+      if (cats.error || !cats.data) throw cats.error ?? new Error("the categories did not load")
+      const names = tickNames(cats.data.product_categories)
       if (kind === "blank") {
         save(await buildWorkbook(names), FILE_NAME)
       } else {
-        await catalogue.refetch()
+        const [products, categories, prices] = await catalogue.refetch()
+        if (products.error || categories.error || prices.error || !products.data || !categories.data || !prices.data) {
+          throw products.error ?? categories.error ?? prices.error ?? new Error("the flowers did not load")
+        }
         const rows = exportRows(
-          { products: catalogue.products, categories: catalogue.categories, prices: catalogue.prices },
+          { products: products.data.products, categories: categories.data.product_categories, prices: prices.data },
           names
         )
         save(await buildWorkbook(names, rows), `tulips-and-truffles-all-flowers-${new Date().toISOString().slice(0, 10)}.xlsx`)
@@ -277,7 +282,7 @@ function Report({ plan, fileName, progress }: { plan: Plan; fileName: string; pr
       {plan.unknownColumns.length > 0 && (
         <p className="rounded-xl bg-champagne-100 px-3 py-2 text-[15px] text-champagne-900">
           These columns are not categories in the shop, so their ticks are ignored: <b>{plan.unknownColumns.join(", ")}</b>.
-          Check the spelling, or make the category in the full admin first.
+          Check the spelling, or add it in More → Categories first.
         </p>
       )}
       {groups.map((g) => {

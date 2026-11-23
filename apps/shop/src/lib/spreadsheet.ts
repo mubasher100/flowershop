@@ -137,7 +137,16 @@ const toNumber = (s: string) => {
 const YES = /^(yes|y|نعم|true|1|✓|✔|x)$/i
 const NO = /^(no|n|لا|false|0|-)$/i
 
-export type SheetImage = { data: Uint8Array; extension: string }
+/** `width` in pixels, where the browser could read the picture. */
+export type SheetImage = { data: Uint8Array; extension: string; width?: number }
+
+/**
+ * Narrower than this and the photo is soft on a product page. Excel shrinks
+ * pictures to the size they are shown at when it saves (a 1312px photo came
+ * back 268px wide, 23 Nov 2026) unless the sheet says not to, which
+ * buildWorkbook now does; sheets downloaded before that still get shrunk.
+ */
+export const MIN_PHOTO_WIDTH = 640
 
 export type SheetRow = {
   rowNumber: number
@@ -158,6 +167,8 @@ export type SheetRow = {
   photoUrl: string | null
   photoFile: string
   image: SheetImage | null
+  /** The Photo cell holds an Excel "Place in Cell" picture, which can't be read. */
+  photoInCell: boolean
 }
 
 export type ParsedSheet = {
@@ -173,7 +184,8 @@ export type ParsedSheet = {
 export function parseGrid(
   headings: string[],
   body: { rowNumber: number; cells: string[] }[],
-  images: Map<number, SheetImage> = new Map()
+  images: Map<number, SheetImage> = new Map(),
+  inCell: Set<number> = new Set()
 ): ParsedSheet {
   const byKey: Partial<Record<FieldKey, number>> = {}
   const tickColumns: { name: string; col: number }[] = []
@@ -257,6 +269,7 @@ export function parseGrid(
       photoUrl: /^https?:\/\/\S+$/i.test(photoText) ? photoText : null,
       photoFile: get("photoFile"),
       image: images.get(rowNumber) ?? null,
+      photoInCell: inCell.has(rowNumber),
     })
   }
 
@@ -335,9 +348,16 @@ export async function readWorkbook(data: ArrayBuffer): Promise<ParsedSheet> {
     const row = Math.floor(tl?.nativeRow ?? tl?.row ?? 0) + 1
     const media = wb.getImage(Number(img.imageId)) as { buffer?: Uint8Array; extension?: string } | undefined
     if (media?.buffer && !images.has(row)) {
-      images.set(row, { data: new Uint8Array(media.buffer), extension: media.extension || "png" })
+      const image: SheetImage = { data: new Uint8Array(media.buffer), extension: media.extension || "png" }
+      image.width = await pixelWidth(image)
+      images.set(row, image)
     }
   }
+
+  // Excel's "Place in Cell" stores the picture as a cell value that reads as
+  // #VALUE!, with no drawing. It can't be imported, so it is reported.
+  const inCell = new Set<number>()
+  const photoCol = headings.findIndex((h) => HEADINGS[normaliseHeading(h ?? "")] === "photo") + 1
 
   const body: { rowNumber: number; cells: string[] }[] = []
   for (let r = 2; r <= ws.rowCount; r++) {
@@ -345,8 +365,23 @@ export async function readWorkbook(data: ArrayBuffer): Promise<ParsedSheet> {
     const cells: string[] = []
     for (let c = 1; c <= width; c++) cells.push(cellText(row.getCell(c) as Cell))
     if (cells.some(Boolean)) body.push({ rowNumber: r, cells })
+    const photo = photoCol ? (row.getCell(photoCol).value as { error?: string } | string | null) : null
+    if (photo === "#VALUE!" || (typeof photo === "object" && photo?.error)) inCell.add(r)
   }
-  return parseGrid(headings, body, images)
+  return parseGrid(headings, body, images, inCell)
+}
+
+/** Undefined where the browser can't decode it (or outside a browser). */
+async function pixelWidth(img: SheetImage): Promise<number | undefined> {
+  if (typeof createImageBitmap !== "function") return undefined
+  try {
+    const bitmap = await createImageBitmap(imageFile(img, "photo"))
+    const { width } = bitmap
+    bitmap.close()
+    return width
+  } catch {
+    return undefined
+  }
 }
 
 /* --------------------------------------------------------------- planning */
@@ -605,7 +640,16 @@ export function planImport(sheet: ParsedSheet, ctx: PlanContext): Plan {
     if (!imageRow && group.some((r) => r.photoFile)) {
       warnings.push("A photo file name can't be opened from a phone — paste the photo into the sheet instead.")
     }
-    if (!product && !plan.photo) warnings.push("No photo.")
+    const width = imageRow?.image?.width
+    if (width && width < MIN_PHOTO_WIDTH) {
+      warnings.push(
+        `The photo is only ${width} pixels wide and will look blurry. Excel may have shrunk it: download a new sheet here and paste the photo into that.`
+      )
+    }
+    const inCell = !imageRow && group.some((r) => r.photoInCell)
+    if (inCell) {
+      warnings.push("The photo is set to Place in Cell, which can't be read. In Excel, right-click it and choose Place over Cells.")
+    } else if (!product && !plan.photo) warnings.push("No photo.")
 
     if (!plan.sizes.length) {
       skip("none of its sizes could be used")
@@ -941,8 +985,15 @@ export async function buildWorkbook(categoryNames: string[], rows?: ExportRow[])
 
   wb.views = [{ activeTab: 0 } as ExcelJSNamespace.WorkbookView]
   const out = await wb.xlsx.writeBuffer()
-  const bytes = out as unknown as Uint8Array
-  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer
+
+  // Tell Excel to keep pasted photos at full size. exceljs can't write this
+  // setting, so it goes into the file afterwards.
+  const JSZip = (await import("jszip")).default
+  const zip = await JSZip.loadAsync(out as unknown as Uint8Array)
+  const path = "xl/workbook.xml"
+  const xml = await zip.file(path)!.async("string")
+  zip.file(path, xml.replace(/<workbookPr(?=[ />])/, '<workbookPr autoCompressPictures="0"'))
+  return zip.generateAsync({ type: "arraybuffer", compression: "DEFLATE" })
 }
 
 /* ---------------------------------------------------------------- applying */
