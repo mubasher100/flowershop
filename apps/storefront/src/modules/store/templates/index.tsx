@@ -66,11 +66,14 @@ const StoreTemplate = async ({
   countryCode,
   optionValueIds,
   filters,
+  query,
 }: {
   sortBy?: SortOptions
   page?: string
   countryCode: string
   optionValueIds?: OptionValueIds
+  /** The address's filters; empty on the ready-made page. */
+  query?: string
   filters?: {
     q?: string
     colours?: string[]
@@ -118,6 +121,7 @@ const StoreTemplate = async ({
       data-testid="category-container"
     >
       <FilterPanel
+        query={query}
         sortBy={sort}
         colours={colours}
         categories={categoryOptions}
@@ -134,6 +138,7 @@ const StoreTemplate = async ({
         </h1>
         <Suspense fallback={<SkeletonProductGrid />}>
           <PaginatedProducts
+        query={query}
             sortBy={sort}
             page={pageNumber}
             countryCode={countryCode}

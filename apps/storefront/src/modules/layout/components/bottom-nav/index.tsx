@@ -1,6 +1,6 @@
 "use client"
 
-import { usePathname } from "next/navigation"
+import { usePublicPathname } from "@lib/hooks/use-public-pathname"
 
 import { useCartCount } from "@lib/hooks/use-cart-count"
 import { TranslationKey } from "@lib/i18n/dictionary"
@@ -104,7 +104,7 @@ const ITEMS: Item[] = [
 ]
 
 export default function BottomNav() {
-  const pathname = usePathname()
+  const pathname = usePublicPathname()
   // Shared with the header badge, so both move the moment something is added
   // rather than only after the next navigation.
   const count = useCartCount()

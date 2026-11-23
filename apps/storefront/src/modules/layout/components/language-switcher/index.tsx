@@ -3,7 +3,8 @@
 import { useTranslations } from "@lib/i18n/use-translations"
 import { buildSegment, countryOf, parseSegment } from "@lib/util/locale"
 import Link from "next/link"
-import { usePathname, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
+import { usePublicPathname } from "@lib/hooks/use-public-pathname"
 import { Suspense } from "react"
 
 /**
@@ -27,7 +28,7 @@ const linkClass =
 
 /** Swaps the locale segment, leaving the rest of the path alone. */
 function useTargetPath() {
-  const pathname = usePathname()
+  const pathname = usePublicPathname()
   const { locale } = useTranslations()
 
   const segments = pathname.split("/").filter(Boolean)

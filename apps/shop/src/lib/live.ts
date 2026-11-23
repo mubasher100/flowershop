@@ -1,3 +1,5 @@
+import { sdk } from "./sdk"
+
 /**
  * When a change reaches the website.
  *
@@ -57,6 +59,8 @@ export function recordChange(what: string): Change {
   } catch {
     /* storage refused: the toast still shows the time */
   }
+  // Best effort: without it the change still shows when the copies expire.
+  void sdk.client.fetch("/admin/refresh-website", { method: "POST" }).catch(() => undefined)
   window.dispatchEvent(new Event("tt-changes"))
   return change
 }
