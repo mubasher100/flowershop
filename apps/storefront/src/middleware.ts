@@ -159,6 +159,9 @@ const SECURITY_HEADERS: [string, string][] = [
     : []),
 ]
 
+/** Pages with nothing of the visitor's in them: never the bag, checkout or an order. */
+const READY_MADE = /^\/[a-z]{2}-[a-z]{2}(\/?$|\/(store|categories|collections|products)(\/|$))/
+
 const withSecurityHeaders = (response: NextResponse) => {
   for (const [name, value] of SECURITY_HEADERS) {
     response.headers.set(name, value)
@@ -225,7 +228,17 @@ export async function middleware(request: NextRequest) {
 
     const twin = filteredPath(pathname, searchParams)
     const proceed = () => {
-      if (!twin) return NextResponse.next()
+      if (!twin) {
+        const response = NextResponse.next()
+        // Next sends ready-made pages with stale-while-revalidate for 30 days,
+        // which browsers honour too: a returning customer moving between pages
+        // was shown their own old copy, price and all, once more. Our caches
+        // do not read this header, so only the visitor's phone is affected.
+        if (READY_MADE.test(pathname)) {
+          response.headers.set("Cache-Control", "public, max-age=0, must-revalidate")
+        }
+        return response
+      }
       const url = request.nextUrl.clone()
       url.pathname = twin
       return NextResponse.rewrite(url)
