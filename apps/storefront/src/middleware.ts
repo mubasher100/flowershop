@@ -8,6 +8,8 @@ import {
 import { HttpTypes } from "@medusajs/types"
 import { NextRequest, NextResponse } from "next/server"
 
+import { isJunkPath } from "@lib/util/junk-path"
+
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL
 const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
 const DEFAULT_REGION = process.env.NEXT_PUBLIC_DEFAULT_REGION || "dk"
@@ -164,6 +166,13 @@ const withSecurityHeaders = (response: NextResponse) => {
 }
 
 export async function middleware(request: NextRequest) {
+  if (isJunkPath(request.nextUrl.pathname)) {
+    return new NextResponse("Not found", {
+      status: 404,
+      headers: { "Cache-Control": "public, max-age=3600" },
+    })
+  }
+
   if (request.nextUrl.pathname.includes(".")) {
     return withSecurityHeaders(NextResponse.next())
   }

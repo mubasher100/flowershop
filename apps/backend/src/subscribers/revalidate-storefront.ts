@@ -1,6 +1,8 @@
 import type { SubscriberConfig, SubscriberArgs } from "@medusajs/framework"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 
+import { requestWebsiteRefresh } from "../lib/website-refresh"
+
 /**
  * Tells the storefront to drop its cache when the catalogue changes.
  *
@@ -41,46 +43,10 @@ export default async function revalidateStorefront({
   event,
   container,
 }: SubscriberArgs<unknown>) {
-  const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
-
-  const storefrontUrl = process.env.STOREFRONT_URL
-  const secret = process.env.REVALIDATE_SECRET
-
-  if (!storefrontUrl || !secret) {
-    // Local dev usually has neither; saying so once per event is noisy, so
-    // this stays quiet rather than warning on every product save.
-    return
-  }
-
-  const tags = TAGS_BY_EVENT[event.name] ?? ["products"]
-
-  try {
-    const res = await fetch(
-      `${storefrontUrl.replace(/\/$/, "")}/api/revalidate`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-revalidate-secret": secret,
-        },
-        body: JSON.stringify({ tags }),
-        // The admin save should not hang on a slow storefront.
-        signal: AbortSignal.timeout(5000),
-      }
-    )
-
-    if (!res.ok) {
-      logger.warn(
-        `Storefront revalidation returned ${res.status} for ${event.name}`
-      )
-    }
-  } catch (e) {
-    logger.warn(
-      `Storefront revalidation failed for ${event.name}: ${
-        e instanceof Error ? e.message : String(e)
-      }`
-    )
-  }
+  requestWebsiteRefresh(
+    TAGS_BY_EVENT[event.name] ?? ["products"],
+    container.resolve(ContainerRegistrationKeys.LOGGER)
+  )
 }
 
 export const config: SubscriberConfig = {
