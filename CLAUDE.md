@@ -228,18 +228,28 @@ Measured, warm, repeat visitor: HTML arrives in **43–80ms** on a reused connec
 
 **The tag cache is not optional and it is not free.** OpenNext's `tagCache` defaults to `"dummy"`, which silently discards every tag — the backend had been posting to `/api/revalidate` on every product, price and inventory change since it was written, and none of it invalidated anything. But adding a real one put a round trip on every request and took the catalogue straight back to 315ms.
 
-What is actually deployed is `bypassTagCacheOnCacheHit: true` with **no** `defaultLongLivedTtlSec`, so a regional entry lives for the adapter's default of **30 minutes** and is served without a tag check for that whole time. **An admin edit can take about half an hour to reach customers** — longer in a datacentre that re-caches a stale R2 copy before the background re-render lands. Saving a product does post the "products" tag (verified: `/api/revalidate` answers 200), but nothing reads it until the regional copy expires.
+What is deployed (23 Nov 2026) is `bypassTagCacheOnCacheHit: true` plus **`cachePurge`**: a save calls `/api/revalidate`, which marks the tags and clears Cloudflare's copies by tag in every datacentre. Tag purge is on every plan since April 2025 (it was Enterprise-only when this was first written). It needs `CACHE_PURGE_ZONE_ID` (repo variable) and `CACHE_PURGE_API_TOKEN` (repo secret, *Cache Purge* on this zone only); the deploy sets both on the Worker, and without them the purge logs and does nothing.
 
-That is a deliberate trade, made on 28 Jul 2026 after both faster settings took the site down with Cloudflare 1102 *"Worker exceeded resource limits"*: a 60-second lifetime meant the homepage fell out of cache constantly and its render does not fit the CPU budget, and a tag check on every hit put a Durable Object round trip on every request. See `git show 546295c`. **Do not shorten the lifetime or turn the tag check back on without load-testing the homepage.** Cloudflare's tag-based purge would give freshness and speed both, but it needs a zone on an Enterprise plan.
+- **The free plan allows 5 purges a minute (bursts of 25) for the account**, so the backend groups a burst into one call (`src/lib/website-refresh.ts`: 4 s of quiet, 20 s at most), and the shop app asks after every save (`POST /admin/refresh-website`) because price-list prices raise no catalogue event.
+- `regionalCache` is off on the tag cache: a datacentre with a 30-second-old "not changed" would put the stale copy straight back. `shouldLazilyUpdateOnCacheHit` is off: it re-reads R2 on every hit and renews a stale copy for as long as anyone visits.
+- Staging shares the zone, so its purges clear live's copies too. Harmless: live re-reads R2.
+- Measured on staging: a purge reached Qatar in under a second (one ~0.7 s rebuild, then cached), and five in a row under load failed none of 600 requests. A real save from the shop app had not been timed there when this was written.
+
+**The Workers plan is Free: 10 ms of CPU per request**, and it is the binding constraint. In July two faster settings took the site down with Cloudflare 1102. Do not add per-request rendering to a page customers browse.
 
 **When a change cannot wait the half hour, redeploy the storefront** (`gh workflow run deploy-storefront.yml --ref main`, ~5 min). Cache keys carry the build id, so a new build starts from a clean cache everywhere — this is how the discounts came off the live site on 19 Oct 2026 after the price change alone left them showing.
 
 Anything that must be current therefore cannot come from the cache. **Stock is the case that matters:** a flower that sold out could say "In stock" for half an hour. The product page fetches its variants' stock live in the browser (`lib/hooks/use-live-stock.ts`, one Store API call after paint, no cookies), and that figure drives the stock line and the buy button. Checkout catches Medusa's *"Not enough stock available for item …"* refusal and tells the customer the flower has just sold out.
 
-> **Only the homepage and the static information pages are prerendered.** Product, category, collection and catalogue pages are served `private, no-cache, no-store` and rendered per request (found 9 Oct 2026); their *data* is what the cache above holds. The page sizes and timings quoted above were measured when they were static. Worth finding what made them dynamic — likely `searchParams` (`v_id`, the filters) — before relying on those numbers.
+> **Catalogue, category, collection and flower pages are ready-made (140 prerendered, was 24).** They read `searchParams`, so every visit rendered: one visitor opening /store every 3 s failed 59 of 90 times with 1102 on staging; ready-made, 0 of 180. A filter, sort or page in the address is rewritten by the middleware to a twin under `/filtered` (`lib/util/filtered-path.ts`), never shown in the address bar. Use `usePublicPathname()`, not `usePathname()`, and **never read `searchParams` or `useSearchParams` in those pages**: pass `query` from the twin. Flower pages no longer add `v_id` (it reloaded each one from the server), and `LocalizedClientLink` does not prefetch.
+>
+> Their `Cache-Control` is set to `max-age=0` in the middleware: Next's default lets a phone reuse its own copy for 30 days on in-app navigation.
+>
+> **Dotted junk paths 404 in the middleware** (`lib/util/junk-path.ts`). They skip locale routing, so `/backup.sql` rendered a whole homepage; one scanner did that 750 times on 23 Nov 2026. A new file served from the root must be added to its list.
+>
+> Seen about once per full browser walk in four, on any page including checkout: React error 418, from which the page recovers. Cause not found; not shown to be new.
 
-Two settings that look harmless and are not:
-- `regionalCacheTtlSec` on the tag cache defaults to 5s. At this shop's traffic most requests arrive further apart than that, so the lookup expires before it is ever reused and every request pays the round trip anyway.
+A setting that looks harmless and is not:
 - `bypassTagCacheOnCacheHit` must stay `false` on Next 16+, where `revalidateTag` is stale-while-revalidate by default. It is only safe here because the storefront is on Next 15.
 
 > **Next 15 is out of support since 21 Oct 2026.** OpenNext refuses to build a Next major more than two years past its release, and every storefront deploy failed from that day until `--dangerouslyUseUnsupportedNextVersion` was added to the build step in `deploy-storefront.yml`. That flag is a stopgap: Next 15 no longer gets security fixes. The way off it is Next 16, which needs the `bypassTagCacheOnCacheHit` trade above re-solved and the homepage load-tested before it ships.
