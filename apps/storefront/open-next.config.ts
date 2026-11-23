@@ -72,6 +72,42 @@ regionalCache.get = async (key, cacheType) => {
     : entry
 }
 
+/**
+ * Never put a page back that the shop has changed.
+ *
+ * On a miss the adapter copies R2's page into the datacentre straight away and
+ * checks its tags afterwards. The check failed, the render asked again, found
+ * the copy just made and, trusting hits, served it: every purge put the old
+ * page back (found on staging, 23 Nov 2026). Check first. The entry is copied
+ * before anything is awaited, because the adapter strips the page's tags off
+ * the same object, and an entry stored without them cannot be purged.
+ */
+type Put = {
+  key: string
+  cacheType?: string
+  entry: { value: unknown; lastModified: number }
+}
+// `protected` in the adapter's types; an ordinary method underneath.
+const writer = regionalCache as unknown as {
+  putToCache(put: Put): Promise<void>
+}
+type TagCheck = {
+  hasBeenRevalidated(tags: string[], lastModified?: number): Promise<boolean>
+}
+const regionalPut = writer.putToCache.bind(regionalCache)
+writer.putToCache = async (put) => {
+  if (put.cacheType === "fetch") return regionalPut(put)
+  const own = structuredClone(put)
+  const value = own.entry.value as { meta?: { headers?: Record<string, unknown> } }
+  const header = value.meta?.headers?.["x-next-cache-tags"]
+  const tags = typeof header === "string" ? header.split(",") : []
+  // Without its tags a purge could never find it: leave it to R2.
+  if (!tags.length) return
+  const { tagCache } = globalThis as unknown as { tagCache: TagCheck }
+  if (await tagCache.hasBeenRevalidated(tags, own.entry.lastModified)) return
+  await regionalPut(own)
+}
+
 export default defineCloudflareConfig({
   incrementalCache: regionalCache,
 
