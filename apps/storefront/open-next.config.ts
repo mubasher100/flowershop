@@ -50,9 +50,10 @@ export default defineCloudflareConfig({
      * a hit.
      */
     bypassTagCacheOnCacheHit: true,
-    // Defaults to off once purging is on. Kept: if a purge is ever refused,
-    // a datacentre still picks up R2's newer copy behind the next request.
-    shouldLazilyUpdateOnCacheHit: true,
+    // Off: it re-reads R2 and rewrites the entry on every single hit, which
+    // costs CPU and, without a tag check, renews an out-of-date copy's 30
+    // minutes for as long as anyone keeps visiting.
+    shouldLazilyUpdateOnCacheHit: false,
   }),
 
   /**

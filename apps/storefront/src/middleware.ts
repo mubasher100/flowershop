@@ -8,6 +8,7 @@ import {
 import { HttpTypes } from "@medusajs/types"
 import { NextRequest, NextResponse } from "next/server"
 
+import { filteredPath, publicPathname } from "@lib/util/filtered-path"
 import { isJunkPath } from "@lib/util/junk-path"
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL
@@ -212,14 +213,32 @@ export async function middleware(request: NextRequest) {
     regionMap.has(segmentCountry)
 
   if (urlHasLocaleAndCountry) {
+    const { pathname, searchParams } = request.nextUrl
+
+    // The twin is internal: nobody should land on or index its own address.
+    const visible = publicPathname(pathname)
+    if (visible !== pathname) {
+      const url = request.nextUrl.clone()
+      url.pathname = visible
+      return withSecurityHeaders(NextResponse.redirect(url, 308))
+    }
+
+    const twin = filteredPath(pathname, searchParams)
+    const proceed = () => {
+      if (!twin) return NextResponse.next()
+      const url = request.nextUrl.clone()
+      url.pathname = twin
+      return NextResponse.rewrite(url)
+    }
+
     if (!cacheIdCookie) {
-      const response = NextResponse.next()
+      const response = proceed()
       response.cookies.set("_medusa_cache_id", cacheId, {
         maxAge: 60 * 60 * 24,
       })
       return withSecurityHeaders(response)
     }
-    return withSecurityHeaders(NextResponse.next())
+    return withSecurityHeaders(proceed())
   }
 
   // Otherwise send the visitor to a proper locale-and-country URL.

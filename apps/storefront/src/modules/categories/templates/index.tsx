@@ -20,12 +20,15 @@ export default function CategoryTemplate({
   page,
   countryCode,
   optionValueIds,
+  query,
 }: {
   category: HttpTypes.StoreProductCategory
   sortBy?: SortOptions
   page?: string
   countryCode: string
   optionValueIds?: OptionValueIds
+  /** The address's filters; empty on the ready-made page. */
+  query?: string
 }) {
   const pageNumber = page ? parseInt(page) : 1
   const sort = sortBy || "created_at"
@@ -49,6 +52,7 @@ export default function CategoryTemplate({
       data-testid="category-container"
     >
       <RefinementList
+        query={query}
         sortBy={sort}
         data-testid="sort-by-container"
         hideOptionsPicker
@@ -105,6 +109,7 @@ export default function CategoryTemplate({
           }
         >
           <PaginatedProducts
+        query={query}
             sortBy={sort}
             page={pageNumber}
             categoryId={category.id}

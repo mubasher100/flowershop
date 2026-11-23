@@ -1,8 +1,9 @@
 "use client"
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { useCallback, useMemo, useState, useTransition } from "react"
 
+import { usePublicPathname } from "@lib/hooks/use-public-pathname"
 import { DICTIONARY, TranslationKey } from "@lib/i18n/dictionary"
 import { useTranslations } from "@lib/i18n/use-translations"
 import { clx } from "@modules/common/components/ui"
@@ -28,7 +29,16 @@ type Props = {
   categories: FilterOption[]
   /** Highest price in the catalogue, so the range never excludes everything. */
   maxPrice: number
+  /** The address's filters, from the page that rendered this. */
+  query?: string
 }
+
+/**
+ * Where the panel is open. The first filter moves from the ready-made page to
+ * its filtered twin, which mounts a new panel; without this it closed itself
+ * under the customer's thumb after one tap.
+ */
+let openOn: string | null = null
 
 /** Swatches, so colour reads as colour rather than as a word. */
 const SWATCH: Record<string, string> = {
@@ -56,11 +66,18 @@ export default function FilterPanel({
   colours,
   categories,
   maxPrice,
+  query = "",
 }: Props) {
   const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const [open, setOpen] = useState(false)
+  const pathname = usePublicPathname()
+  const searchParams = useMemo(() => new URLSearchParams(query), [query])
+  const [open, setOpenState] = useState(() => openOn === pathname)
+  const setOpen = (next: boolean | ((was: boolean) => boolean)) =>
+    setOpenState((was) => {
+      const value = typeof next === "function" ? next(was) : next
+      openOn = value ? pathname : null
+      return value
+    })
   const [pending, startTransition] = useTransition()
   const { t } = useTranslations()
 

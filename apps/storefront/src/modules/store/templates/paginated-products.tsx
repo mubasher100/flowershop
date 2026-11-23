@@ -36,6 +36,7 @@ export default async function PaginatedProducts({
   countryCode,
   optionValueIds,
   filters,
+  query,
 }: {
   sortBy?: SortOptions
   page: number
@@ -45,6 +46,7 @@ export default async function PaginatedProducts({
   countryCode: string
   optionValueIds?: OptionValueIds
   filters?: CatalogueFilters
+  query?: string
 }) {
   const { t } = getTranslations(countryCode)
 
@@ -177,6 +179,7 @@ export default async function PaginatedProducts({
           data-testid="product-pagination"
           page={page}
           totalPages={totalPages}
+          query={query}
         />
       )}
     </>
