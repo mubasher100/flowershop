@@ -24,37 +24,92 @@ import doShardedTagCache from "@opennextjs/cloudflare/overrides/tag-cache/do-sha
  * time on a page that renders no per-visitor content at all.
  *
  */
-export default defineCloudflareConfig({
-  incrementalCache: withRegionalCache(r2IncrementalCache, {
-    mode: "long-lived",
+const regionalCache = withRegionalCache(r2IncrementalCache, {
+  mode: "long-lived",
 
-    /**
-     * Tuned for the Worker's CPU allowance, which is the binding constraint
-     * here — not for freshness.
-     *
-     * Two things cost CPU: rendering a page, and calling the tag-cache
-     * Durable Object. Both of the earlier settings made one of them happen
-     * constantly and took the site down with Cloudflare 1102, "Worker
-     * exceeded resource limits":
-     *
-     *   - a 60-second entry lifetime meant the homepage fell out of cache
-     *     continuously, and a full render of it does not fit in the budget;
-     *   - consulting the tag cache on every hit put a Durable Object round
-     *     trip on every request.
-     *
-     * So: long-lived entries, and no tag check on a hit. Renders stay rare
-     * and a cache hit is close to free.
-     *
-     * Freshness comes from `cachePurge` below instead: an edit removes the
-     * affected entries from every datacentre, so nothing has to be checked on
-     * a hit.
-     */
-    bypassTagCacheOnCacheHit: true,
-    // Off: it re-reads R2 and rewrites the entry on every single hit, which
-    // costs CPU and, without a tag check, renews an out-of-date copy's 30
-    // minutes for as long as anyone keeps visiting.
-    shouldLazilyUpdateOnCacheHit: false,
-  }),
+  /**
+   * Tuned for the Worker's CPU allowance, which is the binding constraint
+   * here — not for freshness.
+   *
+   * Two things cost CPU: rendering a page, and calling the tag-cache
+   * Durable Object. Both of the earlier settings made one of them happen
+   * constantly and took the site down with Cloudflare 1102, "Worker
+   * exceeded resource limits":
+   *
+   *   - a 60-second entry lifetime meant the homepage fell out of cache
+   *     continuously, and a full render of it does not fit in the budget;
+   *   - consulting the tag cache on every hit put a Durable Object round
+   *     trip on every request.
+   *
+   * So: long-lived entries, and no tag check on a hit. Renders stay rare
+   * and a cache hit is close to free.
+   *
+   * Freshness comes from `cachePurge` below instead: an edit removes the
+   * affected entries from every datacentre, so nothing has to be checked on
+   * a hit.
+   */
+  bypassTagCacheOnCacheHit: true,
+  // Off: it re-reads R2 and rewrites the entry on every single hit, which
+  // costs CPU and, without a tag check, renews an out-of-date copy's 30
+  // minutes for as long as anyone keeps visiting.
+  shouldLazilyUpdateOnCacheHit: false,
+})
+
+/**
+ * Fetched data always checks its tags; only pages skip the check on a hit.
+ *
+ * Next 15 hands a fetch's tags to the cache separately, so the entry is stored
+ * without them and a tag purge cannot find it. A page was then rebuilt from
+ * the old data the moment it was purged, and kept as fresh: a saved change
+ * never appeared (found on staging, 23 Nov 2026). Data is only read while a
+ * page renders, which is rare, so the check costs little.
+ */
+const regionalGet = regionalCache.get.bind(regionalCache)
+regionalCache.get = async (key, cacheType) => {
+  const entry = await regionalGet(key, cacheType)
+  return entry && cacheType === "fetch"
+    ? { ...entry, shouldBypassTagCache: false }
+    : entry
+}
+
+/**
+ * Never put a page back that the shop has changed.
+ *
+ * On a miss the adapter copies R2's page into the datacentre straight away and
+ * checks its tags afterwards. The check failed, the render asked again, found
+ * the copy just made and, trusting hits, served it: every purge put the old
+ * page back (found on staging, 23 Nov 2026). Check first. The entry is copied
+ * before anything is awaited, because the adapter strips the page's tags off
+ * the same object, and an entry stored without them cannot be purged.
+ */
+type Put = {
+  key: string
+  cacheType?: string
+  entry: { value: unknown; lastModified: number }
+}
+// `protected` in the adapter's types; an ordinary method underneath.
+const writer = regionalCache as unknown as {
+  putToCache(put: Put): Promise<void>
+}
+type TagCheck = {
+  hasBeenRevalidated(tags: string[], lastModified?: number): Promise<boolean>
+}
+const regionalPut = writer.putToCache.bind(regionalCache)
+writer.putToCache = async (put) => {
+  if (put.cacheType === "fetch") return regionalPut(put)
+  const own = structuredClone(put)
+  const value = own.entry.value as { meta?: { headers?: Record<string, unknown> } }
+  const header = value.meta?.headers?.["x-next-cache-tags"]
+  const tags = typeof header === "string" ? header.split(",") : []
+  // Without its tags a purge could never find it: leave it to R2.
+  if (!tags.length) return
+  const { tagCache } = globalThis as unknown as { tagCache: TagCheck }
+  if (await tagCache.hasBeenRevalidated(tags, own.entry.lastModified)) return
+  await regionalPut(own)
+}
+
+export default defineCloudflareConfig({
+  incrementalCache: regionalCache,
 
   /**
    * Clears Cloudflare's copies by tag when the shop changes something, so an
