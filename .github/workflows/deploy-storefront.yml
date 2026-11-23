@@ -195,6 +195,21 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
+      # Lets the Worker clear Cloudflare's copies when the shop changes
+      # something (cachePurge in open-next.config.ts). The token can only
+      # purge this zone's cache. Without it, changes take half an hour.
+      - name: Set the cache purge credentials on the Worker
+        working-directory: apps/storefront
+        run: |
+          [ -n "$PURGE_TOKEN" ] && [ -n "$PURGE_ZONE" ] || { echo "No purge credentials: skipped"; exit 0; }
+          printf '%s' "$PURGE_TOKEN" | npx wrangler secret put CACHE_PURGE_API_TOKEN ${WRANGLER_ENV:+--env $WRANGLER_ENV}
+          printf '%s' "$PURGE_ZONE" | npx wrangler secret put CACHE_PURGE_ZONE_ID ${WRANGLER_ENV:+--env $WRANGLER_ENV}
+        env:
+          PURGE_TOKEN: ${{ secrets.CACHE_PURGE_API_TOKEN }}
+          PURGE_ZONE: ${{ vars.CACHE_PURGE_ZONE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
       # A Cloudflare deploy swaps versions atomically, so visitors never see a
       # half-deployed site — but a broken build would reach every one of them.
       # Walk the pages a customer uses, past the cache (?cb=), and if any fails

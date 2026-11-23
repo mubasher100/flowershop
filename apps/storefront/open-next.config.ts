@@ -1,4 +1,5 @@
 import { defineCloudflareConfig } from "@opennextjs/cloudflare"
+import { purgeCache } from "@opennextjs/cloudflare/overrides/cache-purge/index"
 import r2IncrementalCache from "@opennextjs/cloudflare/overrides/incremental-cache/r2-incremental-cache"
 import { withRegionalCache } from "@opennextjs/cloudflare/overrides/incremental-cache/regional-cache"
 import doQueue from "@opennextjs/cloudflare/overrides/queue/do-queue"
@@ -44,13 +45,30 @@ export default defineCloudflareConfig({
      * So: long-lived entries, and no tag check on a hit. Renders stay rare
      * and a cache hit is close to free.
      *
-     * The cost is staleness. An admin edit is picked up when the regional
-     * entry expires rather than on the next request, so allow up to half an
-     * hour. Cloudflare's tag-based purge would give both, but it needs a zone
-     * on an Enterprise plan and this worker is on workers.dev.
+     * Freshness comes from `cachePurge` below instead: an edit removes the
+     * affected entries from every datacentre, so nothing has to be checked on
+     * a hit.
      */
     bypassTagCacheOnCacheHit: true,
+    // Defaults to off once purging is on. Kept: if a purge is ever refused,
+    // a datacentre still picks up R2's newer copy behind the next request.
+    shouldLazilyUpdateOnCacheHit: true,
   }),
+
+  /**
+   * Clears Cloudflare's copies by tag when the shop changes something, so an
+   * edit shows in seconds rather than half an hour. Tag purge has been on
+   * every plan since April 2025; it needs the zone, which the shop's own
+   * domain gives it. Uses CACHE_PURGE_ZONE_ID and CACHE_PURGE_API_TOKEN, and
+   * without them it logs and does nothing (entries then expire on their own).
+   *
+   * The free plan allows 5 purges a minute for the whole account: the backend
+   * groups changes into one call (apps/backend/src/lib/website-refresh.ts).
+   * Staging shares the zone and the tag names, so a purge there also clears
+   * the live copies. That is harmless: live then re-reads R2, and nothing on
+   * live has been marked as changed.
+   */
+  cachePurge: purgeCache({ type: "direct" }),
 
   /**
    * Tag cache — this is what makes `revalidateTag` do anything at all.
@@ -67,22 +85,14 @@ export default defineCloudflareConfig({
    * reflect a write, which defeats the point. The DO uses SQLite storage and
    * creates its own schema on first use, so there is no migration to run.
    *
-   * `regionalCache` keeps tag lookups in the Cache API local to each
-   * datacentre, because otherwise every request pays a round trip to the DO
-   * just to ask whether the catalogue changed. Measured: adding the tag cache
-   * with the default 5s TTL took the catalogue from 60ms back to 315ms. At
-   * this shop's traffic most requests arrive more than five seconds apart, so
-   * a short TTL expires before it is ever reused and nearly every request paid
-   * the round trip.
-   *
-   * 30s is the trade: a tag lookup is reused for half a minute, and an edit
-   * saved in the admin shows up within that. Compared with the previous
-   * behaviour — never — that is the part worth having.
+   * No `regionalCache` for the tag lookups. Tags are only consulted when the
+   * regional entry is missing, and after a purge that answer must be current:
+   * a datacentre holding a 30-second-old "not changed" would put the stale
+   * R2 copy straight back for another half hour.
    */
   tagCache: doShardedTagCache({
     baseShardSize: 4,
-    regionalCache: true,
-    regionalCacheTtlSec: 30,
+    regionalCache: false,
   }),
 
   /**
