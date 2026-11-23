@@ -1,8 +1,9 @@
 "use client"
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useCallback, useMemo } from "react"
 
+import { usePublicPathname } from "@lib/hooks/use-public-pathname"
 import {
   OPTION_VALUE_QUERY_KEY,
   parseOptionValueIds,
@@ -13,18 +14,20 @@ import SortProducts, { SortOptions } from "./sort-products"
 type RefinementListProps = {
   sortBy: SortOptions
   search?: boolean
+  query?: string
   hideOptionsPicker?: boolean
   "data-testid"?: string
 }
 
 const RefinementList = ({
   sortBy,
+  query = "",
   hideOptionsPicker = false,
   "data-testid": dataTestId,
 }: RefinementListProps) => {
   const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
+  const pathname = usePublicPathname()
+  const searchParams = useMemo(() => new URLSearchParams(query), [query])
 
   const updateQueryParams = useCallback(
     (updater: (params: URLSearchParams) => void) => {

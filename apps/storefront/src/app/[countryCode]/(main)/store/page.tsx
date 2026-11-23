@@ -1,9 +1,8 @@
 import { Metadata } from "next"
 
 import { getTranslations } from "@lib/i18n/dictionary"
-import { alternatesFor } from "@lib/util/locale"
-import { parseOptionValueIds } from "@lib/util/product-option-filters"
-import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+import { listRegions } from "@lib/data/regions"
+import { alternatesFor, segmentsFor } from "@lib/util/locale"
 import StoreTemplate from "@modules/store/templates"
 import { BRAND_NAME } from "@modules/common/components/brand"
 
@@ -25,52 +24,19 @@ export async function generateMetadata(props: {
   }
 }
 
-type StorePageSearchParams = Record<string, string | string[] | undefined> & {
-  sortBy?: SortOptions
-  page?: string
-  optionValueIds?: string | string[]
+/** Without it Next does not know the locales and renders on demand. */
+export async function generateStaticParams() {
+  const regions = await listRegions()
+  return segmentsFor(
+    regions?.flatMap((r) => r.countries?.map((c) => c.iso_2) ?? []) ?? []
+  ).map((countryCode) => ({ countryCode }))
 }
 
-type Params = {
-  searchParams: Promise<StorePageSearchParams>
-  params: Promise<{
-    countryCode: string
-  }>
-}
+/** Ready-made: reads no query. A filtered view is ../filtered/store. */
+export default async function StorePage(props: {
+  params: Promise<{ countryCode: string }>
+}) {
+  const { countryCode } = await props.params
 
-/** A repeated query param arrives as string[]; a single one as string. */
-const toArray = (v: string | string[] | undefined): string[] =>
-  v === undefined ? [] : Array.isArray(v) ? v : [v]
-
-const toNumber = (v: string | string[] | undefined): number | undefined => {
-  const raw = Array.isArray(v) ? v[0] : v
-  if (!raw) return undefined
-  const n = Number(raw)
-  // Ignore junk rather than filtering everything out on a typo'd URL.
-  return Number.isFinite(n) && n >= 0 ? n : undefined
-}
-
-export default async function StorePage(props: Params) {
-  const params = await props.params
-  const searchParams = await props.searchParams
-  const { sortBy, page } = searchParams
-  const optionValueIds = parseOptionValueIds(searchParams)
-
-  const q = Array.isArray(searchParams.q) ? searchParams.q[0] : searchParams.q
-
-  return (
-    <StoreTemplate
-      sortBy={sortBy}
-      page={page}
-      countryCode={params.countryCode}
-      optionValueIds={optionValueIds}
-      filters={{
-        q: q?.trim() || undefined,
-        colours: toArray(searchParams.colour),
-        categories: toArray(searchParams.category),
-        minPrice: toNumber(searchParams.minPrice),
-        maxPrice: toNumber(searchParams.maxPrice),
-      }}
-    />
-  )
+  return <StoreTemplate countryCode={countryCode} />
 }
