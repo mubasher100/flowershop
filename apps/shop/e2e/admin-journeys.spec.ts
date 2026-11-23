@@ -214,6 +214,12 @@ test("download the sample sheet, fill it in, see the check, apply it", async ({ 
   row.getCell(col(/^Price/)).value = 279
   row.getCell(col(/Hand-Tied Bouquets/)).value = "✓"
   row.commit()
+  // A photo pasted into the Photo cell, as Excel stores it: a floating
+  // picture anchored to the row, not a cell value.
+  const { default: sharp } = await import("sharp")
+  const picture = await sharp({ create: { width: 1500, height: 2000, channels: 3, background: "#d98aa3" } }).jpeg().toBuffer()
+  const imageId = wb.addImage({ buffer: picture as any, extension: "jpeg" })
+  ws.addImage(imageId, { tl: { col: col(/^Photo/) - 1, row: row.number - 1 }, ext: { width: 120, height: 160 } })
   const filled = join(tmpdir(), `filled-${stamp()}.xlsx`)
   await writeFile(filled, Buffer.from(await wb.xlsx.writeBuffer()))
 
@@ -221,7 +227,7 @@ test("download the sample sheet, fill it in, see the check, apply it", async ({ 
   await expect(page.getByText("Before anything is saved", { exact: false })).toBeVisible()
   await expect(page.getByText(name).first()).toBeVisible()
   const findProduct = async () =>
-    (await api("GET", `/admin/products?q=${encodeURIComponent(name)}&fields=id,title,status,categories.handle`)).products.find((p: any) => p.title === name)
+    (await api("GET", `/admin/products?q=${encodeURIComponent(name)}&fields=id,title,status,thumbnail,metadata,categories.handle`)).products.find((p: any) => p.title === name)
   expect(await findProduct(), "nothing is written before Apply").toBeFalsy()
 
   try {
@@ -229,6 +235,12 @@ test("download the sample sheet, fill it in, see the check, apply it", async ({ 
     await expect.poll(findProduct, { timeout: 30_000 }).toBeTruthy()
     const p = await findProduct()
     expect(p.categories.map((c: any) => c.handle)).toContain("bouquets")
+    // The pasted photo became the flower's photo, with its website sizes.
+    await expect.poll(async () => (await findProduct())?.metadata?.image_variants, { timeout: 30_000 }).toBeTruthy()
+    const withPhoto = await findProduct()
+    expect(withPhoto.thumbnail, "the sheet's photo is the flower's photo").toMatch(/^https?:\/\//)
+    expect((await fetch(withPhoto.thumbnail)).ok, "photo is reachable").toBe(true)
+    expect(Object.keys(withPhoto.metadata.image_variants[withPhoto.thumbnail] ?? {}).length).toBeGreaterThan(1)
 
     const [all] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: /all flowers/i }).click()])
     expect(all.suggestedFilename()).toMatch(/^tulips-and-truffles-all-flowers-\d{4}-\d{2}-\d{2}\.xlsx$/)

@@ -298,3 +298,26 @@ describe("the sheet itself", () => {
     expect(sheet.rows[0].image?.data.length).toBe(png.length)
   })
 })
+
+describe("photos as Excel saves them", () => {
+  const ctx: PlanContext = { products: [], categories: CATS, prices: { sale_price_list_id: null, prices: {} } }
+  const cells = { Name: "New Roses", "Price (QAR)": "279", "50 Roses": "✓" }
+
+  it("tells Excel not to shrink pasted photos", async () => {
+    const { default: JSZip } = await import("jszip")
+    const zip = await JSZip.loadAsync(await buildWorkbook(["50 Roses"]))
+    expect(await zip.file("xl/workbook.xml")!.async("string")).toMatch(/<workbookPr [^>]*autoCompressPictures="0"/)
+  })
+
+  it("warns about a photo Excel has shrunk, and not about a full-size one", () => {
+    const at = (width: number) =>
+      planImport(parseGrid(HEAD, [row(2, cells)], new Map([[2, { data: new Uint8Array(1), extension: "jpeg", width }]])), ctx).flowers[0].warnings.join()
+    expect(at(268)).toContain("268 pixels")
+    expect(at(1312)).toBe("")
+  })
+
+  it("reports a Place in Cell picture instead of only saying there is no photo", () => {
+    const w = planImport(parseGrid(HEAD, [row(2, cells)], new Map(), new Set([2])), ctx).flowers[0].warnings
+    expect(w).toEqual([expect.stringContaining("Place in Cell")])
+  })
+})
