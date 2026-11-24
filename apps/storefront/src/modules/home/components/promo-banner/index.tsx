@@ -74,13 +74,15 @@ export default function PromoBanner({
             />
           )}
 
-          {/* Scrim keeps the type legible whatever the art becomes. */}
+          {/* Scrim keeps the type legible whatever the art becomes. On a phone
+              the text fills the whole banner, so a photo is darkened all the
+              way up: 60% black is white text at 5:1 even over pure white. */}
           <div
             aria-hidden="true"
             className={clx(
               "pointer-events-none absolute inset-0",
               onDark
-                ? "bg-gradient-to-t from-black/45 via-black/10 to-transparent"
+                ? "bg-gradient-to-t from-black/85 via-black/70 to-black/60"
                 : "bg-gradient-to-t from-white/55 via-white/10 to-transparent"
             )}
           />
@@ -90,7 +92,7 @@ export default function PromoBanner({
               <span
                 className={clx(
                   "text-xs font-semibold uppercase tracking-[0.16em]",
-                  onDark ? "text-white/80" : "text-ink-700"
+                  onDark ? "text-white" : "text-ink-700"
                 )}
               >
                 {eyebrow}
@@ -110,7 +112,7 @@ export default function PromoBanner({
               <p
                 className={clx(
                   "text-sm leading-relaxed small:text-base",
-                  onDark ? "text-white/85" : "text-ink-700"
+                  onDark ? "text-white" : "text-ink-700"
                 )}
               >
                 {body}

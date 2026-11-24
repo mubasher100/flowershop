@@ -2,7 +2,11 @@ import Image from "next/image"
 
 import { listCategories } from "@lib/data/categories"
 import { getTranslations } from "@lib/i18n/dictionary"
-import { localizedCategoryName, occasionCategories } from "@lib/util/categories"
+import {
+  SHOW_OCCASIONS,
+  localizedCategoryName,
+  occasionCategories,
+} from "@lib/util/categories"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 /**
@@ -43,6 +47,8 @@ export default async function OccasionTiles({
   /** A single category to show. Blank means every occasion. */
   handle?: string | null
 }) {
+  if (!SHOW_OCCASIONS) return null
+
   const categories = await listCategories({ limit: 50 })
   const { t } = getTranslations(segment)
 
