@@ -1,7 +1,7 @@
 import { listCategories } from "@lib/data/categories"
 import { listCollections } from "@lib/data/collections"
 import { getTranslations, TranslationKey } from "@lib/i18n/dictionary"
-import { localizedCategoryName } from "@lib/util/categories"
+import { localizedCategoryName, typeCategories } from "@lib/util/categories"
 
 import Brand, { BRAND_NAME } from "@modules/common/components/brand"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
@@ -46,7 +46,9 @@ const headingClass =
 
 export default async function Footer({ segment }: { segment?: string }) {
   const { collections } = await listCollections({ fields: "id, handle, title" })
-  const productCategories = await listCategories({ limit: 8 })
+  // The menu's own list and order, so the footer never offers a category the
+  // menu leaves out (it took Medusa's first eight, occasions included).
+  const productCategories = typeCategories(await listCategories({ limit: 50 }))
   const { t } = getTranslations(segment)
 
   return (
@@ -67,7 +69,6 @@ export default async function Footer({ segment }: { segment?: string }) {
               </span>
               <ul className="flex flex-col" data-testid="footer-categories">
                 {productCategories
-                  .filter((c) => !c.parent_category)
                   .slice(0, 6)
                   .map((c) => (
                     <li key={c.id}>

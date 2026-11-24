@@ -22,6 +22,15 @@ export const TYPE_HANDLES = [
 ]
 export const OCCASION_HANDLES = ["birthday", "anniversary", "congratulations", "get-well-soon", "new-baby", "thank-you"]
 
+/**
+ * Left off the website by its code, whatever the Show switch says (24 Nov 2026,
+ * the shop's request). Same lists as the storefront's categories.ts.
+ */
+const OFF_MENU_HANDLES = ["big-bouquets", "baby-roses"]
+const SHOW_OCCASIONS = false
+export const offMenu = (c: ShopCategory) =>
+  OFF_MENU_HANDLES.includes(c.handle) || (!SHOW_OCCASIONS && kindOf(c) === "occasion")
+
 export type Kind = "type" | "occasion"
 
 export const kindOf = (c: ShopCategory): Kind =>

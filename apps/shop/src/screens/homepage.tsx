@@ -38,7 +38,7 @@ const TYPES: { value: SectionType; label: string; hint: string }[] = [
   { value: "category_rail", label: "Row of flowers from a category", hint: "Six flowers from one category, e.g. Black Friday." },
   { value: "product_rail", label: "Row of flowers from a collection", hint: "Six flowers from a collection, e.g. Best Sellers." },
   { value: "banner", label: "Banner", hint: "A photo with a line of text and a button." },
-  { value: "category_tiles", label: "Occasion tiles", hint: "The round Shop by occasion tiles." },
+  { value: "category_tiles", label: "Occasion tiles", hint: "Shop by occasion. Switched off on the website for now." },
 ]
 const typeLabel = (t: string) => TYPES.find((x) => x.value === t)?.label ?? t
 
