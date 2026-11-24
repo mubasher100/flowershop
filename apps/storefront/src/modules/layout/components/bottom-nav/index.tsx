@@ -79,17 +79,6 @@ const ITEMS: Item[] = [
     ),
   },
   {
-    href: "/categories/birthday",
-    id: "occasions",
-    label: "nav.occasions",
-    match: ["birthday", "anniversary", "congratulations"],
-    icon: (
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6">
-        <path {...stroke} d="M12 21c-4.5-3-7.5-6-7.5-9.6A4 4 0 0 1 12 8.6a4 4 0 0 1 7.5 2.8C19.5 15 16.5 18 12 21Z" />
-      </svg>
-    ),
-  },
-  {
     href: "/cart",
     id: "bag",
     label: "nav.bag",
@@ -120,7 +109,7 @@ export default function BottomNav() {
       // Keeps the bar clear of the iPhone home indicator.
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <ul className="grid grid-cols-5">
+      <ul className="grid grid-cols-4">
         {ITEMS.map((item) => {
           const active = item.match.includes(segment)
           const itemClass = clx(

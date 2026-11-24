@@ -13,7 +13,7 @@ import { SubPage } from "../components/page"
 import { PhotoField } from "../components/photo"
 import { Button, Field, Sheet, Toggle, cx, inputClass, toast } from "../components/ui"
 import { messageOf } from "../lib/bulk"
-import { freeHandle, isProtected, kindOf, moved, websiteOrder, type Kind } from "../lib/categories"
+import { freeHandle, isProtected, kindOf, moved, offMenu, websiteOrder, type Kind } from "../lib/categories"
 import { useAfterSave, useCatalogue } from "../lib/data"
 import { STOREFRONT, sdk } from "../lib/sdk"
 import type { ShopCategory } from "../lib/shop"
@@ -73,6 +73,7 @@ export default function Categories() {
                 <span className="text-sm text-ink-600">
                   {counts.get(c.id) ?? 0} flowers
                   {c.is_active === false && <b className="ms-2 rounded-full bg-ink-100 px-2 py-0.5 text-xs font-medium text-ink-700">Hidden</b>}
+                  {c.is_active !== false && offMenu(c) && <b className="ms-2 rounded-full bg-ink-100 px-2 py-0.5 text-xs font-medium text-ink-700">Off the menu</b>}
                 </span>
               </button>
               <Button variant="ghost" className="px-3" aria-label={`Move ${c.name} up`} disabled={i === 0 || !!moving} busy={moving === c.id} onClick={() => move(list, i, -1)}>
@@ -100,7 +101,7 @@ export default function Categories() {
             The order here is the order on the website's menu. Tap a category to rename or hide it.
           </p>
           {group("type", "Types of flower", "The menu across the top of the website.")}
-          {group("occasion", "Occasions", "The round tiles on the homepage.")}
+          {group("occasion", "Occasions", "Switched off on the website for now.")}
         </>
       )}
       <CategorySheet
@@ -249,7 +250,7 @@ function CategorySheet({
           {(
             [
               ["type", "Type of flower", "In the menu and the catalogue filter."],
-              ["occasion", "Occasion", "A round tile under Shop by occasion."],
+              ["occasion", "Occasion", "Switched off on the website for now."],
             ] as const
           ).map(([value, label, hint]) => (
             <label key={value} className={cx("flex min-h-[52px] items-center gap-3 rounded-xl border px-3", kind === value ? "border-blush-600 bg-blush-50" : "border-ink-200")}>
@@ -272,7 +273,7 @@ function CategorySheet({
         <div className="flex items-center justify-between gap-3 rounded-2xl bg-ink-50 px-3 py-1">
           <span>
             <span className="font-medium">Show on the website</span>
-            <span className="block text-sm text-ink-600">{visible ? "In the menu." : "Hidden from customers."}</span>
+            <span className="block text-sm text-ink-600">{!visible ? "Hidden from customers." : category && offMenu(category) ? "Its page opens, but it is off the menu." : "In the menu."}</span>
           </span>
           <Toggle checked={visible} onChange={setVisible} label="Show on the website" />
         </div>

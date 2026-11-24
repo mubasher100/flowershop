@@ -36,6 +36,17 @@ export const OCCASION_HANDLES = [
 ]
 
 /**
+ * Left out of every menu, filter and footer (24 Nov 2026, the shop's request).
+ * Their flowers are all in another category too, and their own pages still
+ * open, so links from search engines and WhatsApp keep working. The shop app
+ * marks them with the same list (apps/shop/src/lib/categories.ts).
+ */
+export const OFF_MENU_HANDLES = ["big-bouquets", "baby-roses"]
+
+/** Shop by occasion is off everywhere (24 Nov 2026, the shop's request). */
+export const SHOW_OCCASIONS = false
+
+/**
  * Arabic names for the categories and collections above, keyed by handle.
  *
  * Category and collection names come from Medusa in English, and the catalogue
@@ -130,7 +141,12 @@ function present<T extends CategoryLike>(
     return i >= 0 ? 1000 + i : 2000 + (c.rank ?? 0)
   }
   return (all ?? [])
-    .filter((c) => !c.parent_category_id && want(c))
+    .filter(
+      (c) =>
+        !c.parent_category_id &&
+        !OFF_MENU_HANDLES.includes(c.handle ?? "") &&
+        want(c)
+    )
     .sort((a, b) => key(a) - key(b))
 }
 
@@ -140,7 +156,7 @@ export const typeCategories = <T extends CategoryLike>(all: T[] | null | undefin
 
 /** What it is for: birthday, anniversary and the rest. */
 export const occasionCategories = <T extends CategoryLike>(all: T[] | null | undefined) =>
-  present(all, OCCASION_HANDLES, isOccasion)
+  SHOW_OCCASIONS ? present(all, OCCASION_HANDLES, isOccasion) : []
 
 /**
  * Arabic for the one-line category descriptions, each paired with the English
