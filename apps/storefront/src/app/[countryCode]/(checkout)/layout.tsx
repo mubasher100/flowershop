@@ -1,4 +1,5 @@
 import { getTranslations } from "@lib/i18n/dictionary"
+import Analytics from "@modules/common/components/analytics"
 import Brand from "@modules/common/components/brand"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import ChevronDown from "@modules/common/icons/chevron-down"
@@ -29,6 +30,7 @@ export default async function CheckoutLayout({
 
   return (
     <div className="relative w-full bg-white small:min-h-screen">
+      <Analytics />
       <div className="h-16 border-b bg-white">
         <nav className="content-container flex h-full items-center justify-between">
           <LocalizedClientLink
