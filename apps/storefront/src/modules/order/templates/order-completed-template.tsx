@@ -1,6 +1,8 @@
 import { Heading } from "@modules/common/components/ui"
 import { cookies as nextCookies } from "next/headers"
 
+import { trackedItems } from "@lib/util/analytics"
+import TrackOnce from "@modules/common/components/analytics/track-once"
 import CartTotals from "@modules/common/components/cart-totals"
 import Help from "@modules/order/components/help"
 import Items from "@modules/order/components/items"
@@ -27,6 +29,22 @@ export default async function OrderCompletedTemplate({
 
   return (
     <div className="py-6 min-h-[calc(100vh-64px)]">
+      {/* The order, for whoever paid for the ad that brought it. No name,
+          phone, address or message goes with it. */}
+      <TrackOnce
+        id={order.id}
+        event="purchase"
+        until={new Date(
+          new Date(order.created_at).getTime() + 24 * 3600 * 1000
+        ).toISOString()}
+        params={{
+          transaction_id: String(order.display_id ?? order.id),
+          currency: "QAR",
+          value: order.total ?? 0,
+          shipping: order.shipping_total ?? 0,
+          items: trackedItems(order.items),
+        }}
+      />
       <div className="content-container flex flex-col justify-center items-center gap-y-10 max-w-4xl h-full w-full">
         {isOnboarding && <OnboardingCta orderId={order.id} />}
         <div

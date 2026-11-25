@@ -18,7 +18,7 @@ import { useParams } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 import ProductPrice from "../product-price"
 import MobileActions from "./mobile-actions"
-import { track } from "@modules/common/components/analytics"
+import { track } from "@lib/util/analytics"
 import { useRouter } from "next/navigation"
 
 type ProductActionsProps = {

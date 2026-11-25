@@ -548,6 +548,10 @@ Order confirmations go out through a small Resend provider at `apps/backend/src/
 
 Gated on `RESEND_API_KEY` and `RESEND_FROM` (an address on a domain verified with Resend). Without them the notification module still registers the local provider, which logs the notification, and nothing is sent. Checkout asks for an email **optionally** — the shop reaches people on WhatsApp and a required address would cost orders — so when none is given Medusa's required email is still a placeholder derived from the phone number, and the subscriber skips those rather than mailing a dead domain.
 
+### Analytics and ads
+
+Google Analytics / Google Ads measurement (`apps/storefront/src/lib/util/analytics.ts`) is **on only while the `GA_MEASUREMENT_ID` repo variable is set** (comma-separated: `G-…` for Analytics, `AW-…` for Ads), never on staging; it is baked in at build, so redeploy the storefront after changing it. Events: `add_to_cart`, `begin_checkout`, and one `purchase` per order on the confirmation page (guarded in localStorage, not after 24 h). **Order page addresses are masked**, because an order's address opens it; nothing personal is sent, and Google signals and ad personalisation are off. The privacy page changes its Cookies paragraph with the setting. On the owner's computer `googlesyndication.com`, `analytics.google.com` and `google-analytics.com` are blocked by their own Tailscale DNS: blank ad previews there mean nothing is wrong.
+
 ### Demo payment gateway
 
 A simulated card payment exists in checkout so the flow can be shown before SkipCash is live. It is deliberately built so it cannot be misused as real payment: the card number is a fixed, read-only test value, so there is nowhere to type a real one. Nothing is transmitted, the outcome is chosen explicitly, and the reference is prefixed `DEMO-` and stored with `payment_status: simulated_demo_no_funds_taken` so a demo order is never mistaken for a paid one.
