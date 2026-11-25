@@ -7,7 +7,10 @@ import { listRegions } from "@lib/data/regions"
 import { HttpTypes, StoreRegion } from "@medusajs/types"
 import CategoryTemplate from "@modules/categories/templates"
 import { BRAND_NAME } from "@modules/common/components/brand"
-import { localizedCategoryName } from "@lib/util/categories"
+import {
+  localizedCategoryDescription,
+  localizedCategoryName,
+} from "@lib/util/categories"
 
 type Props = {
   params: Promise<{ category: string[]; countryCode: string }>
@@ -53,7 +56,14 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
       productCategory.metadata
     )} | ${BRAND_NAME}`
 
-    const description = productCategory.description || title
+    // As the page itself words it: in the visitor's language.
+    const description =
+      localizedCategoryDescription(
+        productCategory.handle,
+        productCategory.description,
+        params.countryCode,
+        productCategory.metadata
+      ) || title
 
     return {
       title,
