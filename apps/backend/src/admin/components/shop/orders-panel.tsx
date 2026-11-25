@@ -417,14 +417,14 @@ function OrderCard({
           </Button>
         )}
 
-        {/* The 8 × 12 cm card: logo on one side, the message on the other,
+        {/* The 8 × 12 cm card: the message only,
             one card per message. Only offered when there is a message. */}
         {stage !== "cancelled" && giftNotes(order).length > 0 && (
           <Button
             size="small"
             variant="secondary"
             onClick={() => {
-              if (printGiftCards(order, logo) === "blocked") {
+              if (printGiftCards(order) === "blocked") {
                 toast.error("Your browser blocked the print window. Allow pop-ups for this site and try again.")
               }
             }}

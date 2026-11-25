@@ -3,23 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 
-import { sdk } from "@lib/config"
 import { useTranslations } from "@lib/i18n/use-translations"
-import { BRAND_NAME } from "@modules/common/components/brand"
-
-/**
- * The logo the card is printed with: the one the shop uploaded (shop app →
- * Printing), or else the mark — /icon.svg is the same mark the printer falls
- * back to (apps/backend/src/admin/lib/brand-mark.ts). Asked for once, when a
- * preview is first opened, never during render.
- */
-const PRINTED_MARK = "/icon.svg"
-let cardLogo: Promise<string> | null = null
-const loadCardLogo = () =>
-  (cardLogo ??= sdk.client
-    .fetch<{ logo_url: string | null }>("/store/card-logo")
-    .then((r) => r.logo_url || PRINTED_MARK)
-    .catch(() => PRINTED_MARK))
 
 /**
  * "Show a sample card" — the gift card as the shop prints it, beside the
@@ -27,15 +11,13 @@ const loadCardLogo = () =>
  *
  * It copies the printing code in apps/backend/src/admin/lib/gift-card.ts so
  * the preview is honest about what arrives: an L-size card read landscape
- * (127 × 89 mm), 9 × 11 mm of margin, the logo on the front at up to 80 mm
- * wide, and the message on the back in Cormorant Garamond italic (Noto Naskh
+ * (127 × 89 mm), 9 × 11 mm of margin, the message in Cormorant Garamond italic (Noto Naskh
  * Arabic for Arabic), centred, at the largest size from 6pt to 30pt that still
- * fits. Each side is laid out at its real size in millimetres and then scaled
+ * fits. The card is laid out at its real size in millimetres and then scaled
  * down to the screen, so the line breaks and the fitted size are the printed
  * ones. Change one of the two files and the other has to follow.
  *
- * Nothing is saved, and the only request is the shop's card logo, made when
- * the preview is first opened. The dialog renders only once the
+ * Nothing is saved or requested. The dialog renders only once the
  * button is tapped, and into document.body: checkout's button sits inside the
  * order form, and a dialog there would put its buttons in the form too.
  */
@@ -168,11 +150,6 @@ export default function SampleCardButton({
   const heading = useRef<HTMLHeadingElement>(null)
   const [open, setOpen] = useState(false)
   const [text, setText] = useState("")
-  const [logo, setLogo] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (open && !logo) loadCardLogo().then(setLogo)
-  }, [open, logo])
 
   const show = () => {
     let value = message ?? ""
@@ -258,32 +235,6 @@ export default function SampleCardButton({
                   {t("card.intro")}
                 </p>
               </div>
-
-              <figure className="flex flex-col gap-2">
-                <figcaption className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-600 rtl:tracking-normal">
-                  {t("card.front")}
-                </figcaption>
-                <CardSide>
-                  {logo && (
-                    // A plain img, as on the printed card: the uploaded logo is
-                    // on the media host and the mark is an SVG, neither of which
-                    // the image ladder covers. Same limits as the print's .logo.
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={logo}
-                      alt={BRAND_NAME}
-                      style={{
-                        maxWidth: "80mm",
-                        maxHeight: "56mm",
-                        objectFit: "contain",
-                        // The SVG mark has no size of its own; the print draws
-                        // it at the height limit.
-                        ...(logo === PRINTED_MARK ? { height: "56mm", width: "auto" } : {}),
-                      }}
-                    />
-                  )}
-                </CardSide>
-              </figure>
 
               <figure className="flex flex-col gap-2">
                 <figcaption className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-600 rtl:tracking-normal">

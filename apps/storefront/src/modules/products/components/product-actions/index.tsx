@@ -5,13 +5,14 @@ import { useIntersection } from "@lib/hooks/use-in-view"
 import { useLiveStock } from "@lib/hooks/use-live-stock"
 import { useTranslations } from "@lib/i18n/use-translations"
 import { bumpCartCount, refreshCartCount } from "@lib/util/cart-events"
+import { isSaleVariant } from "@lib/util/black-friday"
 import { enqueueCartMutation } from "@lib/util/cart-queue"
 import PageLoading from "@modules/common/components/page-loading"
 import { HttpTypes } from "@medusajs/types"
 import { Button } from "@modules/common/components/ui"
 import Divider from "@modules/common/components/divider"
 import OptionSelect from "@modules/products/components/product-actions/option-select"
-import Personalisation from "@modules/products/components/personalisation"
+import SaleDelivery from "@modules/products/components/sale-delivery"
 import { isEqual } from "lodash"
 import { useParams } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -44,7 +45,6 @@ export default function ProductActions({
   const [options, setOptions] = useState<Record<string, string | undefined>>({})
   const [justAdded, setJustAdded] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
-  const [giftNote, setGiftNote] = useState("")
   const countryCode = useParams().countryCode as string
   const { t } = useTranslations()
 
@@ -154,10 +154,6 @@ export default function ProductActions({
   const handleAddToCart = (): Promise<boolean> => {
     if (!selectedVariant?.id) return Promise.resolve(false)
 
-    const metadata = {
-      ...(giftNote.trim() ? { gift_note: giftNote.trim() } : {}),
-    }
-
     // Confirm before the request, not after. The button is deliberately not
     // disabled while it runs: blocking it for the 2.8s the Store API takes
     // is what made a working button feel broken, and adding twice is a
@@ -179,10 +175,6 @@ export default function ProductActions({
     })
     window.setTimeout(() => setJustAdded(false), 2500)
 
-    // Cleared straight away — leaving it filled in implies it still applies
-    // to the page, and the next bouquet is usually for someone else.
-    setGiftNote("")
-
     // Queued, not fired directly: concurrent adds each create their own cart
     // when none has the cookie yet. See lib/util/cart-queue.ts.
     const request = (
@@ -193,7 +185,6 @@ export default function ProductActions({
           variantId: selectedVariant.id,
           quantity: 1,
           countryCode,
-          metadata,
         })
       )
         // Reconcile against the server once this add has actually landed,
@@ -313,13 +304,22 @@ export default function ProductActions({
             </p>
           )}
 
-        {/* Sits above the buy button: it is part of deciding what to send,
-            not an afterthought once the order is placed. */}
-        <Personalisation
-          note={giftNote}
-          onNoteChange={setGiftNote}
-          disabled={!!disabled}
-        />
+        {/* When a Black Friday flower arrives, before it is bought. The card
+            message used to be here; it is asked for once, at checkout. */}
+        <SaleDelivery
+          sale={
+            selectedVariant
+              ? isSaleVariant(selectedVariant)
+              : !!product.variants?.some(isSaleVariant)
+          }
+        >
+          <p
+            className="my-1 rounded-2xl bg-blush-50 px-4 py-3 text-base font-semibold text-blush-700"
+            data-testid="sale-delivery"
+          >
+            {t("bf.delivery")}
+          </p>
+        </SaleDelivery>
 
         {addError && (
           <p

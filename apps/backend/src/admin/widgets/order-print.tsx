@@ -56,7 +56,7 @@ const OrderPrint = ({ data }: { data: PrintableOrder }) => {
             size="small"
             variant="secondary"
             onClick={() => {
-              if (printGiftCards(data, logo) === "blocked") {
+              if (printGiftCards(data) === "blocked") {
                 toast.error(
                   "Your browser blocked the print window. Allow pop-ups for this site and try again."
                 )
