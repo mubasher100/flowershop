@@ -3,6 +3,8 @@ import { listCartShippingMethods } from "@lib/data/fulfillment"
 import { listDeliveryAvailability } from "@lib/data/delivery-availability"
 import CheckoutSummary from "@modules/checkout/templates/checkout-summary"
 import GuestCheckout from "@modules/checkout/templates/guest-checkout"
+import { trackedItems } from "@lib/util/analytics"
+import TrackOnce from "@modules/common/components/analytics/track-once"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { BRAND_NAME } from "@modules/common/components/brand"
@@ -57,6 +59,15 @@ export default async function Checkout() {
 
   return (
     <div className="content-container grid grid-cols-1 gap-10 [&>*]:min-w-0 py-8 small:grid-cols-[1fr_24rem] small:gap-16 small:py-12">
+      <TrackOnce
+        id={cart.id}
+        event="begin_checkout"
+        params={{
+          currency: "QAR",
+          value: cart.total ?? 0,
+          items: trackedItems(cart.items),
+        }}
+      />
       <GuestCheckout
         cart={cart}
         shippingOptions={shippingOptions}
