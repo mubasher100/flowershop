@@ -1,6 +1,6 @@
 /**
- * The printed gift card: L size (89 × 127 mm), logo on one side, the message
- * on the other. L is a stock photo size, so it is in the printer's own paper
+ * The printed gift card: L size (89 × 127 mm), the message only (the logo
+ * side was removed on 25 Nov 2026, the shop's request). L is a stock photo size, so it is in the printer's own paper
  * list and the print dialog picks it from the page size declared here.
  *
  * Built to the shop's spec (2 Nov 2026):
@@ -12,14 +12,12 @@
  *   - one card per message: the note belongs to the bouquet, and two bouquets
  *     in one order can go to two people.
  *
- * Each card is two pages, logo first and message second, so a duplex printer
- * prints both sides of one card in one pass, and a single-sided one prints
- * the logos to be turned over and fed again.
+ * Each card is one page. With two messages on one order print one-sided, or
+ * a duplex printer puts both on the same card.
  *
  * If the printer turns everything upside down, change ROTATE to -90.
  */
 
-import { DEFAULT_LOGO } from "./brand-mark"
 import type { PrintableOrder } from "./print"
 
 const ROTATE = 90
@@ -52,12 +50,11 @@ const side = (inner: string) => `<section class="page"><div class="card">${inner
  * message, "blocked" when the browser stopped the window.
  */
 export function printGiftCards(
-  order: PrintableOrder,
-  logoUrl: string = DEFAULT_LOGO
+  order: PrintableOrder
 ): "printed" | "blocked" | "none" {
   const messages = cardMessages(order)
   if (!messages.length) return "none"
-  return printCards(messages, `Gift card — Order #${order.display_id}`, logoUrl)
+  return printCards(messages, `Gift card — Order #${order.display_id}`)
 }
 
 /**
@@ -65,23 +62,20 @@ export function printGiftCards(
  * card stock and how much fits. Nothing is saved.
  */
 export function printSampleCard(
-  message: string,
-  logoUrl: string = DEFAULT_LOGO
+  message: string
 ): "printed" | "blocked" | "none" {
   const text = message.trim()
   if (!text) return "none"
-  return printCards([text], "Sample gift card", logoUrl)
+  return printCards([text], "Sample gift card")
 }
 
 function printCards(
   messages: string[],
-  title: string,
-  logoUrl: string
+  title: string
 ): "printed" | "blocked" | "none" {
   const pages = messages
     .map(
       (message) =>
-        side(`<img class="logo" src="${esc(logoUrl)}" alt="" />`) +
         // dir="auto" so an Arabic message sets right to left on its own.
         side(`<p class="message" dir="auto">${esc(message)}</p>`)
     )
@@ -115,7 +109,6 @@ function printCards(
       display: flex; align-items: center; justify-content: center;
       padding: 9mm 11mm;
     }
-    .logo { max-width: 80mm; max-height: 56mm; object-fit: contain; }
     .message {
       width: 100%; max-height: 100%; overflow: hidden; text-align: center;
       white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.25;

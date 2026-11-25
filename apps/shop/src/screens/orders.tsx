@@ -165,7 +165,7 @@ function OrderCard({ order, logo, onOpen }: { order: ShopOrder; logo: string; on
             <Button
               variant="secondary"
               onClick={() => {
-                if (printGiftCards(order, logo) === "blocked") toast("The print window was blocked. Allow pop-ups and try again.", "error")
+                if (printGiftCards(order) === "blocked") toast("The print window was blocked. Allow pop-ups and try again.", "error")
               }}
             >
               Card

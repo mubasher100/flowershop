@@ -16,6 +16,11 @@ import {
   qatarClock,
   windowsFor,
 } from "@lib/util/delivery"
+import {
+  BLACK_FRIDAY_DAYS,
+  bagHasSale,
+  openBlackFridayDays,
+} from "@lib/util/black-friday"
 import { setSelectedDelivery } from "@lib/util/delivery-selection"
 import { readCheckoutDraft, saveCheckoutDraft } from "@lib/util/checkout-draft"
 import type { DayAvailability } from "@lib/data/delivery-availability"
@@ -169,8 +174,14 @@ export default function GuestCheckout({
   const today = clock.date
   // Starts at the first date the shop can actually deliver on, which is
   // tomorrow once today's cut-off has passed.
+  // A bag with a Black Friday flower in it can choose only those days.
+  const onSale = bagHasSale(cart.items)
+  const saleDaysFrom = (floor: string) =>
+    onSale ? openBlackFridayDays(floor, availability) : []
   const [deliveryDate, setDeliveryDate] = useState(() => {
     const earliest = earliestStandardDate(clock)
+    const [firstSaleDay] = saleDaysFrom(earliest)
+    if (firstSaleDay) return firstSaleDay
     const open = availability.find((d) => d.date >= earliest && !d.closed && !d.full)
     return open?.date ?? earliest
   })
@@ -208,20 +219,37 @@ export default function GuestCheckout({
   const clockWindows = windowsFor(deliveryDate, clock)
   const fullWindows = dayState.get(deliveryDate)?.full_windows ?? []
   const windows = clockWindows.filter((w) => !fullWindows.includes(w))
-  const standardMinDate = firstOpen(earliestStandardDate(clock))
+  const standardFloor = earliestStandardDate(clock)
+  const standardMinDate = saleDaysFrom(standardFloor)[0] ?? firstOpen(standardFloor)
   const sameDayClosed = deliveryDate === today && windows.length === 0
   const dayClosed = unavailable(deliveryDate)
 
   const midnightStatus = midnight ? midnightAvailability(deliveryDate, clock) : "open"
   // Computed without reference to the current choice, because it is needed
   // in the handler that makes 11:59 the choice.
-  const midnightMinDate =
+  const midnightFloor =
     midnightAvailability(today, clock) === "closed" ? clock.tomorrow : today
+  const midnightMinDate = saleDaysFrom(midnightFloor)[0] ?? midnightFloor
   const minDate = midnight ? midnightMinDate : standardMinDate
+  const saleDays = saleDaysFrom(midnight ? midnightFloor : standardFloor)
+  /** Whether a day can go with a delivery option: late enough, and a Black
+      Friday day when the bag calls for one. */
+  const dayFits = (
+    date: string,
+    option?: HttpTypes.StoreCartShippingOption
+  ) => {
+    const isMidnight = isMidnightOption(option)
+    const days = saleDaysFrom(isMidnight ? midnightFloor : standardFloor)
+    return (
+      date >= (isMidnight ? midnightMinDate : standardMinDate) &&
+      (!days.length || days.includes(date))
+    )
+  }
   const chooseDelivery = (option: HttpTypes.StoreCartShippingOption) => {
     setShippingId(option.id)
-    const floor = isMidnightOption(option) ? midnightMinDate : standardMinDate
-    if (deliveryDate < floor) setDeliveryDate(floor)
+    if (!dayFits(deliveryDate, option)) {
+      setDeliveryDate(isMidnightOption(option) ? midnightMinDate : standardMinDate)
+    }
   }
 
   /**
@@ -247,8 +275,7 @@ export default function GuestCheckout({
     if (!draft) return
     const option = shippingOptions.find((o) => o.id === draft.shippingId)
     if (option) setShippingId(option.id)
-    const floor = isMidnightOption(option) ? midnightMinDate : standardMinDate
-    if (draft.deliveryDate >= floor) setDeliveryDate(draft.deliveryDate)
+    if (dayFits(draft.deliveryDate, option)) setDeliveryDate(draft.deliveryDate)
     // Checked against what is still offered by the effect above.
     if (draft.deliveryWindow) setDeliveryWindow(draft.deliveryWindow)
     setForSomeoneElse(draft.forSomeoneElse)
@@ -417,9 +444,8 @@ export default function GuestCheckout({
   // Named here rather than through Intl: the server's and the browser's
   // Arabic date data differ, and the mismatch broke hydration on /ar-qa.
   const names = segment.startsWith("ar") ? AR_DATE_NAMES : EN_DATE_NAMES
-  // Four weeks, matching the availability the page asks for: Black Friday
-  // shoppers order early and reserve a day after it, which a fortnight from
-  // mid-November did not reach.
+  // Four weeks, matching the availability the page asks for; only the Black
+  // Friday days while the bag holds a Black Friday flower.
   const days = Array.from({ length: 28 }, (_, i) => {
     const d = new Date(`${today}T00:00:00Z`)
     d.setUTCDate(d.getUTCDate() + i)
@@ -435,7 +461,7 @@ export default function GuestCheckout({
       bottom: `${names.digits(d.getUTCDate())} ${names.months[d.getUTCMonth()]}`,
       off: value < minDate || unavailable(value),
     }
-  })
+  }).filter((d) => !saleDays.length || BLACK_FRIDAY_DAYS.includes(d.value))
 
   /**
    * Each step shows a tick once everything required in it is filled in,
@@ -716,6 +742,11 @@ export default function GuestCheckout({
           <legend className={`${labelClass} mb-1.5`}>
             {midnight ? t("midnight.dateLabel") : t("checkout.date")}
           </legend>
+          {saleDays.length > 0 && (
+            <p className="mb-1 rounded-xl bg-blush-50 px-4 py-3 text-sm font-medium text-blush-700">
+              {t("bf.checkoutDays")}
+            </p>
+          )}
           {/* A sideways-scrolling row inside the card; the page itself never
               scrolls sideways. Each day is a real radio, so it submits and is
               announced like one. */}
@@ -750,7 +781,7 @@ export default function GuestCheckout({
             <p className="text-sm text-ink-600">
               {midnightStatus === "not-yet"
                 ? t("midnight.notYetTonight")
-                : minDate !== today
+                : midnightFloor !== today
                   ? t("midnight.closedTonight")
                   : t("midnight.dateHint")}
             </p>

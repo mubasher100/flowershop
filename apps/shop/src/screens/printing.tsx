@@ -89,19 +89,19 @@ export default function Printing() {
       <Card>
         <h2 className="font-semibold">Sample gift card</h2>
         <p className="text-[15px] text-ink-600">
-          L size card (89 × 127 mm): the logo on one side, the message on the other, sized to fill it. In the print
-          window choose paper size L, margins None, and two-sided if your printer has it.
+          L size card (89 × 127 mm): the message on one side, sized to fill it. In the print window choose paper
+          size L, margins None, and one-sided.
         </p>
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-ink-700">Message</span>
           <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={5} dir="auto" className={cx(inputClass, "py-2")} />
           <span className="text-sm text-ink-600">
-            {message.trim().length} characters. Customers can write up to 200 on a flower and 300 at checkout.
+            {message.trim().length} characters. Customers can write up to 300 at checkout.
           </span>
         </label>
         <Button
           onClick={() => {
-            const r = printSampleCard(message, logo)
+            const r = printSampleCard(message)
             if (r === "none") toast("Write a message to print first.", "error")
             if (r === "blocked") toast(BLOCKED, "error")
           }}
@@ -111,7 +111,7 @@ export default function Printing() {
       </Card>
 
       <Card>
-        <h2 className="font-semibold">Logo on labels and cards</h2>
+        <h2 className="font-semibold">Logo on delivery labels</h2>
         <div className="flex items-center gap-4">
           <div className="flex h-20 w-24 flex-none items-center justify-center rounded-xl border border-ink-200 bg-white">
             <img src={logo} alt="The logo as it prints" className="max-h-14 max-w-20 object-contain" />

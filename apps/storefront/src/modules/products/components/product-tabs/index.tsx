@@ -2,6 +2,7 @@
 
 import { TranslationKey } from "@lib/i18n/dictionary"
 import { useTranslations } from "@lib/i18n/use-translations"
+import SaleDelivery from "@modules/products/components/sale-delivery"
 import Accordion from "./accordion"
 
 /**
@@ -40,7 +41,7 @@ const PAYMENT_POINTS: TranslationKey[] = [
   "payment.cardSoon",
 ]
 
-const ProductTabs = () => {
+const ProductTabs = ({ sale = false }: { sale?: boolean }) => {
   const { t } = useTranslations()
 
   const Points = ({ keys }: { keys: TranslationKey[] }) => (
@@ -80,10 +81,21 @@ const ProductTabs = () => {
             {/* The same-day promise leads, with the headline half emphasised —
                 it is the one line most people open this accordion to find. */}
             <li>
-              <span className="font-medium text-ink-800">
-                {t("delivery.sameDayLabel")}
-              </span>{" "}
-              — {t("delivery.sameDayBody")}
+              <SaleDelivery
+                sale={sale}
+                after={
+                  <>
+                    <span className="font-medium text-ink-800">
+                      {t("delivery.sameDayLabel")}
+                    </span>{" "}
+                    — {t("delivery.sameDayBody")}
+                  </>
+                }
+              >
+                <span className="font-medium text-ink-800">
+                  {t("bf.delivery")}
+                </span>
+              </SaleDelivery>
             </li>
             {DELIVERY_POINTS.map((key) => (
               <li key={key}>{t(key)}</li>

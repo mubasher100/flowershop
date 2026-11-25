@@ -10,7 +10,7 @@
  * This is the fallback. A shop that uploads its own logo on Admin → Shop gets
  * that instead; see LOGO_METADATA_KEY below.
  *
- * Source: apps/storefront/src/app/icon.svg — keep the two in step if the mark
+ * Source: the website's icon until 25 Nov 2026 (git history) — redraw it here if the mark
  * changes.
  */
 
