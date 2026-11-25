@@ -9,7 +9,10 @@
  * - any heading that is not a known field is a category tick column, and a
  *   tick under a heading that is not a real category is reported;
  * - rows sharing a name are sizes of one flower;
- * - photos pasted into the sheet come from getImages(), anchored to a row;
+ * - photos come from one Google Drive folder, whose link sits above the
+ *   headings: the photo named like the flower is its photo (lib/drive.ts);
+ * - photos pasted into the sheet come from getImages(), anchored to a row, and
+ *   win over the folder;
  * - an offer is a real sale price on the active sale list, plus the offers
  *   category (OFFER_HANDLE), exactly as the Flowers screen writes it;
  * - a blank Stock leaves an existing flower's count alone (10 for a new one).
@@ -28,6 +31,7 @@
 import type ExcelJSNamespace from "exceljs"
 
 import { messageOf } from "./bulk"
+import { driveFileIdOf, driveNoteOf, photoKey, photosByName, type DriveFile, type DriveFolder } from "./drive"
 import { sdk } from "./sdk"
 import { recordVariants } from "./variants"
 import {
@@ -175,6 +179,8 @@ export type ParsedSheet = {
   rows: SheetRow[]
   /** Headings read as category tick columns, in sheet order. */
   tickColumns: string[]
+  /** The Google Drive folder link typed above the headings. */
+  driveLink: string | null
 }
 
 /**
@@ -267,14 +273,18 @@ export function parseGrid(
           .map((t) => t.name),
       ].filter(Boolean),
       photoUrl: /^https?:\/\/\S+$/i.test(photoText) ? photoText : null,
-      photoFile: get("photoFile"),
+      // A file name typed in the Photo cell, but not "(paste photo here)".
+      photoFile: get("photoFile") || (/^(https?:|[(#])/i.test(photoText) ? "" : photoText),
       image: images.get(rowNumber) ?? null,
       photoInCell: inCell.has(rowNumber),
     })
   }
 
-  return { rows, tickColumns: tickColumns.map((t) => t.name) }
+  return { rows, tickColumns: tickColumns.map((t) => t.name), driveLink: null }
 }
+
+/** Text that is meant to be the folder link, rather than the cell's label. */
+const linkIn = (text: string) => (/drive\.google\.|https?:\/\//i.test(text) ? text.trim() : null)
 
 type Cell = { value?: unknown; text?: string }
 
@@ -334,11 +344,35 @@ export async function readWorkbook(data: ArrayBuffer): Promise<ParsedSheet> {
     wb.getWorksheet("Products") ?? wb.worksheets.find((w) => w.state !== "veryHidden" && w.rowCount > 1)
   if (!ws) throw new Error("There is no Products sheet in that file.")
 
-  const headings: string[] = []
-  ws.getRow(1).eachCell({ includeEmpty: true }, (cell, col) => {
-    headings[col - 1] = cellText(cell as Cell)
-  })
+  const rowTexts = (r: number) => {
+    const out: string[] = []
+    ws.getRow(r).eachCell({ includeEmpty: true }, (cell, col) => {
+      out[col - 1] = cellText(cell as Cell)
+    })
+    return out
+  }
+
+  // The headings are on row 1 in sheets made before 25 Nov 2026, and under the
+  // Google Drive link since.
+  let headRow = 1
+  for (let r = 1; r <= Math.min(6, ws.rowCount); r++) {
+    const keys = new Set(rowTexts(r).map((h) => HEADINGS[normaliseHeading(h ?? "")]))
+    if (keys.has("name") && keys.has("price")) {
+      headRow = r
+      break
+    }
+  }
+  const headings = rowTexts(headRow)
   const width = headings.length
+
+  let driveLink: string | null = null
+  for (let r = 1; r < headRow && !driveLink; r++) {
+    ws.getRow(r).eachCell((cell) => {
+      const target = (cell.value as { hyperlink?: unknown } | null)?.hyperlink
+      // A link shown as a name still points at the folder.
+      driveLink ??= linkIn(typeof target === "string" ? target : "") ?? linkIn(cellText(cell as Cell))
+    })
+  }
 
   // Pictures pasted into cells are floating drawings anchored to a position,
   // not cell values. The anchor's row is 0-based; the first picture per row wins.
@@ -360,7 +394,7 @@ export async function readWorkbook(data: ArrayBuffer): Promise<ParsedSheet> {
   const photoCol = headings.findIndex((h) => HEADINGS[normaliseHeading(h ?? "")] === "photo") + 1
 
   const body: { rowNumber: number; cells: string[] }[] = []
-  for (let r = 2; r <= ws.rowCount; r++) {
+  for (let r = headRow + 1; r <= ws.rowCount; r++) {
     const row = ws.getRow(r)
     const cells: string[] = []
     for (let c = 1; c <= width; c++) cells.push(cellText(row.getCell(c) as Cell))
@@ -368,7 +402,7 @@ export async function readWorkbook(data: ArrayBuffer): Promise<ParsedSheet> {
     const photo = photoCol ? (row.getCell(photoCol).value as { error?: string } | string | null) : null
     if (photo === "#VALUE!" || (typeof photo === "object" && photo?.error)) inCell.add(r)
   }
-  return parseGrid(headings, body, images, inCell)
+  return { ...parseGrid(headings, body, images, inCell), driveLink }
 }
 
 /** Undefined where the browser can't decode it (or outside a browser). */
@@ -399,7 +433,11 @@ export type PlanSize = {
   stockChanged: boolean
 }
 
-export type PlanPhoto = { kind: "image"; image: SheetImage } | { kind: "url"; url: string } | null
+export type PlanPhoto =
+  | { kind: "image"; image: SheetImage }
+  | { kind: "url"; url: string }
+  | { kind: "drive"; id: string; name: string }
+  | null
 
 export type PlanFlower = {
   /** nameKey of the flower's name. */
@@ -429,6 +467,8 @@ export type Plan = {
   tickColumns: string[]
   /** Tick column headings that match no category. */
   unknownColumns: string[]
+  /** How the Google Drive folder's photos matched, when there was one. */
+  drive: { photos: number; matched: number; unmatched: string[] } | null
   counts: { create: number; update: number; unchanged: number; skip: number; warnings: number }
 }
 
@@ -436,6 +476,14 @@ export type PlanContext = {
   products: ShopProduct[]
   categories: ShopCategory[]
   prices: ShopPrices
+  /** The photos in the Google Drive folder, when the sheet has one. */
+  drive?: DriveFolder
+}
+
+/** Photos already imported that are still in the folder: their versions say whether they changed. */
+export const driveIdsToCheck = (products: ShopProduct[], folder: DriveFolder) => {
+  const inFolder = new Set(folder.photos.map((p) => p.id))
+  return products.map((p) => driveNoteOf(p.metadata)?.id).filter((id): id is string => !!id && inFolder.has(id))
 }
 
 const endsIn9 = (n: number) => Math.round(n) % 10 === 9
@@ -486,6 +534,19 @@ export function planImport(sheet: ParsedSheet, ctx: PlanContext): Plan {
   )
 
   const flowers: PlanFlower[] = []
+
+  const folder = photosByName(ctx.drive)
+  const usedPhotos = new Set<string>()
+  const findPhoto = (names: (string | undefined)[], warnings: string[]): DriveFile | null => {
+    for (const name of names) {
+      const found = name ? folder.get(photoKey(name)) : undefined
+      if (!found) continue
+      found.forEach((p) => usedPhotos.add(p.id))
+      if (found.length > 1) warnings.push(`The folder has ${found.length} photos called "${found[0].name}": the first is used.`)
+      return found[0]
+    }
+    return null
+  }
 
   for (const group of groupRows(sheet.rows)) {
     const lead = group[0]
@@ -635,10 +696,27 @@ export function planImport(sheet: ParsedSheet, ctx: PlanContext): Plan {
 
     const imageRow = group.find((r) => r.image)
     const urlRow = group.find((r) => r.photoUrl)
+    const fileName = group.find((r) => r.photoFile)?.photoFile
+    const newUrl = urlRow && urlRow.photoUrl !== product?.thumbnail ? urlRow.photoUrl! : null
+    const linkedId = newUrl ? driveFileIdOf(newUrl) : null
+    // Looked up even when another photo wins, so it does not count as unmatched.
+    const inFolder = findPhoto(fileName ? [fileName] : [lead.name, product?.title], warnings)
     if (imageRow) plan.photo = { kind: "image", image: imageRow.image! }
-    else if (urlRow && urlRow.photoUrl !== product?.thumbnail) plan.photo = { kind: "url", url: urlRow.photoUrl! }
-    if (!imageRow && group.some((r) => r.photoFile)) {
-      warnings.push("A photo file name can't be opened from a phone — paste the photo into the sheet instead.")
+    else if (linkedId) plan.photo = { kind: "drive", id: linkedId, name: "the linked photo" }
+    else if (newUrl) plan.photo = { kind: "url", url: newUrl }
+    else if (inFolder) plan.photo = { kind: "drive", id: inFolder.id, name: inFolder.name }
+    if (plan.photo?.kind === "drive" && product?.thumbnail) {
+      // The same photo as last time, unless it has been replaced in Drive since.
+      const note = driveNoteOf(product.metadata)
+      const version = ctx.drive?.versions?.[plan.photo.id] ?? ""
+      if (note?.id === plan.photo.id && (!version || !note.version || note.version === version)) plan.photo = null
+    }
+    if (!imageRow && fileName && !inFolder) {
+      warnings.push(
+        ctx.drive
+          ? `The Google Drive folder has no photo called "${fileName}".`
+          : `The photo "${fileName}" needs the Google Drive folder it is in: paste the folder's link.`
+      )
     }
     const width = imageRow?.image?.width
     if (width && width < MIN_PHOTO_WIDTH) {
@@ -649,7 +727,9 @@ export function planImport(sheet: ParsedSheet, ctx: PlanContext): Plan {
     const inCell = !imageRow && group.some((r) => r.photoInCell)
     if (inCell) {
       warnings.push("The photo is set to Place in Cell, which can't be read. In Excel, right-click it and choose Place over Cells.")
-    } else if (!product && !plan.photo) warnings.push("No photo.")
+    } else if (!plan.photo && !product?.thumbnail && !fileName) {
+      warnings.push(ctx.drive ? `No photo: the Google Drive folder has none called "${lead.name}".` : "No photo.")
+    }
 
     if (!plan.sizes.length) {
       skip("none of its sizes could be used")
@@ -673,7 +753,7 @@ export function planImport(sheet: ParsedSheet, ctx: PlanContext): Plan {
     if (statusChanged) changes.push(plan.status === "published" ? "shown on the website" : "hidden")
     const descChanged = plan.description != null && plan.description.trim() !== (product.description ?? "").trim()
     if (descChanged) changes.push("new description")
-    if (plan.photo) changes.push("new photo")
+    if (plan.photo) changes.push(plan.photo.kind === "drive" ? `new photo: ${plan.photo.name}` : "new photo")
 
     plan.productChanged = catsChanged || statusChanged || descChanged
     const anything = plan.productChanged || !!plan.photo || plan.sizes.some((s) => s.priceChanged || s.stockChanged)
@@ -685,7 +765,14 @@ export function planImport(sheet: ParsedSheet, ctx: PlanContext): Plan {
     counts[f.action]++
     counts.warnings += f.warnings.length
   }
-  return { flowers, tickColumns: sheet.tickColumns, unknownColumns, counts }
+  const drive = ctx.drive
+    ? {
+        photos: ctx.drive.photos.length,
+        matched: usedPhotos.size,
+        unmatched: ctx.drive.photos.filter((p) => !usedPhotos.has(p.id)).map((p) => p.name),
+      }
+    : null
+  return { flowers, tickColumns: sheet.tickColumns, unknownColumns, drive, counts }
 }
 
 /* ---------------------------------------------------------------- writing */
@@ -706,7 +793,7 @@ type Column = {
 }
 
 const FIELDS: Column[] = [
-  { header: "Photo", key: "photo", width: 26, note: "Paste the photo here: copy it, click this cell, paste. It only has to start in this row." },
+  { header: "Photo", key: "photo", width: 26, note: "Leave it empty: the photo with the flower's name is taken from the Google Drive folder.\nIf the photo has another name, type that name here. You can also paste a picture." },
   { header: "Name", key: "name", width: 30, required: true, note: "The name customers see, e.g. Fifty Red Roses.\nTwo rows with the same name become two sizes of one flower." },
   { header: "Price (QAR)", key: "price", width: 13, required: true, number: true, note: "The normal price. Just the number, ending in 9: 279, not 280 or 279 QAR." },
   { header: "On offer?", key: "onOffer", width: 11, list: "yesno", note: "Yes = on offer: the normal price shows crossed out and the flower appears under Black Friday." },
@@ -719,6 +806,11 @@ const TRAILING: Column[] = [
   { header: "Size", key: "size", width: 11, note: "Leave blank unless the flower comes in sizes. Then one row per size, same name, e.g. Small / Large." },
   { header: "Show on website?", key: "publish", width: 13, list: "yesno", note: "Yes = on the website straight away. No = saved hidden, to check first. Blank = Yes for a new flower; an existing one stays as it is." },
 ]
+
+/** The Google Drive link is above the headings. */
+export const DRIVE_PLACEHOLDER = "paste google drive folder link here"
+const HEAD_ROW = 2
+const FIRST_ROW = HEAD_ROW + 1
 
 export type ExportRow = {
   photo?: string | null
@@ -783,12 +875,32 @@ export async function buildWorkbook(categoryNames: string[], rows?: ExportRow[])
   wb.created = new Date()
 
   const ws = wb.addWorksheet("Products", {
-    views: [{ state: "frozen", ySplit: 1, xSplit: 2 }],
-    properties: { defaultRowHeight: rows ? 20 : 110 } as ExcelJSNamespace.WorksheetProperties,
+    views: [{ state: "frozen", ySplit: HEAD_ROW, xSplit: 2 }],
+    properties: { defaultRowHeight: rows ? 20 : 32 } as ExcelJSNamespace.WorksheetProperties,
   })
   ws.columns = COLUMNS.map((c) => ({ key: c.key, width: c.width }))
 
-  const head = ws.getRow(1)
+  const bar = ws.getRow(1)
+  bar.height = 36
+  ws.mergeCells("B1:F1")
+  const label = ws.getCell("A1")
+  label.value = "Photos folder"
+  label.font = { bold: true, size: 12, color: { argb: ROSE } }
+  label.fill = { type: "pattern", pattern: "solid", fgColor: { argb: BLUSH } }
+  label.alignment = { vertical: "middle", horizontal: "center" }
+  const linkCell = ws.getCell("B1")
+  linkCell.value = DRIVE_PLACEHOLDER
+  linkCell.font = { size: 12, color: { argb: ROSE } }
+  linkCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFF2CC" } }
+  linkCell.alignment = { vertical: "middle", horizontal: "left", indent: 1 }
+  linkCell.border = { bottom: { style: "thin", color: { argb: ROSE } } }
+  linkCell.note = {
+    texts: [
+      { text: "One Google Drive folder with all the photos, shared with Anyone with the link. Name each photo like its flower, e.g. Fifty Red Roses.jpg" },
+    ],
+  } as ExcelJSNamespace.Comment
+
+  const head = ws.getRow(HEAD_ROW)
   head.height = 120 // room for the category names, which run upwards
   COLUMNS.forEach((c, i) => {
     const cell = head.getCell(i + 1)
@@ -811,9 +923,9 @@ export async function buildWorkbook(categoryNames: string[], rows?: ExportRow[])
   const letter = (key: string) => ws.getColumn(COLUMNS.findIndex((c) => c.key === key) + 1).letter
   const firstCat = CATS.length ? letter(CATS[0].key) : null
   const lastCat = CATS.length ? letter(CATS[CATS.length - 1].key) : null
-  const LAST = Math.max(301, (rows?.length ?? 0) + 51)
+  const LAST = Math.max(302, (rows?.length ?? 0) + 52)
 
-  for (let r = 2; r <= LAST; r++) {
+  for (let r = FIRST_ROW; r <= LAST; r++) {
     COLUMNS.forEach((c, i) => {
       const cell = ws.getRow(r).getCell(i + 1)
       cell.alignment = c.number || c.tick ? { vertical: "middle", horizontal: "center" } : { vertical: "middle", wrapText: true }
@@ -868,29 +980,29 @@ export async function buildWorkbook(categoryNames: string[], rows?: ExportRow[])
 
   const fill = (argb: string) => ({ fill: { type: "pattern" as const, pattern: "solid" as const, bgColor: { argb } } })
   ws.addConditionalFormatting({
-    ref: `${letter("offerPrice")}2:${letter("offerPrice")}${LAST}`,
-    rules: [{ type: "expression", priority: 1, formulae: [`AND(${letter("onOffer")}2="Yes",${letter("offerPrice")}2="")`], style: fill("FFF8B4C8") }],
+    ref: `${letter("offerPrice")}${FIRST_ROW}:${letter("offerPrice")}${LAST}`,
+    rules: [{ type: "expression", priority: 1, formulae: [`AND(${letter("onOffer")}${FIRST_ROW}="Yes",${letter("offerPrice")}${FIRST_ROW}="")`], style: fill("FFF8B4C8") }],
   })
   if (firstCat && lastCat) {
     ws.addConditionalFormatting({
-      ref: `${firstCat}2:${lastCat}${LAST}`,
-      rules: [{ type: "expression", priority: 2, formulae: [`${firstCat}2<>""`], style: fill("FFCFE3CC") }],
+      ref: `${firstCat}${FIRST_ROW}:${lastCat}${LAST}`,
+      rules: [{ type: "expression", priority: 2, formulae: [`${firstCat}${FIRST_ROW}<>""`], style: fill("FFCFE3CC") }],
     })
     ws.addConditionalFormatting({
-      ref: `${letter("name")}2:${letter("name")}${LAST}`,
+      ref: `${letter("name")}${FIRST_ROW}:${letter("name")}${LAST}`,
       rules: [
         {
           type: "expression",
           priority: 3,
-          formulae: [`AND(${letter("name")}2<>"",COUNTA(${firstCat}2:${lastCat}2)=0)`],
+          formulae: [`AND(${letter("name")}${FIRST_ROW}<>"",COUNTA(${firstCat}${FIRST_ROW}:${lastCat}${FIRST_ROW})=0)`],
           style: fill("FFF8B4C8"),
         },
       ],
     })
   }
   ws.addConditionalFormatting({
-    ref: `A2:${letter("publish")}${LAST}`,
-    rules: [{ type: "expression", priority: 4, formulae: ["MOD(ROW(),2)=1"], style: fill(PALE) }],
+    ref: `A${FIRST_ROW}:${letter("publish")}${LAST}`,
+    rules: [{ type: "expression", priority: 4, formulae: ["MOD(ROW(),2)=0"], style: fill(PALE) }],
   })
 
   const tickValues = (names: string[]) => {
@@ -904,7 +1016,7 @@ export async function buildWorkbook(categoryNames: string[], rows?: ExportRow[])
 
   if (rows) {
     rows.forEach((r, i) => {
-      const row = ws.getRow(i + 2)
+      const row = ws.getRow(i + FIRST_ROW)
       row.values = {
         photo: r.photo ? { text: r.photo, hyperlink: r.photo } : undefined,
         name: r.name,
@@ -920,9 +1032,8 @@ export async function buildWorkbook(categoryNames: string[], rows?: ExportRow[])
       row.height = r.description ? 60 : 24
     })
   } else {
-    const ex = ws.getRow(2)
+    const ex = ws.getRow(FIRST_ROW)
     ex.values = {
-      photo: "(paste photo here)",
       name: "EXAMPLE — Fifty Red Roses",
       price: 499,
       onOffer: "Yes",
@@ -933,7 +1044,7 @@ export async function buildWorkbook(categoryNames: string[], rows?: ExportRow[])
       publish: "Yes",
     } as unknown as ExcelJSNamespace.CellValue[]
     ex.font = { italic: true, color: { argb: "FF8A7A80" } }
-    const ex2 = ws.getRow(3)
+    const ex2 = ws.getRow(FIRST_ROW + 1)
     ex2.values = {
       name: "EXAMPLE — Fifty Red Roses",
       price: 899,
@@ -945,7 +1056,7 @@ export async function buildWorkbook(categoryNames: string[], rows?: ExportRow[])
     } as unknown as ExcelJSNamespace.CellValue[]
     ex2.font = { italic: true, color: { argb: "FF8A7A80" } }
     // A second size of the example: give the first one a size name too.
-    ws.getRow(2).getCell(COLUMNS.findIndex((c) => c.key === "size") + 1).value = "Small"
+    ws.getRow(FIRST_ROW).getCell(COLUMNS.findIndex((c) => c.key === "size") + 1).value = "Small"
   }
 
   const how = wb.addWorksheet("How to use")
@@ -953,12 +1064,14 @@ export async function buildWorkbook(categoryNames: string[], rows?: ExportRow[])
   const LINES: [string, string][] = [
     ["h", "Adding flowers — 5 steps"],
     ["p", "1.  Go to the Products tab. One row = one flower. The grey rows are an example; the import skips them."],
-    ["p", "2.  Paste the photo into the Photo cell: copy the picture, click the cell, paste. It only has to start in the right row."],
+    ["p", "2.  Photos: put them all in one Google Drive folder and name each photo exactly like its flower (Fifty Red Roses.jpg). In Drive choose Share, General access: Anyone with the link, then Copy link, and paste it in the yellow cell at the top."],
     ["p", "3.  Type the name and the price (a number ending in 9, like 279), and a short description."],
     ["p", `4.  Tick the categories it belongs in: click the cell under each one and choose ${TICK} (typing x works too). Tick as many as fit — at least one. A ticked cell turns green; a name with nothing ticked turns pink.`],
     ["p", "5.  On offer? Choose Yes and type the offer price. The website shows the normal price crossed out and puts the flower under Black Friday."],
     ["p", "Save it, then import it from the shop app: More → Spreadsheet → Import a sheet. Columns with * are required; the rest can stay empty."],
     ["h2", "Good to know"],
+    ["p", "•  Capitals, spaces, dashes and .jpg / .png in photo names do not matter. Leave the Photo cell empty; if a photo has another name, type that name in it."],
+    ["p", "•  Replace a photo in the folder and import again: only the photos that changed are updated. Pasting a picture into a Photo cell still works."],
     ["p", "•  The product code, web address and stock records are made automatically — don't add them."],
     ["p", "•  Same name on two rows + a Size on each = one flower with a size choice, each size its own price."],
     ["p", "•  A flower that already exists (same name) is updated: price, offer, stock, photo, description and categories. Its occasions are kept."],
@@ -1057,7 +1170,12 @@ const retrieveForStock = (id: string) =>
  */
 export async function applyFlower(
   f: PlanFlower,
-  ctx: { prices: ShopPrices; upload: Uploader }
+  ctx: {
+    prices: ShopPrices
+    upload: Uploader
+    /** Fetches a photo from the Google Drive folder, and what version it is. */
+    drivePhoto?: (id: string, name: string) => Promise<{ file: File; version: string }>
+  }
 ): Promise<string> {
   const saleListId = ctx.prices.sale_price_list_id
   let productId: string
@@ -1150,11 +1268,19 @@ export async function applyFlower(
     return "nothing to do"
   }
 
-  if (f.photo?.kind === "image") {
+  if (f.photo?.kind === "image" || f.photo?.kind === "drive") {
     try {
-      const url = await ctx.upload(imageFile(f.photo.image, f.name))
+      let file: File
+      let extra: Record<string, unknown> | undefined
+      if (f.photo.kind === "drive") {
+        if (!ctx.drivePhoto) throw new Error("the Google Drive folder was not read")
+        const got = await ctx.drivePhoto(f.photo.id, f.name)
+        file = got.file
+        extra = { drive_photo: { id: f.photo.id, version: got.version } }
+      } else file = imageFile(f.photo.image, f.name)
+      const url = await ctx.upload(file)
       await sdk.admin.product.update(productId, { thumbnail: url, images: [{ url }] })
-      await recordVariants(productId, url)
+      await recordVariants(productId, url, extra)
       notes.push("photo")
     } catch (err) {
       return `${notes.join(", ")} — but the photo did not upload: ${messageOf(err)}`

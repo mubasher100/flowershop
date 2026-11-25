@@ -94,14 +94,21 @@ export async function uploadPhoto(file: File): Promise<string> {
  * Record a photo's sizes on the product it now belongs to. Never throws: a
  * missing ladder only means the website serves that photo full size.
  */
-export async function recordVariants(productId: string, url: string | null | undefined) {
+export async function recordVariants(
+  productId: string,
+  url: string | null | undefined,
+  /** Anything else to remember about the photo (where in Drive it came from). */
+  extra?: Record<string, unknown>
+) {
   const ladder = url ? ladders.get(url) : undefined
-  if (!url || !ladder) return
+  if (!url || (!ladder && !extra)) return
   try {
     const { product } = await sdk.admin.product.retrieve(productId, { fields: "id,metadata" })
     const meta = (product.metadata ?? {}) as Record<string, unknown>
     // Keep only the current photo's ladder: an old photo's sizes are no use.
-    await sdk.admin.product.update(productId, { metadata: { ...meta, image_variants: { [url]: ladder } } })
+    await sdk.admin.product.update(productId, {
+      metadata: { ...meta, ...(ladder ? { image_variants: { [url]: ladder } } : {}), ...extra },
+    })
   } catch {
     /* sizes are optional */
   }
