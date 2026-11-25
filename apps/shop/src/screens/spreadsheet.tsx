@@ -12,16 +12,19 @@ import { Link } from "react-router-dom"
 import { Button, Spinner, cx, toast } from "../components/ui"
 import { messageOf, runLimited } from "../lib/bulk"
 import { useAfterSave, useCatalogue } from "../lib/data"
+import { fetchDrivePhoto, readFolder, readVersions, type DriveFolder } from "../lib/drive"
 import { sdk } from "../lib/sdk"
 import { uploadPhoto } from "../lib/variants"
 import {
   FILE_NAME,
   applyFlower,
   buildWorkbook,
+  driveIdsToCheck,
   exportRows,
   planImport,
   readWorkbook,
   sheetCategories,
+  type ParsedSheet,
   type Plan,
   type PlanFlower,
 } from "../lib/spreadsheet"
@@ -50,6 +53,12 @@ function save(data: ArrayBuffer, name: string) {
 /** Shrunk to 1600px, with the website's smaller sizes made too. */
 const upload = uploadPhoto
 
+/** One photo from the folder, with the version to remember it by. */
+async function drivePhoto(id: string, name: string) {
+  const versions = await readVersions([id]).catch(() => ({}) as Record<string, string>)
+  return { file: await fetchDrivePhoto(id, name), version: versions[id] ?? "" }
+}
+
 type Progress = { state: "waiting" | "working" | "done" | "failed"; note?: string }
 
 export default function Spreadsheet() {
@@ -64,6 +73,11 @@ export default function Spreadsheet() {
   const [plan, setPlan] = useState<Plan | null>(null)
   const [planPrices, setPlanPrices] = useState<ShopPrices | null>(null)
   const [readError, setReadError] = useState("")
+  const [sheet, setSheet] = useState<ParsedSheet | null>(null)
+  const [link, setLink] = useState("")
+  /** The link the plan on screen was made with. */
+  const [planLink, setPlanLink] = useState("")
+  const [driveError, setDriveError] = useState("")
   const [applying, setApplying] = useState(false)
   const [progress, setProgress] = useState<Record<string, Progress> | null>(null)
 
@@ -103,30 +117,54 @@ export default function Spreadsheet() {
     const file = e.target.files?.[0]
     e.target.value = ""
     if (!file) return
+    setSheet(null)
+    setFileName(file.name)
+    await read(async () => {
+      const parsed = await readWorkbook(await file.arrayBuffer())
+      if (!parsed.rows.length) throw new Error("There are no flowers in that sheet — every row is blank or an example.")
+      const folder = (parsed.driveLink ?? link).trim()
+      setLink(folder)
+      setSheet(parsed)
+      return { parsed, folder }
+    })
+  }
+
+  /** Make the plan, against the shop and the folder as they are now. */
+  async function read(source: () => Promise<{ parsed: ParsedSheet; folder: string }>) {
     setReading(true)
     setReadError("")
+    setDriveError("")
     setPlan(null)
     setProgress(null)
-    setFileName(file.name)
     try {
-      // Plan against the shop as it is now, not as it was when the screen opened.
-      const [sheet, [products, categories, prices]] = await Promise.all([
-        file.arrayBuffer().then(readWorkbook),
+      const { parsed, folder } = await source()
+      const [found, [products, categories, prices]] = await Promise.all([
+        folder
+          ? readFolder(folder).catch((err): DriveFolder | undefined => {
+              setDriveError(messageOf(err))
+              return undefined
+            })
+          : undefined,
         catalogue.refetch(),
       ])
       if (products.error || categories.error || prices.error) {
         throw products.error ?? categories.error ?? prices.error
       }
-      if (!sheet.rows.length) throw new Error("There are no flowers in that sheet — every row is blank or an example.")
+      const flowers = products.data?.products ?? []
+      const ids = found ? driveIdsToCheck(flowers, found) : []
+      // Not knowing a version only means the photo counts as unchanged.
+      const versions = ids.length ? await readVersions(ids).catch(() => ({})) : {}
       const current = prices.data ?? { sale_price_list_id: null, prices: {} }
       setPlan(
-        planImport(sheet, {
-          products: products.data?.products ?? [],
+        planImport(parsed, {
+          products: flowers,
           categories: categories.data?.product_categories ?? [],
           prices: current,
+          drive: found && { ...found, versions },
         })
       )
       setPlanPrices(current)
+      setPlanLink(folder)
     } catch (err) {
       setReadError(messageOf(err))
     } finally {
@@ -148,7 +186,7 @@ export default function Spreadsheet() {
     await runLimited(todo, 2, async (f) => {
       mark(f.key, { state: "working" })
       try {
-        const note = await applyFlower(f, { prices, upload })
+        const note = await applyFlower(f, { prices, upload, drivePhoto })
         mark(f.key, { state: "done", note })
         if (f.action === "create") added++
         else changed++
@@ -185,8 +223,8 @@ export default function Spreadsheet() {
       <section className="flex flex-col gap-2 rounded-2xl border border-ink-200 bg-white p-4">
         <h2 className="font-semibold">Download</h2>
         <p className="text-[15px] text-ink-600">
-          The sheet has one row per flower and a tick column for each category. Fill it in on a computer or in Excel on
-          the phone, then import it below.
+          The sheet has one row per flower and a tick column for each category. Photos come from one Google Drive
+          folder: paste its link at the top of the sheet and name each photo like its flower.
         </p>
         <Button variant="secondary" busy={making === "blank"} disabled={!!making} onClick={() => download("blank")}>
           Blank sheet with an example
@@ -195,7 +233,7 @@ export default function Spreadsheet() {
           All flowers, to edit as a price list
         </Button>
         <p className="text-sm text-ink-600">
-          In the full list, photos are links. Leave them as they are to keep a flower's photo, or paste a new picture over one.
+          In the full list, photos are links. Leave them as they are to keep a flower's photo.
         </p>
       </section>
 
@@ -205,6 +243,27 @@ export default function Spreadsheet() {
           <p className="text-[15px] text-ink-600">
             You will see what would change first. Nothing is saved until you tap Apply.
           </p>
+        )}
+        <label className="flex flex-col gap-1">
+          <span className="text-[15px] font-medium">Google Drive folder with the photos</span>
+          <input
+            type="url"
+            inputMode="url"
+            autoComplete="off"
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            disabled={applying}
+            placeholder="paste google drive folder link here"
+            className="min-h-[48px] rounded-xl border border-ink-300 bg-white px-3 text-base"
+          />
+          <span className="text-sm text-ink-600">
+            Leave it empty if the link is in the sheet. The folder must be shared with Anyone with the link.
+          </span>
+        </label>
+        {sheet && !progress && !reading && link.trim() !== planLink && (
+          <Button variant="secondary" onClick={() => read(async () => ({ parsed: sheet, folder: link.trim() }))}>
+            {link.trim() ? "Read this folder" : "Import without the folder"}
+          </Button>
         )}
         <Button onClick={() => input.current?.click()} busy={reading} disabled={applying}>
           {plan || readError ? "Choose another sheet" : "Choose a sheet (.xlsx)"}
@@ -227,6 +286,16 @@ export default function Spreadsheet() {
           <p role="alert" className="rounded-xl bg-blush-100 px-3 py-2 text-[15px] text-blush-700">
             {readError}
           </p>
+        )}
+        {driveError && (
+          <div role="alert" className="flex flex-col gap-2 rounded-xl bg-blush-100 px-3 py-2 text-[15px] text-blush-700">
+            <p>No photos were read from Google Drive. {driveError}</p>
+            {sheet && !applying && !progress && (
+              <Button variant="secondary" onClick={() => read(async () => ({ parsed: sheet, folder: link.trim() }))}>
+                Try the folder again
+              </Button>
+            )}
+          </div>
         )}
       </section>
 
@@ -284,6 +353,29 @@ function Report({ plan, fileName, progress }: { plan: Plan; fileName: string; pr
           These columns are not categories in the shop, so their ticks are ignored: <b>{plan.unknownColumns.join(", ")}</b>.
           Check the spelling, or add it in More → Categories first.
         </p>
+      )}
+      {plan.drive && (
+        <div className="flex flex-col gap-1 rounded-xl bg-sage-100 px-3 py-2 text-[15px] text-sage-900">
+          <p>
+            Google Drive folder: <b>{plan.drive.photos}</b> photo{plan.drive.photos === 1 ? "" : "s"},{" "}
+            <b>{plan.drive.matched}</b> matched to a flower in this sheet.
+          </p>
+          {plan.drive.unmatched.length > 0 && (
+            <details>
+              <summary className="min-h-[44px] cursor-pointer py-2 font-medium">
+                {plan.drive.unmatched.length} not matched
+              </summary>
+              <p className="pb-1 text-sm">
+                Rename each one like its flower, or type its name in that flower's Photo cell.
+              </p>
+              <ul className="list-disc ps-5 text-sm">
+                {plan.drive.unmatched.map((name, i) => (
+                  <li key={i} className="break-words">{name}</li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </div>
       )}
       {groups.map((g) => {
         const list = plan.flowers.filter((f) => f.action === g.action)
@@ -347,7 +439,7 @@ function FlowerLine({ f, progress }: { f: PlanFlower; progress?: Progress }) {
           {sizes}
           {f.onOffer ? " · on offer" : ""}
           {f.status === "draft" ? " · hidden" : ""}
-          {f.photo ? " · photo" : ""}
+          {f.photo ? (f.photo.kind === "drive" ? ` · photo: ${f.photo.name}` : " · photo") : ""}
         </span>
       ) : f.changes.length ? (
         <ul className="text-ink-700">

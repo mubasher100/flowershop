@@ -203,7 +203,8 @@ test("download the sample sheet, fill it in, see the check, apply it", async ({ 
   const ws = wb.worksheets[0]
   const col = (re: RegExp) => {
     let at = 0
-    ws.getRow(1).eachCell((c, i) => {
+    // Row 1 is the Google Drive link; the headings are under it.
+    ws.getRow(2).eachCell((c, i) => {
       if (!at && re.test(String(c.value ?? ""))) at = i
     })
     expect(at, `sheet has a ${re} column`).toBeGreaterThan(0)
@@ -246,6 +247,56 @@ test("download the sample sheet, fill it in, see the check, apply it", async ({ 
     expect(all.suggestedFilename()).toMatch(/^tulips-and-truffles-all-flowers-\d{4}-\d{2}-\d{2}\.xlsx$/)
   } finally {
     const p = await findProduct()
+    if (p) await api("DELETE", `/admin/products/${p.id}`).catch(() => undefined)
+  }
+})
+
+test("photos come from the sheet's Google Drive folder, by name", async ({ page }) => {
+  const folder = process.env.SHOP_TEST_DRIVE_FOLDER
+  const photo = process.env.SHOP_TEST_DRIVE_PHOTO
+  test.skip(!folder || !photo, "needs a shared folder: SHOP_TEST_DRIVE_FOLDER (link) and SHOP_TEST_DRIVE_PHOTO (a name in it)")
+  const name = `E2E Drive ${stamp()}`
+  await open(page, "/more/spreadsheet")
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: /blank|sample/i }).first().click()])
+  const blank = join(tmpdir(), `blank-${stamp()}.xlsx`)
+  await download.saveAs(blank)
+  const wb = new ExcelJS.Workbook()
+  await wb.xlsx.load(await readFile(blank))
+  const ws = wb.getWorksheet("Products")!
+  expect(ws.getCell("B1").value).toBe("paste google drive folder link here")
+  ws.getCell("B1").value = folder!
+  const heads = (ws.getRow(2).values as unknown[]).map((h) => String(h ?? ""))
+  const put = (re: RegExp, v: string | number) => (ws.getRow(6).getCell(heads.findIndex((h) => re.test(h))).value = v)
+  put(/^Name/, name)
+  put(/^Price/, 279)
+  put(/Hand-Tied Bouquets/, "✓")
+  put(/^Photo/, photo!.toUpperCase())
+  const filled = join(tmpdir(), `drive-${stamp()}.xlsx`)
+  await writeFile(filled, Buffer.from(await wb.xlsx.writeBuffer()))
+  const find = async () =>
+    (await api("GET", `/admin/products?q=${encodeURIComponent(name)}&fields=id,title,thumbnail,metadata`)).products.find((p: any) => p.title === name)
+  try {
+    await page.getByLabel("Spreadsheet file").setInputFiles(filled)
+    await expect(page.getByText(/matched to a flower in this sheet/)).toBeVisible({ timeout: 30_000 })
+    await expect(page.getByText(/photo: /).first()).toBeVisible()
+    await noSidewaysScroll(page)
+    await page.getByRole("button", { name: /^Apply: add 1/ }).click()
+    await expect.poll(async () => (await find())?.metadata?.drive_photo?.id, { timeout: 60_000 }).toBeTruthy()
+    const p = await find()
+    expect(p.metadata.drive_photo.version, "remembers which version it was").toBeTruthy()
+    expect(Object.keys(p.metadata.image_variants[p.thumbnail] ?? {}).length).toBeGreaterThan(1)
+    expect((await fetch(p.thumbnail)).headers.get("content-type")).toMatch(/^image\//)
+
+    // Importing the same sheet again does not upload the photo again.
+    await page.getByLabel("Spreadsheet file").setInputFiles(filled)
+    await expect(page.getByText(/Nothing in this sheet would change the shop/)).toBeVisible({ timeout: 30_000 })
+
+    // A folder that can't be read is said so, and the flower is still listed.
+    await page.getByLabel(/Google Drive folder/).fill("https://drive.google.com/drive/folders/1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+    await page.getByRole("button", { name: "Read this folder" }).click()
+    await expect(page.getByRole("alert")).toContainText("Anyone with the link", { timeout: 30_000 })
+  } finally {
+    const p = await find()
     if (p) await api("DELETE", `/admin/products/${p.id}`).catch(() => undefined)
   }
 })
