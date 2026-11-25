@@ -33,6 +33,7 @@ export type ShopProduct = {
   thumbnail: string | null
   status: "published" | "draft" | "proposed" | "rejected"
   categories?: { id: string }[]
+  metadata?: Record<string, unknown> | null
   variants?: ShopVariant[]
 }
 
@@ -87,7 +88,7 @@ export const STOCK_FIELDS = [
   "variants.inventory_items.inventory.location_levels.stocked_quantity",
 ].join(",")
 
-export const PRODUCT_FIELDS = `id,title,handle,description,thumbnail,status,categories.id,variants.id,variants.title,*variants.prices,${STOCK_FIELDS}`
+export const PRODUCT_FIELDS = `id,title,handle,description,thumbnail,status,metadata,categories.id,variants.id,variants.title,*variants.prices,${STOCK_FIELDS}`
 
 export const KEYS = {
   products: ["products"] as const,

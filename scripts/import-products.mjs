@@ -25,6 +25,8 @@ import sharp from "sharp"
 import { existsSync, readFileSync } from "node:fs"
 import path from "node:path"
 
+import { downloadPhoto, listPhotos, photoKey } from "./lib/drive-folder.mjs"
+
 const ROOT = path.resolve(import.meta.dirname, "..")
 
 /* ------------------------------------------------------------------ config */
@@ -257,9 +259,30 @@ async function readSheet() {
   // category of that name. They are listed before anything happens, and a
   // tick under a heading that is not a real category is reported per row —
   // so a mistyped heading still surfaces rather than vanishing.
+  //
+  // The headings are on row 1 in older sheets, and under the Google Drive
+  // folder link in sheets made since 25 Nov 2026.
+  let headRow = 1
+  for (let r = 1; r <= Math.min(6, ws.rowCount); r++) {
+    const keys = new Set()
+    ws.getRow(r).eachCell((cell) => keys.add(HEADINGS[normaliseHeading(cell.value)]))
+    if (keys.has("name") && keys.has("price")) {
+      headRow = r
+      break
+    }
+  }
+  let driveLink = null
+  for (let r = 1; r < headRow; r++) {
+    ws.getRow(r).eachCell((cell) => {
+      for (const text of [cell.value?.hyperlink, cellText(cell)]) {
+        if (!driveLink && typeof text === "string" && /drive\.google\.|https?:\/\//i.test(text)) driveLink = text
+      }
+    })
+  }
+
   const byKey = {}
   const tickColumns = []
-  ws.getRow(1).eachCell((cell, col) => {
+  ws.getRow(headRow).eachCell((cell, col) => {
     const key = HEADINGS[normaliseHeading(cell.value)]
     if (key && byKey[key]) return // first column of a meaning wins
     if (key) byKey[key] = col
@@ -273,7 +296,7 @@ async function readSheet() {
     if (!byKey[required]) {
       throw new Error(
         `The sheet has no "${required}" column. Headings found: ${ws
-          .getRow(1)
+          .getRow(headRow)
           .values.filter(Boolean)
           .join(", ")}`
       )
@@ -303,7 +326,7 @@ async function readSheet() {
   }
 
   const rows = []
-  for (let r = 2; r <= ws.rowCount; r++) {
+  for (let r = headRow + 1; r <= ws.rowCount; r++) {
     const row = ws.getRow(r)
     const get = (key) => (byKey[key] ? cellText(row.getCell(byKey[key])) : "")
     const num = (key) => (byKey[key] ? cellNumber(row.getCell(byKey[key])) : null)
@@ -359,13 +382,14 @@ async function readSheet() {
       colour: get("colour").toLowerCase(),
       stems: num("stems"),
       description: get("description"),
-      photoFile: get("photoFile"),
+      // A name typed in the Photo cell, but not a link or "(paste photo here)".
+      photoFile: get("photoFile") || (/^(https?:|[(#])/i.test(get("photo")) ? "" : get("photo")),
       publish: !/^no$/i.test(get("publish")),
       image: images.get(r) ?? null,
     })
   }
 
-  return rows
+  return { rows, driveLink }
 }
 
 /* ------------------------------------------------------------------ photos */
@@ -412,7 +436,7 @@ async function uploadImage(prepared) {
 /* ------------------------------------------------------------------- main */
 
 async function main() {
-  const rows = await readSheet()
+  const { rows, driveLink } = await readSheet()
   if (!rows.length) {
     console.log("No product rows found — every row after the header was blank.")
     return
@@ -436,6 +460,14 @@ async function main() {
       (APPLY ? "" : "   [DRY RUN — nothing will be written]") +
       "\n"
   )
+
+  let drivePhotos = null
+  if (driveLink) {
+    drivePhotos = await listPhotos(driveLink).catch((err) => {
+      throw new Error(`Google Drive folder: ${err.message}`)
+    })
+    console.log(`Photos:   ${drivePhotos.size} in the Google Drive folder\n`)
+  }
 
   await login()
 
@@ -632,8 +664,12 @@ async function main() {
     let imageUrl = null
     let imageSource = null
 
+    const inDrive = drivePhotos?.get(photoKey(lead.photoFile || lead.name))
     if (lead.image) {
       imageSource = "pasted into the sheet"
+    } else if (inDrive) {
+      imageSource = `Google Drive: ${inDrive.name}`
+      lead.driveId = inDrive.id
     } else if (lead.photoFile) {
       const candidate = path.resolve(path.dirname(SHEET), lead.photoFile)
       if (existsSync(candidate)) {
@@ -737,8 +773,9 @@ async function main() {
       // here leaves a product without a photo, which is reported and fixable
       // in the admin — never a file in R2 that nothing points at.
       let photoNote = ""
-      if (lead.image) {
+      if (lead.image || lead.driveId) {
         try {
+          if (!lead.image) lead.image = { buffer: await downloadPhoto(lead.driveId), extension: "file" }
           imageUrl = await uploadImage(await prepareImage(lead.image, handle))
           await admin("POST", `/admin/products/${productId}`, {
             images: [{ url: imageUrl }],

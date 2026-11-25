@@ -76,7 +76,7 @@ const FIELDS = [
     header: "Photo",
     key: "photo",
     width: 26,
-    note: "Paste the photo here: copy it, click this cell, paste. It only has to start in this row.",
+    note: "Leave it empty: the photo with the flower's name is taken from the Google Drive folder.\nIf the photo has another name, type that name here. You can also paste a picture.",
   },
   {
     header: "Name",
@@ -154,12 +154,31 @@ wb.created = new Date()
 
 /* ---------------------------------------------------------------- Products */
 const ws = wb.addWorksheet("Products", {
-  views: [{ state: "frozen", ySplit: 1, xSplit: 2 }],
-  properties: { defaultRowHeight: 110 },
+  views: [{ state: "frozen", ySplit: 2, xSplit: 2 }],
+  properties: { defaultRowHeight: 32 },
 })
 ws.columns = COLUMNS.map((c) => ({ key: c.key, width: c.width }))
 
-const head = ws.getRow(1)
+// The Google Drive link sits above the headings, as in the shop app's sheet
+// (apps/shop/src/lib/spreadsheet.ts).
+const HEAD_ROW = 2
+const FIRST_ROW = HEAD_ROW + 1
+ws.getRow(1).height = 36
+ws.mergeCells("B1:F1")
+Object.assign(ws.getCell("A1"), {
+  value: "Photos folder",
+  font: { bold: true, size: 12, color: { argb: ROSE } },
+  fill: { type: "pattern", pattern: "solid", fgColor: { argb: BLUSH } },
+  alignment: { vertical: "middle", horizontal: "center" },
+})
+Object.assign(ws.getCell("B1"), {
+  value: "paste google drive folder link here",
+  font: { size: 12, color: { argb: ROSE } },
+  fill: { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFF2CC" } },
+  alignment: { vertical: "middle", horizontal: "left", indent: 1 },
+})
+
+const head = ws.getRow(HEAD_ROW)
 head.height = 120 // room for the category names, which run upwards
 COLUMNS.forEach((c, i) => {
   const cell = head.getCell(i + 1)
@@ -187,9 +206,9 @@ const RANGES = { yesno: "Lists!$A$2:$A$3", tick: "Lists!$B$2:$B$2" }
 const letter = (key) => ws.getColumn(COLUMNS.findIndex((c) => c.key === key) + 1).letter
 const firstCat = letter(CATEGORY_COLUMNS[0].key)
 const lastCat = letter(CATEGORY_COLUMNS[CATEGORY_COLUMNS.length - 1].key)
-const LAST = 301
+const LAST = 302
 
-for (let r = 2; r <= LAST; r++) {
+for (let r = FIRST_ROW; r <= LAST; r++) {
   COLUMNS.forEach((c, i) => {
     const cell = ws.getRow(r).getCell(i + 1)
     cell.alignment = c.number || c.tick
@@ -247,57 +266,56 @@ for (let r = 2; r <= LAST; r++) {
 // Highlights, most important first (the first matching rule's fill wins).
 // "On offer? Yes" with no offer price: the cell that needs filling turns pink.
 ws.addConditionalFormatting({
-  ref: `${letter("offerPrice")}2:${letter("offerPrice")}${LAST}`,
+  ref: `${letter("offerPrice")}${FIRST_ROW}:${letter("offerPrice")}${LAST}`,
   rules: [
     {
       type: "expression",
-      formulae: [`AND(${letter("onOffer")}2="Yes",${letter("offerPrice")}2="")`],
+      formulae: [`AND(${letter("onOffer")}${FIRST_ROW}="Yes",${letter("offerPrice")}${FIRST_ROW}="")`],
       style: { fill: { type: "pattern", pattern: "solid", bgColor: { argb: "FFF8B4C8" } } },
     },
   ],
 })
 // A ticked category turns green, so a row's categories read at a glance.
 ws.addConditionalFormatting({
-  ref: `${firstCat}2:${lastCat}${LAST}`,
+  ref: `${firstCat}${FIRST_ROW}:${lastCat}${LAST}`,
   rules: [
     {
       type: "expression",
-      formulae: [`${firstCat}2<>""`],
+      formulae: [`${firstCat}${FIRST_ROW}<>""`],
       style: { fill: { type: "pattern", pattern: "solid", bgColor: { argb: "FFCFE3CC" } } },
     },
   ],
 })
 // A named flower with no category ticked: its name turns pink.
 ws.addConditionalFormatting({
-  ref: `${letter("name")}2:${letter("name")}${LAST}`,
+  ref: `${letter("name")}${FIRST_ROW}:${letter("name")}${LAST}`,
   rules: [
     {
       type: "expression",
-      formulae: [`AND(${letter("name")}2<>"",COUNTA(${firstCat}2:${lastCat}2)=0)`],
+      formulae: [`AND(${letter("name")}${FIRST_ROW}<>"",COUNTA(${firstCat}${FIRST_ROW}:${lastCat}${FIRST_ROW})=0)`],
       style: { fill: { type: "pattern", pattern: "solid", bgColor: { argb: "FFF8B4C8" } } },
     },
   ],
 })
 // Every other row a faint blush, so a long sheet stays easy to follow.
 ws.addConditionalFormatting({
-  ref: `A2:${letter("publish")}${LAST}`,
+  ref: `A${FIRST_ROW}:${letter("publish")}${LAST}`,
   rules: [
     {
       type: "expression",
-      formulae: ["MOD(ROW(),2)=1"],
+      formulae: ["MOD(ROW(),2)=0"],
       style: { fill: { type: "pattern", pattern: "solid", bgColor: { argb: PALE } } },
     },
   ],
 })
 
 /* ----------------------------------------------------------- Worked example */
-const ex = ws.getRow(2)
+const ex = ws.getRow(FIRST_ROW)
 const tickFor = (name) => {
   const i = categories.indexOf(name)
   return i >= 0 ? { [`cat_${i}`]: TICK } : {}
 }
 ex.values = {
-  photo: "(paste photo here)",
   name: "EXAMPLE — Fifty Red Roses",
   price: 499,
   onOffer: "Yes",
@@ -317,7 +335,7 @@ how.getColumn(1).width = 100
 const LINES = [
   ["h", "Adding flowers — 5 steps"],
   ["p", "1.  Go to the Products tab. One row = one flower. The grey row is an example; the import skips it."],
-  ["p", "2.  Paste the photo into the Photo cell: copy the picture, click the cell, paste. It only has to start in the right row."],
+  ["p", "2.  Photos: put them all in one Google Drive folder and name each photo exactly like its flower (Fifty Red Roses.jpg). In Drive choose Share, General access: Anyone with the link, then Copy link, and paste it in the yellow cell at the top."],
   ["p", "3.  Type the name and the price (a number ending in 9, like 279), and a short description."],
   ["p", `4.  Tick the categories it belongs in: click the cell under each one and choose ${TICK} (typing x works too). Tick as many as fit — at least one. A ticked cell turns green; a name with nothing ticked turns pink.`],
   ["p", "5.  On offer? Choose Yes and type the offer price. The website shows the normal price crossed out and puts the flower under Black Friday."],

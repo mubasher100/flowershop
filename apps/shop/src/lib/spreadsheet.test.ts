@@ -1,9 +1,11 @@
 import ExcelJS from "exceljs"
 import { describe, expect, it } from "vitest"
 
+import { driveFileIdOf, photoKey, type DriveFolder } from "./drive"
 import type { ShopCategory, ShopPrices, ShopProduct } from "./shop"
 import {
   buildWorkbook,
+  driveIdsToCheck,
   exportRows,
   groupRows,
   matchProduct,
@@ -319,5 +321,108 @@ describe("photos as Excel saves them", () => {
   it("reports a Place in Cell picture instead of only saying there is no photo", () => {
     const w = planImport(parseGrid(HEAD, [row(2, cells)], new Map(), new Set([2])), ctx).flowers[0].warnings
     expect(w).toEqual([expect.stringContaining("Place in Cell")])
+  })
+})
+
+describe("photos from a Google Drive folder", () => {
+  const folder: DriveFolder = {
+    photos: [
+      { id: "drive-red-0000000001", name: "FIFTY red-roses.JPG" },
+      { id: "drive-new-0000000001", name: "Lilac & Cream.png" },
+      { id: "drive-odd-0000000001", name: "IMG_2041.heic" },
+    ],
+  }
+  const red = { Name: "Fifty Red Roses", "Price (QAR)": "499", "50 Roses": "✓", Stock: "10", "Show on website?": "Yes" }
+  const plan = (rows: ReturnType<typeof row>[], ctx: Partial<PlanContext> = {}) =>
+    planImport(parseGrid(HEAD, rows), { ...CTX, drive: folder, ...ctx })
+  const imported = (version: string) => [
+    { ...PRODUCTS[0], metadata: { drive_photo: { id: "drive-red-0000000001", version } } },
+    PRODUCTS[1],
+  ]
+
+  it("matches names whatever the capitals, dashes, accents or file type", () => {
+    expect(photoKey("Two-Hundred_Roses & Lilies.JPG")).toBe(photoKey("two hundred roses and lilies"))
+    expect(photoKey("Valentine’s Rosé.heic")).toBe(photoKey("valentines rose"))
+    expect(photoKey("ورد أحمر.png")).toBe(photoKey("ورد أحمر"))
+    expect(photoKey("ورد أحمر")).not.toBe("")
+    expect(photoKey("50 Roses")).not.toBe(photoKey("50 Roses 2"))
+  })
+
+  it("gives each flower the photo with its name and lists the rest", () => {
+    const p = plan([row(3, red), row(4, { Name: "Lilac and Cream", "Price (QAR)": "279", "50 Roses": "✓" })])
+    expect(p.flowers.map((f) => f.photo)).toEqual([
+      { kind: "drive", id: "drive-red-0000000001", name: "FIFTY red-roses.JPG" },
+      { kind: "drive", id: "drive-new-0000000001", name: "Lilac & Cream.png" },
+    ])
+    expect(p.flowers[0].changes).toEqual(["new photo: FIFTY red-roses.JPG"])
+    expect(p.flowers[1].warnings).toEqual([])
+    expect(p.drive).toEqual({ photos: 3, matched: 2, unmatched: ["IMG_2041.heic"] })
+  })
+
+  it("says which new flower has no photo, and leaves an existing flower's photo alone", () => {
+    const p = plan([
+      row(3, { Name: "Nobody Knows", "Price (QAR)": "279", "50 Roses": "✓" }),
+      row(4, { ...red, Name: "Fifty Red Roses" }),
+    ], { drive: { photos: [] } })
+    expect(p.flowers[0].warnings).toEqual(['No photo: the Google Drive folder has none called "Nobody Knows".'])
+    expect(p.flowers[1]).toMatchObject({ action: "unchanged", photo: null, warnings: [] })
+  })
+
+  it("uses a name typed in the Photo cell, and reports one that is not there", () => {
+    const named = plan([row(3, { Name: "Lemon", "Price (QAR)": "279", "50 Roses": "✓", Photo: "IMG_2041" })])
+    expect(named.flowers[0].photo).toMatchObject({ id: "drive-odd-0000000001" })
+    const missing = plan([row(3, { Name: "Lemon", "Price (QAR)": "279", "50 Roses": "✓", Photo: "IMG_9.jpg" })])
+    expect(missing.flowers[0].photo).toBeNull()
+    expect(missing.flowers[0].warnings).toEqual(['The Google Drive folder has no photo called "IMG_9.jpg".'])
+  })
+
+  it("does not import the same photo twice, but does when it was replaced in Drive", () => {
+    const at = (was: string, now?: string) =>
+      plan([row(3, red)], {
+        products: imported(was),
+        drive: { ...folder, versions: now == null ? {} : { "drive-red-0000000001": now } },
+      }).flowers[0].action
+    expect(at("v1", "v1")).toBe("unchanged")
+    expect(at("v1", "v2")).toBe("update")
+    // Google did not say: assume it is the same one.
+    expect(at("v1")).toBe("unchanged")
+    expect(driveIdsToCheck(imported("v1"), folder)).toEqual(["drive-red-0000000001"])
+  })
+
+  it("lets a pasted picture win, without calling the folder's photo unmatched", () => {
+    const sheet = parseGrid(HEAD, [row(3, red)], new Map([[3, { data: new Uint8Array(1), extension: "png" }]]))
+    const p = planImport(sheet, { ...CTX, drive: folder })
+    expect(p.flowers[0].photo?.kind).toBe("image")
+    expect(p.drive?.unmatched).not.toContain("FIFTY red-roses.JPG")
+  })
+
+  it("treats a link to one Drive photo as a photo, not as the picture's address", () => {
+    const url = "https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUv/view?usp=sharing"
+    expect(driveFileIdOf(url)).toBe("1AbCdEfGhIjKlMnOpQrStUv")
+    expect(plan([row(3, { ...red, Photo: url })]).flowers[0].photo).toMatchObject({ kind: "drive", id: "1AbCdEfGhIjKlMnOpQrStUv" })
+  })
+
+  it("reads the link typed or pasted above the headings, and none from a blank sheet", async () => {
+    const link = "https://drive.google.com/drive/folders/1AbCdEfGhIjKlMnOpQrStUv?usp=sharing"
+    const blank = await buildWorkbook(["50 Roses"])
+    expect((await readWorkbook(blank)).driveLink).toBeNull()
+    for (const value of [link, { text: "Photos", hyperlink: link }]) {
+      const wb = new ExcelJS.Workbook()
+      await wb.xlsx.load(blank)
+      wb.getWorksheet("Products")!.getCell("B1").value = value
+      const sheet = await readWorkbook((await wb.xlsx.writeBuffer()) as ArrayBuffer)
+      expect(sheet.driveLink).toBe(link)
+      expect(sheet.tickColumns).toEqual(["50 Roses"])
+    }
+  })
+
+  it("still reads a sheet made before, with its headings on row 1", async () => {
+    const wb = new ExcelJS.Workbook()
+    const ws = wb.addWorksheet("Products")
+    ws.addRow(["Photo", "Name *", "Price (QAR) *", "50 Roses"])
+    ws.addRow(["(paste photo here)", "Old Sheet", 279, "✓"])
+    const sheet = await readWorkbook((await wb.xlsx.writeBuffer()) as ArrayBuffer)
+    expect(sheet.driveLink).toBeNull()
+    expect(sheet.rows).toMatchObject([{ rowNumber: 2, name: "Old Sheet", photoFile: "" }])
   })
 })
