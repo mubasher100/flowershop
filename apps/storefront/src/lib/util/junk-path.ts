@@ -3,7 +3,7 @@ const ROOT_FILES = new Set([
   "/robots.txt",
   "/sitemap.xml",
   "/favicon.ico",
-  "/icon.svg",
+  "/icon.png",
   "/icon1.png",
   "/apple-icon.png",
   "/opengraph-image.jpg",

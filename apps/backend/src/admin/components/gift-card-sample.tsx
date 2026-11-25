@@ -3,7 +3,6 @@ import { Button, Container, Heading, Label, Text, Textarea, toast } from "@medus
 import { useState } from "react"
 
 import { printSampleCard } from "../lib/gift-card"
-import { useLabelLogo } from "../lib/use-label-logo"
 
 /**
  * A test card with any message, for checking the printer, the L-size card
@@ -15,11 +14,10 @@ const SAMPLE =
   "Happy birthday, Noor! Wishing you a year as bright and beautiful as these flowers. With all our love."
 
 const GiftCardSample = () => {
-  const { logo } = useLabelLogo()
   const [message, setMessage] = useState(SAMPLE)
 
   const print = () => {
-    const result = printSampleCard(message, logo)
+    const result = printSampleCard(message)
     if (result === "none") toast.error("Write a message to print first.")
     if (result === "blocked") {
       toast.error("Your browser blocked the print window. Allow pop-ups for this site and try again.")
@@ -31,10 +29,9 @@ const GiftCardSample = () => {
       <div className="px-6 py-4">
         <Heading level="h2">Gift card</Heading>
         <Text size="small" className="text-ui-fg-subtle">
-          Cards print on L size (89 × 127 mm), fed upright: your label logo on one side, the
-          message on the other, sized to fill the card. Print a sample to check the printer —
-          in the print window choose paper size L, margins None, and two-sided printing if your
-          printer has it.
+          Cards print on L size (89 × 127 mm), fed upright: the message on one side, sized to
+          fill the card. Print a sample to check the printer — in the print window choose paper
+          size L, margins None, and one-sided.
         </Text>
       </div>
 
@@ -50,8 +47,7 @@ const GiftCardSample = () => {
             onChange={(e) => setMessage(e.target.value)}
           />
           <Text size="small" leading="compact" className="text-ui-fg-subtle">
-            {message.trim().length} characters. Customers can write up to 200 on a flower and 300
-            at checkout; anything longer simply prints smaller.
+            {message.trim().length} characters. Customers can write up to 300 at checkout; anything longer simply prints smaller.
           </Text>
         </div>
         <div>

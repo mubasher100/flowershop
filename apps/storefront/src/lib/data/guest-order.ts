@@ -11,12 +11,18 @@ import { listDeliveryAvailability } from "@lib/data/delivery-availability"
 import { getTranslations } from "@lib/i18n/dictionary"
 import {
   FIELD_LIMITS,
+  earliestStandardDate,
   isDeliveryArea,
   MIDNIGHT_WINDOW,
   midnightAvailability,
   qatarClock,
   windowsFor,
 } from "@lib/util/delivery"
+import {
+  BLACK_FRIDAY_DAYS,
+  bagHasSale,
+  openBlackFridayDays,
+} from "@lib/util/black-friday"
 import { unstable_rethrow } from "next/navigation"
 
 /**
@@ -225,6 +231,21 @@ export async function placeGuestOrder(
 
   const cart = await retrieveCart()
   if (!cart) return { error: t("err.emptyBag") }
+
+  // A bag with a Black Friday flower goes out on the Black Friday days only.
+  // The form offers nothing else, but a checkout opened earlier still might.
+  if (bagHasSale(cart.items) && !BLACK_FRIDAY_DAYS.includes(deliveryDate)) {
+    const floor = !isMidnight
+      ? earliestStandardDate(clock)
+      : midnightAvailability(clock.date, clock) === "closed"
+        ? clock.tomorrow
+        : clock.date
+    const days = openBlackFridayDays(
+      floor,
+      await listDeliveryAvailability([...BLACK_FRIDAY_DAYS])
+    )
+    if (days.length) return { error: t("err.saleDays") }
+  }
 
   // The address belongs to whoever is receiving the flowers; the buyer's own
   // name and number stay on the order as the contact. Before this the label

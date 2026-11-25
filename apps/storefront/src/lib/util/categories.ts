@@ -166,8 +166,8 @@ export const occasionCategories = <T extends CategoryLike>(all: T[] | null | und
  */
 const ARABIC_DESCRIPTIONS: Record<string, [string, string]> = {
   "hot-deals": [
-    "Black Friday prices, now. Order today and choose a delivery day after Black Friday.",
-    "أسعار الجمعة البيضاء الآن. اطلب اليوم واختر يوم التوصيل بعد الجمعة البيضاء.",
+    "Black Friday prices. Delivered Thursday 26 to Sunday 29 November.",
+    "أسعار الجمعة البيضاء. التوصيل من الخميس ٢٦ إلى الأحد ٢٩ نوفمبر.",
   ],
   "big-bouquets": [
     "50 to 300 roses, built as a single armful.",
@@ -183,6 +183,14 @@ const ARABIC_DESCRIPTIONS: Record<string, [string, string]> = {
   ],
 }
 
+/**
+ * What Medusa still says about Black Friday. Delivery is no longer after it
+ * (25 Nov 2026), so the new line shows until the description is rewritten in
+ * the shop app (More → Categories), which then wins.
+ */
+const OLD_BLACK_FRIDAY =
+  "Black Friday prices, now. Order today and choose a delivery day after Black Friday."
+
 /** A category's description in the visitor's language. */
 export function localizedCategoryDescription(
   handle: string | null | undefined,
@@ -191,6 +199,7 @@ export function localizedCategoryDescription(
   metadata?: Record<string, unknown> | null
 ): string {
   const pair = handle ? ARABIC_DESCRIPTIONS[handle] : undefined
+  if (pair && description?.trim() === OLD_BLACK_FRIDAY) description = pair[0]
   if (localeOf(segment) === "ar") {
     const own = metadata?.description_ar
     if (typeof own === "string" && own.trim()) return own.trim()

@@ -29,8 +29,9 @@ export const DELIVERY_AREAS = [
   "Muaither",
 ] as const
 
+// Deliveries start at 12pm since 25 Nov 2026 (the shop's request). The hours
+// in the dictionary's "delivery.window" have to match.
 export const DELIVERY_WINDOWS = [
-  "10am – 12pm",
   "12pm – 2pm",
   "2pm – 4pm",
   "4pm – 6pm",

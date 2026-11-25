@@ -24,8 +24,11 @@ export const DICTIONARY = {
     "nav.shopAll": "Shop all flowers",
     "bf.eyebrow": "Black Friday",
     "bf.title": "Can't wait for Black Friday?",
-    "bf.body": "Shop Black Friday prices now and reserve your delivery for any day after Black Friday.",
+    "bf.body": "Shop Black Friday prices now. Delivered Thursday 26 to Sunday 29 November.",
     "bf.cta": "Shop now",
+    "bf.delivery": "Delivered on Black Friday days: Thursday 26 to Sunday 29 November",
+    "bf.checkoutDays":
+      "Your bag has Black Friday flowers. They are delivered Thursday 26 to Sunday 29 November, so please choose one of these days.",
     "bf.close": "Close",
     "nav.close": "Close menu",
     "nav.open": "Open menu",
@@ -60,13 +63,8 @@ export const DICTIONARY = {
     "product.soldOutSize": "Sold out in this size",
     "product.onlyLeft": "Only {count} left",
     "product.inStock": "In stock — {count} available",
-    // Personalisation, on the product page
-    "personalise.heading": "Make it personal",
-    "personalise.optional": "Optional",
+    // A message written on a flower before 25 Nov 2026 (bags from then)
     "personalise.note": "Gift message",
-    "personalise.notePlaceholder":
-      "Handwritten on a card and sealed with the flowers.",
-    "personalise.noteRemaining": "{count} characters left",
 
     "product.flowerCare": "Flower care",
     "product.delivery": "Delivery",
@@ -83,7 +81,7 @@ export const DICTIONARY = {
     "delivery.sameDayLabel": "Same-day across Doha",
     "delivery.sameDayBody": "order before 8pm and it arrives today.",
     "delivery.window":
-      "Choose a two-hour window at checkout, any time from 10am to 9pm.",
+      "Choose a two-hour window at checkout, any time from 12pm to 9pm.",
     "delivery.fresh":
       "Every arrangement is made the morning it goes out. Nothing sits in a fridge waiting for an order.",
     "delivery.confirm":
@@ -308,13 +306,11 @@ export const DICTIONARY = {
     "contact.sendHint": "This opens WhatsApp with your question ready to send, so you keep a copy of the conversation.",
     "contact.fromLabel": "From",
     "contact.fallbackMessage": "Hello! I have a question.",
-    "personalise.preview": "On the card",
     "card.show": "Show a sample card",
     "card.title": "Your card",
-    "card.intro": "How your card will look, shown smaller. The real card is 12.7 × 8.9 cm, and your message is sized to fill its back.",
-    "card.front": "Front",
-    "card.back": "Back: your message",
-    "card.backExample": "Back: example message",
+    "card.intro": "How your card will look, shown smaller. The real card is 12.7 × 8.9 cm, and your message is sized to fill it.",
+    "card.back": "Your message",
+    "card.backExample": "Example message",
     "card.example": "Happy birthday, Sara! Wishing you a year as lovely as these flowers. With love, Omar",
     "card.exampleHint": "Write your message and it will appear here instead.",
     "card.done": "Done",
@@ -354,6 +350,8 @@ export const DICTIONARY = {
     "err.recipientPhone":
       "Please add the recipient's phone number so our driver can reach them.",
     "err.dayClosed": "We are not delivering on that date. Please choose another day.",
+    "err.saleDays":
+      "Black Friday flowers are delivered Thursday 26 to Sunday 29 November. Please choose one of these days.",
     "err.dayFull": "That day is fully booked. Please choose another date.",
     "err.windowFull": "That delivery window is fully booked. Please choose another time.",
     "err.datePassed": "Please choose a delivery date that has not passed.",
@@ -584,8 +582,11 @@ export const DICTIONARY = {
     "nav.shopAll": "تسوق كل الورود",
     "bf.eyebrow": "الجمعة البيضاء",
     "bf.title": "لا تستطيع انتظار الجمعة البيضاء؟",
-    "bf.body": "تسوّق بأسعار الجمعة البيضاء الآن واحجز التوصيل لأي يوم بعد الجمعة البيضاء.",
+    "bf.body": "تسوّق بأسعار الجمعة البيضاء الآن. التوصيل من الخميس ٢٦ إلى الأحد ٢٩ نوفمبر.",
     "bf.cta": "تسوّق الآن",
+    "bf.delivery": "التوصيل في أيام الجمعة البيضاء: من الخميس ٢٦ إلى الأحد ٢٩ نوفمبر",
+    "bf.checkoutDays":
+      "تحتوي سلتك على ورود الجمعة البيضاء، وتُوصَّل من الخميس ٢٦ إلى الأحد ٢٩ نوفمبر. يُرجى اختيار أحد هذه الأيام.",
     "bf.close": "إغلاق",
     "nav.close": "إغلاق القائمة",
     "nav.open": "فتح القائمة",
@@ -617,11 +618,7 @@ export const DICTIONARY = {
     "product.soldOutSize": "نفدت الكمية بهذا الحجم",
     "product.onlyLeft": "بقي {count} فقط",
     "product.inStock": "متوفر — {count} قطعة",
-    "personalise.heading": "أضف لمستك الخاصة",
-    "personalise.optional": "اختياري",
     "personalise.note": "بطاقة إهداء",
-    "personalise.notePlaceholder": "تُكتب بخط اليد على بطاقة وتُرفق مع الورود.",
-    "personalise.noteRemaining": "بقي {count} حرفاً",
 
     "product.flowerCare": "العناية بالورود",
     "product.delivery": "التوصيل",
@@ -637,7 +634,7 @@ export const DICTIONARY = {
     "delivery.sameDayLabel": "توصيل في نفس اليوم داخل الدوحة",
     "delivery.sameDayBody": "اطلب قبل ٨ مساءً ويصلك اليوم.",
     "delivery.window":
-      "اختر فترة زمنية من ساعتين عند إتمام الطلب، من ١٠ صباحاً حتى ٩ مساءً.",
+      "اختر فترة زمنية من ساعتين عند إتمام الطلب، من ١٢ ظهراً حتى ٩ مساءً.",
     "delivery.fresh":
       "تُنسّق كل باقة صباح يوم التوصيل. لا شيء ينتظر في الثلاجة حتى يأتي طلب.",
     "delivery.confirm":
@@ -849,13 +846,11 @@ export const DICTIONARY = {
     "contact.sendHint": "سيفتح واتساب ورسالتك جاهزة للإرسال، وتبقى نسخة من المحادثة لديك.",
     "contact.fromLabel": "من",
     "contact.fallbackMessage": "مرحباً! لدي سؤال.",
-    "personalise.preview": "على البطاقة",
     "card.show": "عرض نموذج البطاقة",
     "card.title": "بطاقتك",
-    "card.intro": "هكذا ستبدو بطاقتك بحجم أصغر. مقاس البطاقة الفعلي 12.7 × 8.9 سم، ويُكبَّر خط رسالتك ليملأ ظهرها.",
-    "card.front": "الوجه الأمامي",
-    "card.back": "الوجه الخلفي: رسالتك",
-    "card.backExample": "الوجه الخلفي: رسالة توضيحية",
+    "card.intro": "هكذا ستبدو بطاقتك بحجم أصغر. مقاس البطاقة الفعلي 12.7 × 8.9 سم، ويُكبَّر خط رسالتك ليملأها.",
+    "card.back": "رسالتك",
+    "card.backExample": "رسالة توضيحية",
     "card.example": "عيد ميلاد سعيد يا سارة! أتمنى لكِ عاماً جميلاً كهذه الورود. مع حبي، عمر",
     "card.exampleHint": "اكتب رسالتك وستظهر هنا بدلاً منها.",
     "card.done": "تم",
@@ -894,6 +889,8 @@ export const DICTIONARY = {
     "err.delivery": "يُرجى اختيار نوع التوصيل.",
     "err.recipientPhone": "يُرجى إضافة رقم هاتف المستلم ليتمكن السائق من الوصول إليه.",
     "err.dayClosed": "لا نوصّل في هذا التاريخ. يُرجى اختيار يوم آخر.",
+    "err.saleDays":
+      "تُوصَّل ورود الجمعة البيضاء من الخميس ٢٦ إلى الأحد ٢٩ نوفمبر. يُرجى اختيار أحد هذه الأيام.",
     "err.dayFull": "هذا اليوم محجوز بالكامل. يُرجى اختيار تاريخ آخر.",
     "err.windowFull": "فترة التوصيل هذه محجوزة بالكامل. يُرجى اختيار وقت آخر.",
     "err.datePassed": "يُرجى اختيار تاريخ توصيل لم يمضِ بعد.",

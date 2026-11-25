@@ -10,6 +10,9 @@ import SkeletonRelatedProducts from "@modules/skeletons/templates/skeleton-relat
 import { notFound } from "next/navigation"
 import { HttpTypes } from "@medusajs/types"
 
+import { isSaleVariant } from "@lib/util/black-friday"
+import SaleDelivery from "@modules/products/components/sale-delivery"
+
 import ProductActionsWrapper from "./product-actions-wrapper"
 
 type ProductTemplateProps = {
@@ -42,6 +45,7 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
   }
 
   const { t } = getTranslations(countryCode)
+  const sale = !!product.variants?.some(isSaleVariant)
 
   return (
     <>
@@ -71,16 +75,25 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
           {/* Delivery promise sits with the buy button rather than inside an
               accordion — for flower gifting it is the question that decides
               the purchase, so it should not need a tap to reveal. */}
-          <div className="flex flex-col gap-1 rounded-2xl bg-blush-50 p-4">
-            <p className="text-sm font-semibold text-ink-900">
-              {t("promise.title")}
-            </p>
-            <p className="text-sm leading-relaxed text-ink-600">
-              {t("product.promiseBody")}
-            </p>
-          </div>
+          <SaleDelivery
+            sale={sale}
+            after={
+              <div className="flex flex-col gap-1 rounded-2xl bg-blush-50 p-4">
+                <p className="text-sm font-semibold text-ink-900">
+                  {t("promise.title")}
+                </p>
+                <p className="text-sm leading-relaxed text-ink-600">
+                  {t("product.promiseBody")}
+                </p>
+              </div>
+            }
+          >
+            {/* Not on a Black Friday flower: it has its own days, shown by
+                the buy button. */}
+            {null}
+          </SaleDelivery>
 
-          <ProductTabs />
+          <ProductTabs sale={sale} />
         </div>
       </div>
 
